@@ -1,6 +1,7 @@
 import { LowDb } from "./Adapter/LowDb/LowDb";
 import { DatabaseConfig } from "./DatabaseConfig";
 
+//Responsible for creating object of the correct adapter based on config
 export class DatabaseFactory {
     public static createAdapter(config: DatabaseConfig) {
         switch (config.dbType) {
