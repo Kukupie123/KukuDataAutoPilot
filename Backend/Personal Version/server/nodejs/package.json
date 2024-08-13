@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "build": "npx tsc",
-    "start": "npx ts-node main.ts",
+    "start": "npx ts-node src/main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "kukukodes",
