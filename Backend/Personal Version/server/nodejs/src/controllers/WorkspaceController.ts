@@ -1,28 +1,15 @@
-import { Request, Response } from 'express';
-import { WorkspaceModel } from '../models/WorkspaceModel';
-import { DatabaseService } from '../services/database/DatabaseService';
-import { DatabaseConfig } from '../services/database/config/DatabaseConfig';
-import { IController } from './IController';
+import { Request, Response } from "express";
+import { DatabaseFactory } from "../database/Factory/DatabaseFactory";
+import { IDatabaseAdapter } from "../database/IDatabaseAdapter";
+import { IController } from "./IController";
 
 export class WorkspaceController implements IController {
-    private dbService!: DatabaseService;
+    private db!: IDatabaseAdapter;
 
-    async initializeController(): Promise<void> {
-        try {
-            /*
-            The Singleton design pattern is used here to ensure that only one instance of the DatabaseService is active.
-            This is crucial for resource management, as database connections can be costly. The method is asynchronous
-            because establishing a database connection involves I/O operations that are not performed synchronously.
-            */
-            this.dbService = await DatabaseService.getInstance(new DatabaseConfig());
-        } catch (error) {
-            console.error("Error initializing DatabaseService:", error);
-            throw new Error("Database service initialization failed");
-        }
+    async initController(): Promise<void> {
+        this.db = await DatabaseFactory.Build();
     }
-
-
-    async foo(req: Request, resp: Response): Promise<void> {
-        resp.send("FOO");
+    async foo(req: Request, res: Response): Promise<void> {
+        res.send("FOO")
     }
 }

@@ -1,5 +1,5 @@
 import express from 'express';
-import { ControllerFactory } from './controllers/ControllerFactory';
+import { ControllerFactory } from './controllers/factory/ControllerFactory';
 import { WorkspaceController } from './controllers/WorkspaceController';
 
 const startServer = async () => {
@@ -14,7 +14,7 @@ const startServer = async () => {
     It abstracts the instantiation process, allowing for centralized management of controller creation,
     including any required initialization or dependency injection, ensuring that the controllers are ready to use.
     */
-    const workspaceController = await ControllerFactory.BUILD(WorkspaceController);
+    const workspaceController = await ControllerFactory.Build<WorkspaceController>(WorkspaceController);
 
     let rootRoute = "/workspaces";
     router.post(rootRoute, workspaceController.foo); // Create Workspace

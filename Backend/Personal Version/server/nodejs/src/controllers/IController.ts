@@ -1,3 +1,3 @@
 export interface IController {
-    initializeController(): Promise<void>;
+    initController(): Promise<void>;
 }
