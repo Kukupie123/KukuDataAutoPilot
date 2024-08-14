@@ -1,30 +1,31 @@
 import express from 'express';
-import { WorkspaceRoute } from "./routes/WorkspaceRoute";
-import { Workspace as WorkspaceEndpoint } from "./util/RouteEndpoints";
 import { ControllerFactory } from './controllers/ControllerFactory';
 import { WorkspaceController } from './controllers/WorkspaceController';
-
-
-
-// Start the server
-
-
 
 const startServer = async () => {
     const app = express();
     app.use(express.json()); // Middleware to parse JSON bodies
 
+    // Routes initialization
     const router = express.Router();
-    //Workspace route
+
+    /*
+    The Factory design pattern is used to create instances of controllers.
+    It abstracts the instantiation process, allowing for centralized management of controller creation,
+    including any required initialization or dependency injection, ensuring that the controllers are ready to use.
+    */
     const workspaceController = await ControllerFactory.BUILD(WorkspaceController);
-    let rootRoute = WorkspaceEndpoint;
-    router.post(rootRoute, workspaceController.foo);
+
+    let rootRoute = "/workspaces";
+    router.post(rootRoute, workspaceController.foo); // Create Workspace
     router.get(rootRoute + '/:id', workspaceController.foo); // Get Workspace
     router.put(rootRoute + '/:id', workspaceController.foo); // Update Workspace
     router.delete(rootRoute + '/:id', workspaceController.foo); // Delete Workspace
-    router.get(rootRoute + '/', workspaceController.foo); // List Workspaces
+    router.get(rootRoute, workspaceController.foo); // List Workspaces
 
-    //Start
+    app.use('/api', router);
+
+    // Start
     const PORT = 3000;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);

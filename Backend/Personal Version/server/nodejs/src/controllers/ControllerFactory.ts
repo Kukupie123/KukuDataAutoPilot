@@ -13,7 +13,7 @@ export class ControllerFactory {
     */
     public static async BUILD<T extends IController>(ControllerClass: { new(...args: any[]): T }): Promise<T> {
         const a = new ControllerClass();
-        await a.initializeController();
+        await a.initializeController(); //initialize the controller before returning it to make sure every async operation is complete before returning
         return a;
     }
 }

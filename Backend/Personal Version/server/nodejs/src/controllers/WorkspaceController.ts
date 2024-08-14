@@ -9,6 +9,11 @@ export class WorkspaceController implements IController {
 
     async initializeController(): Promise<void> {
         try {
+            /*
+            The Singleton design pattern is used here to ensure that only one instance of the DatabaseService is active.
+            This is crucial for resource management, as database connections can be costly. The method is asynchronous
+            because establishing a database connection involves I/O operations that are not performed synchronously.
+            */
             this.dbService = await DatabaseService.getInstance(new DatabaseConfig());
         } catch (error) {
             console.error("Error initializing DatabaseService:", error);
@@ -16,7 +21,8 @@ export class WorkspaceController implements IController {
         }
     }
 
-    async foo(req: Request, resp: Response): Promise<void> {
 
+    async foo(req: Request, resp: Response): Promise<void> {
+        resp.send("FOO");
     }
 }
