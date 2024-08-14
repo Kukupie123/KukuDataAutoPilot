@@ -1,4 +1,4 @@
-export class Workspace {
+export class WorkspaceModel {
     public name: string;
     public desc?: string;
     public created?: Date;

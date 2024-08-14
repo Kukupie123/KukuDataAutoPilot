@@ -1,17 +1,22 @@
 import { Request, Response } from 'express';
-import { Workspace } from '../services/database/models/Workspace';
-export class WorkspaceController {
-    async createWorkspace(req: Request, res: Response) {
-        const workspace = req.body as Workspace;
-        if (!workspace.name) {
-            res.statusCode = 400;
-            res.json({ msg: `"name" is missing from payload` });
-            return;
+import { WorkspaceModel } from '../models/WorkspaceModel';
+import { DatabaseService } from '../services/database/DatabaseService';
+import { DatabaseConfig } from '../services/database/config/DatabaseConfig';
+import { IController } from './IController';
+
+export class WorkspaceController implements IController {
+    private dbService!: DatabaseService;
+
+    async initializeController(): Promise<void> {
+        try {
+            this.dbService = await DatabaseService.getInstance(new DatabaseConfig());
+        } catch (error) {
+            console.error("Error initializing DatabaseService:", error);
+            throw new Error("Database service initialization failed");
         }
-        res.json({
-            name: workspace.name
-        })
+    }
+
+    async foo(req: Request, resp: Response): Promise<void> {
+
     }
 }
-
-
