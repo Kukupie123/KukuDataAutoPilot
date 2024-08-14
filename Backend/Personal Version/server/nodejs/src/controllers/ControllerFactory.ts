@@ -1,6 +1,5 @@
 import { IController } from "./IController";
 
-// src/factories/ControllerFactory.ts
 export class ControllerFactory {
     /*
     { new(...args: any[]): T } syntax represents a constructor signature in a type or interface. This pattern is useful for defining types for class constructors, allowing you to create instances of classes generically.
