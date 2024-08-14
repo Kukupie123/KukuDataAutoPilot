@@ -1,11 +1,12 @@
 import express from 'express';
-import workspaceRoutes from "./routes/WorkspaceRoute";
+import { WorkspaceRoute } from "./routes/WorkspaceRoute";
 
 const app = express();
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // routes
-app.use('/api/workspaces', workspaceRoutes);
+const workspaceRoute = new WorkspaceRoute();
+app.use('/api/workspaces', workspaceRoute.router);
 
 // Start the server
 const PORT = 3000;

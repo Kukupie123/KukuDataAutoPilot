@@ -1,26 +1,17 @@
 import { Request, Response } from 'express';
+import { Workspace } from '../services/database/models/Workspace';
+export class WorkspaceController {
+    async createWorkspace(req: Request, res: Response) {
+        const workspace = req.body as Workspace;
+        if (!workspace.name) {
+            res.statusCode = 400;
+            res.json({ msg: `"name" is missing from payload` });
+            return;
+        }
+        res.json({
+            name: workspace.name
+        })
+    }
+}
 
-// Create Workspace
-export const createWorkspace = async (req: Request, res: Response) => {
 
-};
-
-// Get Workspace
-export const getWorkspace = async (req: Request, res: Response) => {
-    res.send("Get Workspace");
-};
-
-// Update Workspace
-export const updateWorkspace = async (req: Request, res: Response) => {
-
-};
-
-// Delete Workspace
-export const deleteWorkspace = async (req: Request, res: Response) => {
-
-};
-
-// List Workspaces
-export const listWorkspaces = async (req: Request, res: Response) => {
-    res.send("List of workspaces")
-};

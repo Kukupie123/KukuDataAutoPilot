@@ -1,4 +1,4 @@
-import { IDatabaseAdapter } from "./Adapter/IDatabaseAdapter";
+import { IDatabaseAdapter } from "./adapters/IDatabaseAdapter";
 import { DatabaseConfig } from "./DatabaseConfig";
 import { DatabaseFactory } from "./DatabaseFactory";
 

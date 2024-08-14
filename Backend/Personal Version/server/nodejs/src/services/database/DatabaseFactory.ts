@@ -1,4 +1,4 @@
-import { LowDb } from "./Adapter/LowDb/LowDb";
+import { LowDb } from "./adapters/lowdb/LowDb";
 import { DatabaseConfig } from "./DatabaseConfig";
 
 //Responsible for creating object of the correct adapter based on config

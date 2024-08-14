@@ -1,13 +1,15 @@
 import express from 'express';
-import { createWorkspace, deleteWorkspace, getWorkspace, listWorkspaces, updateWorkspace } from "../controllers/WorkspaceController";
-
-const router = express.Router();
-
-// Define routes
-router.post('/', createWorkspace); // Create Workspace
-router.get('/:id', getWorkspace); // Get Workspace
-router.put('/:id', updateWorkspace); // Update Workspace
-router.delete('/:id', deleteWorkspace); // Delete Workspace
-router.get('/', listWorkspaces); // List Workspaces
-
-export default router;
+import { WorkspaceController } from "../controllers/WorkspaceController";
+export class WorkspaceRoute {
+    router: express.Router;
+    workspaceController: WorkspaceController;
+    constructor() {
+        this.workspaceController = new WorkspaceController();
+        this.router = express.Router();
+        this.router.post("/", this.workspaceController.createWorkspace);
+        this.router.get('/:id', () => { }); // Get Workspace
+        this.router.put('/:id', () => { }); // Update Workspace
+        this.router.delete('/:id', () => { }); // Delete Workspace
+        this.router.get('/', () => { }); // List Workspaces 
+    }
+}
