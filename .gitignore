@@ -1,2 +1,4 @@
 .env
-Backend/Personal Version/server/nodejs/KDAP_DB_WORKSPACE/LOCK
+Backend/Personal Version/server/nodejs/KDAP_DB_WORKSPACE/*
+Backend/Personal Version/server/nodejs/log/*
+
