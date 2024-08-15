@@ -85,3 +85,19 @@
 2024-08-15T05:46:57.175Z [info] [WorkspaceController-0]: Initialized Workspace Controller
 2024-08-15T05:46:57.174Z [info] [WorkspaceService-0]: Initialized Workspace Service
 2024-08-15T05:46:57.171Z [info] [PouchDb-0]: Initialized PouchDb
+2024-08-15T05:48:13.838Z [info] [ControllerFactory-0]: Building Controller of class WorkspaceController
+2024-08-15T05:48:13.846Z [info] [DatabaseFactory-0]: Building Database Adapter with option undefined
+2024-08-15T05:48:13.843Z [info] [WorkspaceFactory-0]: Building Workspace Service with option undefined
+2024-08-15T05:48:13.843Z [info] [WorkspaceController-0]: Initializing Workspace Controller
+2024-08-15T05:48:13.845Z [info] [WorkspaceService-0]: Initializing Workspace Service
+2024-08-15T05:48:13.848Z [info] [PouchDb-0]: Initializing PouchDb
+2024-08-15T05:48:13.842Z [info] [ControllerFactory-0]: Initializing Controller WorkspaceController
+2024-08-15T05:48:13.862Z [info] [ControllerFactory-0]: Initialized Controller WorkspaceController
+2024-08-15T05:48:13.846Z [info] [DatabaseFactory-0]: Building PouchDb Adapter
+2024-08-15T05:48:13.847Z [info] [DatabaseFactory-0]: Initializing PouchDb Adapter
+2024-08-15T05:48:13.860Z [info] [DatabaseFactory-0]: Initialized PouchDb Adapter
+2024-08-15T05:48:13.844Z [info] [WorkspaceFactory-0]: Initializing Workspace service
+2024-08-15T05:48:13.861Z [info] [WorkspaceFactory-0]: Initialized Workspace Service
+2024-08-15T05:48:13.862Z [info] [WorkspaceController-0]: Initialized Workspace Controller
+2024-08-15T05:48:13.861Z [info] [WorkspaceService-0]: Initialized Workspace Service
+2024-08-15T05:48:13.858Z [info] [PouchDb-0]: Initialized PouchDb
