@@ -1,4 +1,4 @@
 export enum DatabaseType {
-    LowDb
+    PouchDb
 }
-export const source: DatabaseType = DatabaseType.LowDb;
+export const source: DatabaseType = DatabaseType.PouchDb;

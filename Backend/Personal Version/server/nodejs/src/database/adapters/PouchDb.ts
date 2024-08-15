@@ -3,15 +3,16 @@ import { IDatabaseAdapter } from "../IDatabaseAdapter";
 import { sleep } from "../../util/Sleep";
 import { WorkspaceModel } from "../../models/WorkspaceModel";
 import databasePouch from "pouchdb";
-/*
-In PouchDb each database is treated as a document
-*/
+import { Logger as WintonLogger } from "winston";
+import { Logger as UtilLogger } from "../../util/Logger";
 export class PouchDb implements IDatabaseAdapter {
+    private logger: WintonLogger = UtilLogger.CreateLogger(PouchDb.name);
     private workspaceDb!: PouchDB.Database;
     async init(): Promise<void> {
-        log("Initializing PouchDb");
+        this.logger.info("Initializing PouchDb");
+        //In PouchDb each database is treated as a document
         this.workspaceDb = new databasePouch("KDAP_DB_WORKSPACE");
-        log("Initialized PouchDb");
+        this.logger.info("Initialized PouchDb");
     }
 
     async dispose(): Promise<void> {

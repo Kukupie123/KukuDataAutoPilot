@@ -3,14 +3,17 @@ import { IController } from "./IController";
 import { WorkspaceModel } from "../models/WorkspaceModel";
 import { WorkspaceFactory } from "../services/workspace/factory/WorkspaceServiceFactory";
 import { WorkspaceService } from "../services/workspace/WorkspaceService";
+import { Logger as WintonLog } from "winston";
+import { Logger as UtilLogger } from "../util/Logger";
 //TODO: Hide this from other files
 export class WorkspaceController implements IController {
+    private logger: WintonLog = UtilLogger.CreateLogger(WorkspaceController.name);
     private workspaceService?: WorkspaceService;
 
     async initController(): Promise<void> {
-        console.log("Initializing Workspace Controller")
+        this.logger.info("Initializing Workspace Controller")
         this.workspaceService = await WorkspaceFactory.Build();
-        console.log("Initialized Workspace Controller")
+        this.logger.info("Initialized Workspace Controller")
     }
     async foo(req: Request, res: Response): Promise<void> {
         res.send("FOO")
@@ -18,9 +21,9 @@ export class WorkspaceController implements IController {
 
     async createWorkspace(req: Request, res: Response): Promise<void> {
         if (!this.workspaceService) {
-            throw new Error("Workspace Service has not been initialized");
             res.json({ msg: "Workspace service has not been initialized" });
             res.statusCode = 500;
+            throw new Error("Workspace Service has not been initialized");
             return;
         }
         const workspace = req.body as WorkspaceModel;

@@ -1,8 +1,11 @@
 import express from 'express';
 import { ControllerFactory } from './controllers/factory/ControllerFactory';
 import { WorkspaceController } from './controllers/WorkspaceController';
+import { Logger as WintonLogger } from 'winston';
+import { Logger as UtilLogger } from './util/Logger';
 
 const startServer = async () => {
+    const logger: WintonLogger = UtilLogger.CreateLogger("MAIN");
     const app = express();
     app.use(express.json()); // Middleware to parse JSON bodies
 
