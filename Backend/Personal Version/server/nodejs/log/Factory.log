@@ -1,7 +1,0 @@
-[WorkspaceFactory-1] : [Factory] : [Building Workspace Service with option undefined] : [2024-08-15T09:08:03.465Z]
-[WorkspaceFactory-1] : [Factory] : [Initializing Workspace service] : [2024-08-15T09:08:03.466Z]
-[DatabaseFactory-1] : [Factory] : [Building Database Adapter with option undefined] : [2024-08-15T09:08:03.467Z]
-[DatabaseFactory-1] : [Factory] : [Building PouchDb Adapter] : [2024-08-15T09:08:03.468Z]
-[DatabaseFactory-1] : [Factory] : [Initializing PouchDb Adapter] : [2024-08-15T09:08:03.468Z]
-[DatabaseFactory-1] : [Factory] : [Initialized PouchDb Adapter] : [2024-08-15T09:08:03.483Z]
-[WorkspaceFactory-1] : [Factory] : [Initialized Workspace Service] : [2024-08-15T09:08:03.725Z]
