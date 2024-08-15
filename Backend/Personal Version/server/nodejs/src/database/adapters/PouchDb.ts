@@ -8,11 +8,18 @@ import { Category } from "../../config/kdapLogger.config";
 export class PouchDb implements IDatabaseAdapter {
     private logger = new KDAPLogger(PouchDb.name, Category.Database);
     private workspaceDb!: PouchDB.Database;
+    private projectDb!: PouchDB.Database;
+    private connector_projectToWorkspaceDB!: PouchDB.Database;
+    private connector_workspaceToWorkspaceDB!: PouchDB.Database;
 
     async init(): Promise<void> {
         this.logger.log("Initializing PouchDb");
-        // In PouchDb each database is treated as a document
-        this.workspaceDb = new databasePouch("KDAP_DB_WORKSPACE");
+        // In PouchDb each table is it's own database
+        this.workspaceDb = new databasePouch("data/db/pouch/workspace");
+        this.projectDb = new databasePouch("data/db/pouch/project")
+        this.connector_projectToWorkspaceDB = new databasePouch("data/db/pouch/projectToWorkspaceConnectorDB")
+        this.connector_workspaceToWorkspaceDB = new databasePouch("data/db/pouch/workspaceToWorkspaceConnectorDB")
+
         this.logger.log("Initialized PouchDb");
     }
 

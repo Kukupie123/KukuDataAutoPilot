@@ -47,3 +47,31 @@ const startServer = async () => {
 }
 
 startServer();
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * {
+ * "project name"
+ * "workspace ID",
+ * "structure(JSON)"
+ * }
+ * 
+ * FOr structures we can have these primitive datatypes
+ * int, float, text, date
+ * 
+ * 
+ * What happens when we add a record to a workspace?
+ * add the record in records table along with the structure
+ * add the link in connector table for fast access
+ * create a dynamic table TBD**********
+ * especially how to store them. As folders?
+ * 
+ * lets say i add a record "inventory" in workspace "shop"
+ * 
+ * i add it in records, connectors, structure table
+ * Then i go to user_tables/shop/inventory.table
+ * Sounds good right?
+ */
