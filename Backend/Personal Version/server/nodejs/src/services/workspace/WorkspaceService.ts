@@ -5,6 +5,7 @@ import { EventEmitter } from "events"
 import { WorkspaceEvent } from "./Event/WorkspaceEventEnum"
 import { KDAPLogger } from "../../util/EnhancedLogger";
 import { Category } from "../../config/kdapLogger.config";
+//TODO: Common response model
 export class WorkspaceService {
     private logger = new KDAPLogger(WorkspaceService.name, Category.Service);
     private db!: IDatabaseAdapter;
@@ -24,6 +25,14 @@ export class WorkspaceService {
         const ws = await this.db.createWorkspace(workspace);
         this.logger.log(`Created New Workspace. Dispatching event ${JSON.stringify(ws)}`);
         WorkspaceService.WorkspaceEventEmitter.emit(WorkspaceEvent.OnWorkspaceCreated.toString(), ws);
+        return ws;
+    }
+
+    async getWorkspace(id: string): Promise<WorkspaceModel> {
+        this.logger.log(`Getting workspace with id ${id}`)
+        const ws = await this.db.getWorkspace(id);
+        this.logger.log(`Workspace retreived : ${JSON.stringify(ws)}. Dispatching ${WorkspaceEvent.OnWorkspaceCreated.toString()} Event`)
+        WorkspaceService.WorkspaceEventEmitter.emit(WorkspaceEvent.OnGetWorkspace.toString(), id)
         return ws;
     }
 

@@ -35,6 +35,13 @@ export class PouchDb implements IDatabaseAdapter {
         throw new Error("Failed to create workspace");
     }
 
+    async getWorkspace(id: string): Promise<WorkspaceModel> {
+        this.logger.log(`Attempting to get workspace with id ${id}`);
+        const result = await this.workspaceDb.get(id) as WorkspaceModel;
+        this.logger.log(`Retreived document is ${JSON.stringify(result)}`)
+        return result;
+    }
+
     async getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]> {
         this.logger.log(`Fetching workspaces with skip=${skip} and limit=${limit}`);
         try {

@@ -50,15 +50,20 @@ export class KDAPLogger {
     }
 
 
-    public log(msg: string) {
+    /**
+     * 
+     * @param msg The message to log
+     * @param category Optional. To change the log category. By default will be the one set in constructor
+     */
+    public log(msg: string, category: Category = this.category) {
         // Format the message
-        const formattedMessage = this.formatMessage(this.category, msg);
+        const formattedMessage = this.formatMessage(category, msg);
 
         // Log to the console
         console.log(formattedMessage);
 
         // Define the log file path
-        const logFilePath = path.join(LOG_DIRECTORY, `${this.category}.log`);
+        const logFilePath = path.join(LOG_DIRECTORY, `${category}.log`);
 
         // Append the message to the corresponding log file
         try {
@@ -67,7 +72,6 @@ export class KDAPLogger {
             console.error(`Failed to write to log file ${logFilePath}:`, error);
         }
     }
-
 
 
     // Method to get the instance count for a given identifier
