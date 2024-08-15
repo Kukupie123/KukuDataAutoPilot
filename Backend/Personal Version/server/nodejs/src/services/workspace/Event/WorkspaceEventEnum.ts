@@ -1,4 +1,5 @@
 export enum WorkspaceEvent {
     OnWorkspaceCreated,
-    OnGetWorkspace
+    OnGetWorkspace,
+    OnGetWorkspaces,
 }

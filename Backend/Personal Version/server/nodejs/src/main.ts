@@ -63,14 +63,20 @@ startServer();
  * int, float, text, date
  * 
  * 
- * What happens when we add a record to a workspace?
- * add the record in records table along with the structure
- * create a dynamic table TBD**********
- * especially how to store them. As folders?
+ * What happens when we create record to a workspace?
+ * 1. create a new record entry
+ * 2. go to the workspace table and update the record
+ * 3. create the dynamic record based on attributes provided in "user-defined-tables/workspace-name" directory.
+ * 4. Task done
  * 
- * lets say i add a record "inventory" in workspace "shop"
+ * lets define the structure json now. Its simply a name vs type map
  * 
- * i add it in records, connectors, structure table
- * Then i go to user_tables/shop/inventory.table
- * Sounds good right?
+ * {
+ * "name":"text",
+ * "age":"int"
+ * "DOB":"date",
+ * "weight" :"float"
+ * }
+ * 
+ * 
  */

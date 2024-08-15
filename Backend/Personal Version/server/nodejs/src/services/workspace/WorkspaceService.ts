@@ -5,13 +5,14 @@ import { EventEmitter } from "events"
 import { WorkspaceEvent } from "./Event/WorkspaceEventEnum"
 import { KDAPLogger } from "../../util/EnhancedLogger";
 import { Category } from "../../config/kdapLogger.config";
+import { IService } from "../IService";
 //TODO: Common response model
-export class WorkspaceService {
+export class WorkspaceService implements IService {
     private logger = new KDAPLogger(WorkspaceService.name, Category.Service);
     private db!: IDatabaseAdapter;
     private static WorkspaceEventEmitter: EventEmitter = new EventEmitter(); // To be used for dispatching event
 
-    public async init(): Promise<void> {
+    async initService(): Promise<void> {
         this.logger.log("Initializing Workspace Service");
         this.db = await DatabaseFactory.Build();
         this.logger.log("Initialized Workspace Service");

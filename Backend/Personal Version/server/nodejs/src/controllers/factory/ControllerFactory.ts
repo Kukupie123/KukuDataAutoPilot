@@ -7,7 +7,6 @@ export class ControllerFactory {
     public static async Build<T extends IController>(
         controllerClass: { new(...args: any[]): T },
         option?: BuildOption,
-        identifier?: string
     ): Promise<T> {
         this.Logger.log(`Building Controller of class ${controllerClass.name}`);
         const controller = new controllerClass();

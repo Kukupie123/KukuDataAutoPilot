@@ -1,5 +1,4 @@
 import { IDatabaseAdapter } from "../IDatabaseAdapter";
-import { sleep } from "../../util/Sleep";
 import { WorkspaceModel } from "../../models/WorkspaceModel";
 import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../util/EnhancedLogger";

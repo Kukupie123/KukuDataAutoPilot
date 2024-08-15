@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { IController } from "./IController";
 import { WorkspaceModel } from "../models/WorkspaceModel";
-import { WorkspaceFactory } from "../services/workspace/factory/WorkspaceServiceFactory";
 import { WorkspaceService } from "../services/workspace/WorkspaceService";
 import { KDAPLogger } from "../util/EnhancedLogger";
 import { Category } from "../config/kdapLogger.config";
+import { ServiceFactory } from "../services/ServiceFactory";
 //TODO: Hide this from other files
 //TODO: Better exception handling in the future
 export class WorkspaceController implements IController {
@@ -14,7 +14,7 @@ export class WorkspaceController implements IController {
 
     async initController(): Promise<void> {
         this.log.log("Initializing Workspace Controller")
-        this.workspaceService = await WorkspaceFactory.Build();
+        this.workspaceService = await ServiceFactory.Build(WorkspaceService);
         this.log.log("Initialized Workspace Controller")
     }
     async foo(req: Request, res: Response): Promise<void> {
