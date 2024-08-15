@@ -24,7 +24,7 @@ const startServer = async () => {
         router.get(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Get Workspace
         router.put(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Update Workspace
         router.delete(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Delete Workspace
-        router.get(rootRoute, workspaceController.foo.bind(workspaceController)); // List Workspaces
+        router.get(rootRoute, workspaceController.getWorkspaces.bind(workspaceController)); // List Workspaces
 
         app.use('/api', router);
 

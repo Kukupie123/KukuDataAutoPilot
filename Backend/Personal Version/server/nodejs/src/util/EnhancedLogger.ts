@@ -5,6 +5,7 @@ import { Category, LOG_DIRECTORY } from "../config/kdapLogger.config";
 /**
  * A logger class for KDAP which supports Levels, Categories, File Logs
  */
+//TODO: Use object identifier to determine the instance. This will allow single class to have multiple loggers without increasing the instnce Count
 export class KDAPLogger {
     private identifier: string;
     private instanceNumber: number;
@@ -12,8 +13,9 @@ export class KDAPLogger {
     // Static maps to track instance counts and instance numbers
     private static instanceCounts: Map<string, number> = new Map();
     private static instanceNumbers: Map<string, number> = new Map();
-
-    constructor(identifier: string) {
+    private category: Category;
+    constructor(identifier: string, category: Category = Category.Info) {
+        this.category = category;
         this.identifier = identifier;
 
         // Initialize or increment instance count
@@ -47,15 +49,16 @@ export class KDAPLogger {
         return `[${this.identifier}-${this.instanceNumber}] : [${category}] : [${msg}] : [${timestamp}]`;
     }
 
-    public log(category: Category, msg: string) {
+
+    public log(msg: string) {
         // Format the message
-        const formattedMessage = this.formatMessage(category, msg);
+        const formattedMessage = this.formatMessage(this.category, msg);
 
         // Log to the console
         console.log(formattedMessage);
 
         // Define the log file path
-        const logFilePath = path.join(LOG_DIRECTORY, `${category}.log`);
+        const logFilePath = path.join(LOG_DIRECTORY, `${this.category}.log`);
 
         // Append the message to the corresponding log file
         try {
@@ -64,6 +67,8 @@ export class KDAPLogger {
             console.error(`Failed to write to log file ${logFilePath}:`, error);
         }
     }
+
+
 
     // Method to get the instance count for a given identifier
     public static getInstanceCount(identifier: string): number {

@@ -8,5 +8,6 @@ export interface IDatabaseAdapter {
     dispose(): Promise<void>;
 
     createWorkspace(workspace: WorkspaceModel): Promise<WorkspaceModel>;
+    getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
 
 }
