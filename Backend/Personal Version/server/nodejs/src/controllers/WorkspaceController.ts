@@ -3,17 +3,17 @@ import { IController } from "./IController";
 import { WorkspaceModel } from "../models/WorkspaceModel";
 import { WorkspaceFactory } from "../services/workspace/factory/WorkspaceServiceFactory";
 import { WorkspaceService } from "../services/workspace/WorkspaceService";
-import { Logger as WintonLog } from "winston";
-import { Logger as UtilLogger } from "../util/Logger";
+import { KDAPLogger } from "../util/EnhancedLogger";
+import { Category } from "../config/kdapLogger.config";
 //TODO: Hide this from other files
 export class WorkspaceController implements IController {
-    private logger: WintonLog = UtilLogger.CreateLogger(WorkspaceController.name);
+    private logger = new KDAPLogger(WorkspaceController.name);
     private workspaceService?: WorkspaceService;
 
     async initController(): Promise<void> {
-        this.logger.info("Initializing Workspace Controller")
+        this.logger.log(Category.Controller, "Initializing Workspace Controller")
         this.workspaceService = await WorkspaceFactory.Build();
-        this.logger.info("Initialized Workspace Controller")
+        this.logger.log(Category.Controller, "Initialized Workspace Controller")
     }
     async foo(req: Request, res: Response): Promise<void> {
         res.send("FOO")

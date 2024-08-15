@@ -1,0 +1,4 @@
+[WorkspaceService-1] : [Service] : [Initializing Workspace Service] : [2024-08-15T08:12:49.043Z]
+[WorkspaceService-1] : [Service] : [Initialized Workspace Service] : [2024-08-15T08:12:49.057Z]
+[WorkspaceService-1] : [Service] : [Create Workspace Called with Payload {"name":"4th worasdasdasdasdkspace","desc":"this is the desc"}] : [2024-08-15T08:13:19.185Z]
+[WorkspaceService-1] : [Service] : [Created New Workspace. Dispatching event {"name":"4th worasdasdasdasdkspace","desc":"this is the desc","created":"2024-08-15T08:13:19.186Z","updated":"2024-08-15T08:13:19.186Z"}] : [2024-08-15T08:13:19.190Z]

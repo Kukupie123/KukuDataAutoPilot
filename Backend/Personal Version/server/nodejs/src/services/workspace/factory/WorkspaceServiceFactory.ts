@@ -1,16 +1,16 @@
-import { Logger as WintonLogger } from "winston";
+import { Category } from "../../../config/kdapLogger.config";
+import { KDAPLogger } from "../../../util/EnhancedLogger";
 import { WorkspaceService } from "../WorkspaceService";
 import { BuildOption } from "./BuildOptions";
-import { Logger as UtilLogger } from "../../../util/Logger";
 
 export class WorkspaceFactory {
-    private static Logger: WintonLogger = UtilLogger.CreateLogger(WorkspaceFactory.name);
+    private static Logger = new KDAPLogger(WorkspaceFactory.name);
     public static async Build(option?: BuildOption): Promise<WorkspaceService> {
-        this.Logger.info(`Building Workspace Service with option ${option}`);
+        this.Logger.log(Category.Factory, `Building Workspace Service with option ${option}`);
         const workspace = new WorkspaceService();
-        this.Logger.info(`Initializing Workspace service`);
+        this.Logger.log(Category.Factory, `Initializing Workspace service`);
         await workspace.init();
-        this.Logger.info(`Initialized Workspace Service`);
+        this.Logger.log(Category.Factory, `Initialized Workspace Service`);
         return workspace;
     }
 }
