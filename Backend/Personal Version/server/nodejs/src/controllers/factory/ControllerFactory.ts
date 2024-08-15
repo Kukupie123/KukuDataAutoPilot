@@ -1,6 +1,6 @@
 import { IController } from "../IController";
 import { BuildOption } from "./BuildOptions";
-import { KDAPLogger } from "../../util/EnhancedLogger";
+import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 export class ControllerFactory {
     private static Logger = new KDAPLogger(ControllerFactory.name, Category.Controller);

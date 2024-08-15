@@ -1,19 +1,20 @@
 import { IDatabaseAdapter } from "../IDatabaseAdapter";
 import { WorkspaceModel } from "../../models/WorkspaceModel";
 import databasePouch from "pouchdb";
-import { KDAPLogger } from "../../util/EnhancedLogger";
+import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
+import { RecordModel } from "../../models/RecordModel";
 
 export class PouchDb implements IDatabaseAdapter {
     private logger = new KDAPLogger(PouchDb.name, Category.Database);
     private workspaceDb!: PouchDB.Database;
-    private projectDb!: PouchDB.Database;
+    private recordDb!: PouchDB.Database;
 
     async init(): Promise<void> {
         this.logger.log("Initializing PouchDb");
         // In PouchDb each table is it's own database
         this.workspaceDb = new databasePouch("data/db/pouch/workspace");
-        this.projectDb = new databasePouch("data/db/pouch/project")
+        this.recordDb = new databasePouch("data/db/pouch/record")
         this.logger.log("Initialized PouchDb");
     }
 
@@ -26,7 +27,7 @@ export class PouchDb implements IDatabaseAdapter {
         }
         workspace.created = new Date(Date.now());
         workspace.updated = new Date(Date.now());
-        workspace.projects = JSON.stringify([])
+        workspace.records = JSON.stringify([])
 
         const result = await this.workspaceDb.put({ _id: workspace.name, ...workspace });
         if (result.ok) {
@@ -68,5 +69,50 @@ export class PouchDb implements IDatabaseAdapter {
             this.logger.log(`Error fetching workspaces: ${JSON.stringify(error)}`);
             throw new Error('Unable to fetch workspaces');
         }
+    }
+
+    async createRecord(workspaceID: string, record: RecordModel): Promise<RecordModel> {
+        /*
+         * 2. Add record in record's table
+         * 3. Update Workspace by adding this newly added record
+         * 4. Create a new table in user-tables/workspaceID/recordID* with dummy values based on attributes
+         */
+
+        //Validate if workspaceID is valid
+        let ws = await this.workspaceDb.get(workspaceID) as WorkspaceModel;
+        this.logger.log(`WS : ${JSON.stringify(ws)}`)
+        if (!ws) {
+            throw new Error(`WorkspaceID ${workspaceID} doesn't exist`)
+        }
+
+        //Add record
+        const result = await this.recordDb.put({ _id: record.name, ...record });
+        if (!result.ok) {
+            throw new Error(`Failed to create record ${record.name} for workspace ${workspaceID}`)
+        }
+
+        //Update workspace's record data
+        let rec = ws.records as string;
+        let parsed: any[] = JSON.parse(rec); //"[1,2,3]""
+        // Fetch the latest revision of the workspace document
+        ws = await this.workspaceDb.get(workspaceID) as WorkspaceModel;
+
+        // Update the document with the new records
+        ws.records = JSON.stringify(parsed);
+
+        // Try to put the updated document back into the database
+        const updateResult = await this.workspaceDb.put({ _id: ws.name, _rev: ws._rev, ...ws });
+
+        return record;
+    }
+
+    async getRecords(skip: number, limit: number): Promise<RecordModel[]> {
+        const result = await this.recordDb.allDocs({ skip: skip, limit: limit, include_docs: true });
+        const recordss: RecordModel[] = result.rows.map((row) => {
+            const recc = row.doc as unknown as RecordModel;
+            this.logger.log(`record : ${JSON.stringify(recc)}`)
+            return recc
+        })
+        return recordss;
     }
 }

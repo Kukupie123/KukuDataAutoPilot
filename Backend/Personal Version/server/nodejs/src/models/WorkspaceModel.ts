@@ -3,13 +3,15 @@ export class WorkspaceModel {
     public desc?: string;
     public created?: Date;
     public updated?: Date;
-    public projects?: string
+    public records?: string
+    public _rev?: string;
 
-    public constructor(name: string, desc?: string, created?: Date, updated?: Date, projects?: string) {
+    public constructor(name: string, desc?: string, created?: Date, updated?: Date, projects?: string, _rev?: string) {
         this.name = name;
         this.desc = desc;
         this.created = created;
         this.updated = updated;
-        this.projects = projects;
+        this.records = projects;
+        this._rev = _rev;
     }
 }

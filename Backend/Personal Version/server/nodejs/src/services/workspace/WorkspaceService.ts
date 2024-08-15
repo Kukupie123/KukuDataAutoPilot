@@ -3,7 +3,7 @@ import { IDatabaseAdapter } from "../../database/IDatabaseAdapter";
 import { WorkspaceModel } from "../../models/WorkspaceModel";
 import { EventEmitter } from "events"
 import { WorkspaceEvent } from "./Event/WorkspaceEventEnum"
-import { KDAPLogger } from "../../util/EnhancedLogger";
+import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 import { IService } from "../IService";
 //TODO: Common response model

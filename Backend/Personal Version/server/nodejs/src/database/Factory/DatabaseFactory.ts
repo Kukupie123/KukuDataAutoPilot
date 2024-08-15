@@ -2,7 +2,7 @@ import { IDatabaseAdapter } from "../IDatabaseAdapter";
 import { BuildOption } from "./BuildOptions";
 import { source as dbSource, DatabaseType } from "../../config/database.config";
 import { PouchDb } from "../adapters/PouchDb";
-import { KDAPLogger } from "../../util/EnhancedLogger";
+import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 //TODO: Make use of GraphQL
 export class DatabaseFactory {

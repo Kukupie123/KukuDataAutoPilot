@@ -1,7 +1,8 @@
 import express from 'express';
 import { ControllerFactory } from './controllers/factory/ControllerFactory';
 import { WorkspaceController } from './controllers/WorkspaceController';
-import { KDAPLogger } from './util/EnhancedLogger';
+import { KDAPLogger } from './util/KDAPLogger';
+import { RecordController } from './controllers/RecordController';
 
 const startServer = async () => {
     const logger = new KDAPLogger("MAIN");
@@ -19,12 +20,17 @@ const startServer = async () => {
     try {
         const workspaceController = await ControllerFactory.Build<WorkspaceController>(WorkspaceController);
 
-        let rootRoute = "/workspaces";
+        let rootRoute = "/workspace";
         router.post(rootRoute, workspaceController.createWorkspace.bind(workspaceController)); // Create Workspace
         router.get(rootRoute + '/:id', workspaceController.getWorkspace.bind(workspaceController)); // Get Workspace
         router.put(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Update Workspace
         router.delete(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Delete Workspace
         router.get(rootRoute, workspaceController.getWorkspaces.bind(workspaceController)); // List Workspaces
+
+        const recordController = await ControllerFactory.Build(RecordController);
+        rootRoute = "/project";
+        router.post(rootRoute, recordController.createRecord.bind(recordController)); //Create new record. Send workspaceID as query 
+        router.get(rootRoute, recordController.getRecords.bind(recordController)); //Get all records
 
         app.use('/api', router);
 
@@ -45,6 +51,9 @@ const startServer = async () => {
         res.status(500).json({ message: 'Internal Server Error' });
     });
 }
+//TODO: Use event driven architecture by making functions very small by breaking them down and then setup listeners to use each functions.
+
+//TODO: Fix updating workspace record attrivute not working  and creating dynamic table at the end
 
 startServer();
 /**

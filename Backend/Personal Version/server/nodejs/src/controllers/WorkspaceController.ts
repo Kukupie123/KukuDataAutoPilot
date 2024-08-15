@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { IController } from "./IController";
 import { WorkspaceModel } from "../models/WorkspaceModel";
 import { WorkspaceService } from "../services/workspace/WorkspaceService";
-import { KDAPLogger } from "../util/EnhancedLogger";
+import { KDAPLogger } from "../util/KDAPLogger";
 import { Category } from "../config/kdapLogger.config";
 import { ServiceFactory } from "../services/ServiceFactory";
 //TODO: Hide this from other files

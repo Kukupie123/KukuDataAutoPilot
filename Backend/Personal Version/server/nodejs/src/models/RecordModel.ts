@@ -1,10 +1,12 @@
-export class ProjectModel {
+export class RecordModel {
     name: string;
     desc?: string;
     workspaceID: string;
     created?: Date;
     updated?: Date;
+    _id?: string;
     attributes: string;
+
 
     constructor(
         name: string,
@@ -12,7 +14,8 @@ export class ProjectModel {
         attributes: string,
         desc?: string,
         created?: Date,
-        updated?: Date
+        updated?: Date,
+        id?: string
     ) {
         this.name = name;
         this.workspaceID = workspaceID;
@@ -20,5 +23,6 @@ export class ProjectModel {
         this.desc = desc;
         this.created = created;
         this.updated = updated;
+        this._id = id;
     }
 }
