@@ -65,7 +65,6 @@ startServer();
  * 
  * What happens when we add a record to a workspace?
  * add the record in records table along with the structure
- * add the link in connector table for fast access
  * create a dynamic table TBD**********
  * especially how to store them. As folders?
  * 

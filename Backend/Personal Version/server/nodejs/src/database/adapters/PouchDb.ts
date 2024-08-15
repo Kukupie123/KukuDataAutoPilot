@@ -9,17 +9,12 @@ export class PouchDb implements IDatabaseAdapter {
     private logger = new KDAPLogger(PouchDb.name, Category.Database);
     private workspaceDb!: PouchDB.Database;
     private projectDb!: PouchDB.Database;
-    private connector_projectToWorkspaceDB!: PouchDB.Database;
-    private connector_workspaceToWorkspaceDB!: PouchDB.Database;
 
     async init(): Promise<void> {
         this.logger.log("Initializing PouchDb");
         // In PouchDb each table is it's own database
         this.workspaceDb = new databasePouch("data/db/pouch/workspace");
         this.projectDb = new databasePouch("data/db/pouch/project")
-        this.connector_projectToWorkspaceDB = new databasePouch("data/db/pouch/projectToWorkspaceConnectorDB")
-        this.connector_workspaceToWorkspaceDB = new databasePouch("data/db/pouch/workspaceToWorkspaceConnectorDB")
-
         this.logger.log("Initialized PouchDb");
     }
 
@@ -32,6 +27,7 @@ export class PouchDb implements IDatabaseAdapter {
         }
         workspace.created = new Date(Date.now());
         workspace.updated = new Date(Date.now());
+        workspace.projects = JSON.stringify([])
 
         const result = await this.workspaceDb.put({ _id: workspace.name, ...workspace });
         if (result.ok) {
@@ -59,32 +55,11 @@ export class PouchDb implements IDatabaseAdapter {
             // Map the docs into an array of WorkspaceModel
             const workspaces: WorkspaceModel[] = result.rows.map((row) => {
                 this.logger.log(`Current Row : ${JSON.stringify(row)}`)
-                interface WorkspaceDocument {
-                    _id: string;       // Equivalent to name
-                    desc?: string;
-                    created: string;  // Dates stored as ISO strings
-                    updated: string;  // Dates stored as ISO strings
-                }
-                const doc = row.doc as unknown as WorkspaceDocument;
-                this.logger.log(`Current DOC : ${JSON.stringify(doc)}`)
+                const doc = row.doc as unknown as WorkspaceModel;
+                this.logger.log(`Parsed doc = ${JSON.stringify(doc)}`)
+                return doc;
 
-                if (doc) {
-                    // Parse dates from strings if they exist
-                    const created = new Date(doc.created);
-                    const updated = new Date(doc.updated);
-
-                    // Create and return a new WorkspaceModel instance
-                    const wp = new WorkspaceModel(
-                        doc._id, // name is same as _id
-                        doc.desc,
-                        created,
-                        updated
-                    );
-                    this.logger.log(`Parsed doc = ${JSON.stringify(wp)}`)
-                    return wp;
-                }
-                return undefined; // Handle case where doc might be undefined
-            }).filter((workspace): workspace is WorkspaceModel => workspace !== undefined); // Filter out undefined values
+            });
 
             this.logger.log(`Mapped ${workspaces.length} workspaces to models`);
             // Return the array of workspaces
