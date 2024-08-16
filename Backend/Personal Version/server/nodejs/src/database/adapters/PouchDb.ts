@@ -4,7 +4,7 @@ import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 import { RecordModel } from "../../models/RecordModel";
-import { DirectoryHelper } from "../../helper/DirHelper";
+import { createDirectory } from "../../helper/DirHelper";
 
 export class PouchDb implements IDatabaseAdapter {
     private logger = new KDAPLogger(PouchDb.name, Category.Database);
@@ -136,7 +136,7 @@ export class PouchDb implements IDatabaseAdapter {
 
         //Create user-table based on rec's attribute
         const userTableDir = `${this.userTableDir}/${ws.name}/${record.name}`;
-        DirectoryHelper.CreateDirectory(userTableDir);
+        createDirectory(userTableDir);
         let recTable = new databasePouch(userTableDir,); //create the database
         return record;
     }

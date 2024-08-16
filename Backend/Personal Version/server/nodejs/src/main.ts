@@ -43,7 +43,7 @@ const startServer = async () => {
         });
 
     } catch (error) {
-        console.error('Failed to initialize server:', error);
+        loggerErr.log(`Failed to initialize server: ${JSON.stringify(error)}`);
         process.exit(1); // Exit the process with an error code
     }
 
@@ -60,9 +60,10 @@ const startServer = async () => {
         res.status(e.status).json({ msg: "KDAP Server encountered an error", data: e.message })
     });
 }
-//TODO: Use event driven architecture by making functions very small by breaking them down and then setup listeners to use each functions.
 
-//TODO: an easy way to send consistent structured response
+//TODO: Complete workspace and record service
+//TODO: Refactor and clean up these services
+//TODO: Refactor the code to use event driven architecture
 startServer();
 /**
  * 
