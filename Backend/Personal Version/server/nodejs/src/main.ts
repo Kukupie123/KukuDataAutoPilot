@@ -1,15 +1,17 @@
-import express from 'express';
+import express, { NextFunction, Response } from 'express';
 import { ControllerFactory } from './controllers/factory/ControllerFactory';
 import { WorkspaceController } from './controllers/WorkspaceController';
 import { KDAPLogger } from './util/KDAPLogger';
 import { RecordController } from './controllers/RecordController';
+import { ResponseException } from './models/exception/ResponseException';
+import { Category } from './config/kdapLogger.config';
 
 const startServer = async () => {
     const logger = new KDAPLogger("MAIN");
+    const loggerErr = new KDAPLogger("MAIN_ERROR", Category.Error)
     const app = express();
     app.use(express.json()); // Middleware to parse JSON bodies
-
-    // Routes initialization
+    // Routes initialization    
     const router = express.Router();
 
     /*
@@ -45,15 +47,22 @@ const startServer = async () => {
         process.exit(1); // Exit the process with an error code
     }
 
-    // Global error handler
+    // Post middle ware
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        console.error('Unhandled error:', err);
-        res.status(500).json({ message: 'Internal Server Error' });
+        const e = err as ResponseException
+        loggerErr.log(`Status code of Response Exception is ${e.status}`);
+        if (e.status === undefined) {
+            loggerErr.log(JSON.stringify(err))
+            res.status(500).json({ msg: "unhandled exception" })
+            return;
+        }
+        loggerErr.log(`${e.message} with stack ${e.stack}`)
+        res.status(e.status).json({ msg: "KDAP Server encountered an error", data: e.message })
     });
 }
 //TODO: Use event driven architecture by making functions very small by breaking them down and then setup listeners to use each functions.
 
-
+//TODO: an easy way to send consistent structured response
 startServer();
 /**
  * 
