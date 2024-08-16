@@ -79,11 +79,35 @@ export class PouchDb implements IDatabaseAdapter {
     }
 
     async createRecord(workspaceID: string, record: RecordModel): Promise<RecordModel> {
-        /*
+        /* 1. Validate record, especially the attribute. It needs to have _id and it's attributes need to specify type and optional/mandatory
          * 2. Add record in record's table
          * 3. Update Workspace by adding this newly added record
          * 4. Create a new table in user-tables/workspaceID/recordID* with dummy values based on attributes
          */
+
+        //Validate record's attribute
+        //TODO: Turn this into a helper function
+        const attributes = JSON.parse(record.attributes);
+        if (!attributes['_id']) {
+            throw new Error("_id is missing from attributes")
+        }
+        //iterate attribute key and validate
+        for (const k in attributes) {
+            const value = attributes[k] as string;
+            const [dataType, importance] = value.split(";")
+            //Eg :- importance = "kuku" -> if (!true || !(false)) -> if (!true || true)
+            if (!importance || !(importance === "mandatory" || importance === "optional")) {
+                throw new Error("Importance value not defined please specify if its optional or mandatory.Eg :- 'name':'text;mandatory'")
+            }
+            switch (dataType as string) {
+                case "int":
+                case "float":
+                case "text":
+                case "date":
+                    break;
+                default: throw new Error(`Invalid data type for attribute ${k}`)
+            }
+        }
 
         //Validate if workspaceID is valid
         let ws = await this.workspaceDb.get(workspaceID) as WorkspaceModel;
@@ -125,5 +149,16 @@ export class PouchDb implements IDatabaseAdapter {
             return recc
         })
         return recordss;
+    }
+
+
+    async addRecordEntry(workspaceID: string, recordID: string, entry: any) {
+        /**
+         * 1. Validate entry structure. It needs to have _id and attributes need to have type and optional/mandatory
+         * 2. Get record's attributes json and parse it
+         * 3. Match them 
+         * 4.  If all is good then get dynamically created record table
+         * 5. add them
+         */
     }
 }

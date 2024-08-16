@@ -20,4 +20,19 @@ export class RecordController implements IController {
         const recss = await this.recService.getRecords();
         res.json({ msg: "success", data: JSON.stringify(recss) });
     }
+
+    /**
+     *  Payload Example :-
+     *  {
+     *      "name": "rec3",
+     *      "workspaceID": "ws1",
+     *      "attributes": "{ \"_id\":\"text;mandatory\",  \"name\": \"text;optional\"}"
+     *  }
+     * "_id" is mandatory. "text;mandatory/optional" is also mandatory.
+     */
+    async addEntry(req: Request, res: Response) {
+        const jsonEntry = JSON.parse(req.body);
+        const recordID = req.query['recordID']
+        const workspaceID = req.query['workspaceID']
+    }
 }

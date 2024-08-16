@@ -80,10 +80,11 @@ startServer();
  * lets define the structure json now. Its simply a name vs type map
  * 
  * {
- * "name":"text",
- * "age":"int"
- * "DOB":"date",
- * "weight" :"float"
+ * "_id":"text;mandatory" //ID is ALWAYS mandatory
+ * "name":"text;mandatory;",
+ * "age":"int;optional"
+ * "DOB":"date;mandatory",
+ * "weight" :"float;mandatory"
  * }
  * 
  * 
