@@ -4,17 +4,24 @@ import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 import { RecordModel } from "../../models/RecordModel";
+import { DirectoryHelper } from "../../helper/DirHelper";
 
 export class PouchDb implements IDatabaseAdapter {
     private logger = new KDAPLogger(PouchDb.name, Category.Database);
     private workspaceDb!: PouchDB.Database;
     private recordDb!: PouchDB.Database;
 
+    //Pouch Db config
+    private rootDir = "data/db/pouch/";
+    private workspaceDbDir = `${this.rootDir}/workspace`;
+    private recordDbDir = `${this.rootDir}/record`;
+    private userTableDir: string = `${this.rootDir}/user-table/`;
+
     async init(): Promise<void> {
         this.logger.log("Initializing PouchDb");
         // In PouchDb each table is it's own database
-        this.workspaceDb = new databasePouch("data/db/pouch/workspace");
-        this.recordDb = new databasePouch("data/db/pouch/record")
+        this.workspaceDb = new databasePouch(this.workspaceDbDir);
+        this.recordDb = new databasePouch(this.recordDbDir)
         this.logger.log("Initialized PouchDb");
     }
 
@@ -102,6 +109,11 @@ export class PouchDb implements IDatabaseAdapter {
         // Try to put the updated document back into the database
         const updateResult = await this.workspaceDb.put({ _id: ws.name, ...ws });
 
+
+        //Create user-table based on rec's attribute
+        const userTableDir = `${this.userTableDir}/${ws.name}/${record.name}`;
+        DirectoryHelper.CreateDirectory(userTableDir);
+        let recTable = new databasePouch(userTableDir,); //create the database
         return record;
     }
 
