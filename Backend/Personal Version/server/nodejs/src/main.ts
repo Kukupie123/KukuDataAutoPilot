@@ -53,7 +53,6 @@ const startServer = async () => {
 }
 //TODO: Use event driven architecture by making functions very small by breaking them down and then setup listeners to use each functions.
 
-//TODO: Fix updating workspace record attrivute not working  and creating dynamic table at the end
 
 startServer();
 /**

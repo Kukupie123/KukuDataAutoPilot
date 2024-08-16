@@ -94,14 +94,13 @@ export class PouchDb implements IDatabaseAdapter {
         //Update workspace's record data
         let rec = ws.records as string;
         let parsed: any[] = JSON.parse(rec); //"[1,2,3]""
-        // Fetch the latest revision of the workspace document
-        ws = await this.workspaceDb.get(workspaceID) as WorkspaceModel;
-
+        parsed.push(record.name);
+        // Fetch the latest revision of the workspace document. This is required to update the document
         // Update the document with the new records
         ws.records = JSON.stringify(parsed);
 
         // Try to put the updated document back into the database
-        const updateResult = await this.workspaceDb.put({ _id: ws.name, _rev: ws._rev, ...ws });
+        const updateResult = await this.workspaceDb.put({ _id: ws.name, ...ws });
 
         return record;
     }
