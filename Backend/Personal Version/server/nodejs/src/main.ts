@@ -1,39 +1,23 @@
-import express, { NextFunction, Response } from 'express';
-import { ControllerFactory } from './controllers/factory/ControllerFactory';
-import { WorkspaceController } from './controllers/WorkspaceController';
+import express from 'express';
 import { KDAPLogger } from './util/KDAPLogger';
-import { RecordController } from './controllers/RecordController';
 import { ResponseException } from './models/exception/ResponseException';
 import { Category } from './config/kdapLogger.config';
+import { buildRoute } from './routes/builder/RouteBuilder';
+import { WorkspaceRoute } from './routes/WorkspaceRoute';
+import { RecordRoute } from './routes/RecordRoute';
 
 const startServer = async () => {
     const logger = new KDAPLogger("MAIN");
     const loggerErr = new KDAPLogger("MAIN_ERROR", Category.Error)
     const app = express();
-    app.use(express.json()); // Middleware to parse JSON bodies
-    // Routes initialization    
-    const router = express.Router();
 
-    /*
-    The Factory design pattern is used to create instances of controllers.
-    It abstracts the instantiation process, allowing for centralized management of controller creation,
-    including any required initialization or dependency injection, ensuring that the controllers are ready to use.
-    */
+    //Setup middleware, routes and start server.
     try {
-        const workspaceController = await ControllerFactory.Build<WorkspaceController>(WorkspaceController);
+        app.use(express.json()); // Middleware to parse JSON bodies
 
-        let rootRoute = "/workspace";
-        router.post(rootRoute, workspaceController.createWorkspace.bind(workspaceController)); // Create Workspace
-        router.get(rootRoute + '/:id', workspaceController.getWorkspace.bind(workspaceController)); // Get Workspace
-        router.put(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Update Workspace
-        router.delete(rootRoute + '/:id', workspaceController.foo.bind(workspaceController)); // Delete Workspace
-        router.get(rootRoute, workspaceController.getWorkspaces.bind(workspaceController)); // List Workspaces
-
-        const recordController = await ControllerFactory.Build(RecordController);
-        rootRoute = "/project";
-        router.post(rootRoute, recordController.createRecord.bind(recordController)); //Create new record. Send workspaceID as query 
-        router.get(rootRoute, recordController.getRecords.bind(recordController)); //Get all records
-
+        const router = express.Router();
+        await buildRoute(router, WorkspaceRoute);
+        await buildRoute(router, RecordRoute);
         app.use('/api', router);
 
         // Start
@@ -47,7 +31,9 @@ const startServer = async () => {
         process.exit(1); // Exit the process with an error code
     }
 
-    // Post middle ware
+    //Setup Post Middle ware
+
+    //ResponseException handling
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
         const e = err as ResponseException
         loggerErr.log(`Status code of Response Exception is ${e.status}`);
