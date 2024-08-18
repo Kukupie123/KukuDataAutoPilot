@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { KDAPLogger } from "../util/KDAPLogger";
 
 ///Custom event system created which uses classes to enforce static events
 
@@ -13,6 +14,7 @@ export abstract class CustomEvent<T> {
 
 // Event management class
 export class EventManager {
+    private static logger: KDAPLogger = new KDAPLogger(EventManager.name);
     private static emitter: EventEmitter = new EventEmitter();
 
     /**
@@ -36,6 +38,14 @@ export class EventManager {
     ): void {
         const eventName = new eventClass(null as unknown as T).eventName;
         this.emitter.addListener(eventName, (payload: T) => {
+            let payloadString: string = payload as string;
+            try {
+                payloadString = JSON.stringify(payload);
+            }
+            catch (err) {
+
+            }
+            this.logger.log(`${eventName} Dispatched with payload ${payloadString}`)
             callback(payload);
         });
     }

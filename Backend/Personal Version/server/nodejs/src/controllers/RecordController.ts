@@ -11,14 +11,9 @@ export class RecordController implements IController {
     }
 
     async createRecord(req: Request, res: Response) {
-        const recordPayload = req.body as RecordModel;
-        const rec = await this.recService.createRecord(recordPayload.workspaceID, recordPayload);
-        res.json({ msg: "success", data: JSON.stringify(rec) });
     }
 
     async getRecords(req: Request, res: Response) {
-        const recss = await this.recService.getRecords();
-        res.json({ msg: "success", data: JSON.stringify(recss) });
     }
 
     /**
@@ -31,8 +26,6 @@ export class RecordController implements IController {
      * "_id" is mandatory. "text;mandatory/optional" is also mandatory.
      */
     async addEntry(req: Request, res: Response) {
-        const jsonEntry = JSON.parse(req.body);
-        const recordID = req.query['recordID']
-        const workspaceID = req.query['workspaceID']
+
     }
 }

@@ -15,7 +15,7 @@ export class WorkspaceRoute implements IKDAPRoute {
             {
                 path: this.rootRoute,
                 method: "post",
-                handler: this.workspaceController.createWorkspace.bind(this.workspaceController)
+                handler: this.workspaceController.addWorkspace.bind(this.workspaceController)
             },
             {
                 path: `${this.rootRoute}/:id`,

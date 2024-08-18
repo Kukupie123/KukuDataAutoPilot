@@ -1,21 +1,27 @@
+export interface IRecordAttribute {
+    [attributeName: string]: IRecordAttributeType;
+}
+
+export interface IRecordAttributeType {
+    type: "int" | "float" | "text" | "date";
+    importance: "important" | "optional"
+}
 export class RecordModel {
     name: string;
     desc?: string;
-    workspaceID: string;
+    workspaceID?: string;
     created?: Date;
     updated?: Date;
-    _id?: string;
-    attributes: string;
+    attributes: IRecordAttribute[];
 
 
     constructor(
         name: string,
-        workspaceID: string,
-        attributes: string,
+        attributes: IRecordAttribute[],
+        workspaceID?: string,
         desc?: string,
         created?: Date,
         updated?: Date,
-        id?: string
     ) {
         this.name = name;
         this.workspaceID = workspaceID;
@@ -23,6 +29,5 @@ export class RecordModel {
         this.desc = desc;
         this.created = created;
         this.updated = updated;
-        this._id = id;
     }
 }

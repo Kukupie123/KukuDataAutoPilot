@@ -32,11 +32,15 @@ export interface IDatabaseAdapter {
     */
 
     //Records
-    createRecord(workspaceID: string, record: RecordModel): Promise<RecordModel>;
-    getRecords(skip: number, limit: number): Promise<RecordModel[]>;
+    addRecord(record: RecordModel, workspaceID: string): Promise<RecordModel>;
+    updateRecord(updatedRecord: RecordModel, workspaceID: string): Promise<boolean>;
+    getRecord(recID: string, workspaceID: string): Promise<RecordModel>;
+    deleteRecord(recID: string, workspaceID: string): Promise<boolean>;
+    getRecords(skip: number, limit: number, workspaceID: string, recID: string): Promise<RecordModel[]>;
 
     //Workspace
     addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel>;
+    updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean>
     getWorkspace(workspaceName: string): Promise<WorkspaceModel>;
     deleteWorkspace(id: string): Promise<boolean>;
     getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
