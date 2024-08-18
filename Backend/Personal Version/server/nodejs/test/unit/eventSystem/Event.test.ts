@@ -1,6 +1,5 @@
 import { CustomEvent, EventManager } from "../../../src/eventSystem/EventSystem";
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
-import { sleep } from "../../../src/util/Sleep";
 
 describe('Event System', () => {
     beforeEach(() => {
