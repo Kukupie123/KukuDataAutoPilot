@@ -8,13 +8,6 @@ export abstract class CustomEvent<T> {
     ) { }
 }
 
-// Example event extending CustomEvent
-export class TestEvent extends CustomEvent<string> {
-    constructor(payload: string) {
-        super('TestEvent', payload);
-    }
-}
-
 // Event management class
 export class EventManager {
     private static emitter: EventEmitter = new EventEmitter();
@@ -25,11 +18,8 @@ export class EventManager {
      * @param payload - The payload to pass to the event.
      */
     public static emit<T>(
-        eventClass: { new(payload: T): CustomEvent<T> },
-        payload: T
-    ): void {
-        const eventInstance = new eventClass(payload);
-        this.emitter.emit(eventInstance.eventName, eventInstance.payload);
+        event: CustomEvent<T>): void {
+        this.emitter.emit(event.eventName, event.payload);
     }
 
     /**
