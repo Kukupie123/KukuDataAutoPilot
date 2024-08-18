@@ -1,3 +1,3 @@
-export class BuildOption {
+export interface BuildOption {
 
 }

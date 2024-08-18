@@ -13,9 +13,7 @@ export class KDAPLogger {
     // Static maps to track instance counts and instance numbers
     private static instanceCounts: Map<string, number> = new Map();
     private static instanceNumbers: Map<string, number> = new Map();
-    private category: Category;
-    constructor(identifier: string, category: Category = Category.Info) {
-        this.category = category;
+    constructor(identifier: string) {
         this.identifier = identifier;
 
         // Initialize or increment instance count
@@ -55,7 +53,7 @@ export class KDAPLogger {
      * @param msg The message to log
      * @param category Optional. To change the log category. By default will be the one set in constructor
      */
-    public log(msg: string, category: Category = this.category) {
+    public log(msg: string, category: Category = Category.Info) {
         // Format the message
         const formattedMessage = this.formatMessage(category, msg);
 

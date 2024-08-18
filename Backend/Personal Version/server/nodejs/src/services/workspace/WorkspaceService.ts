@@ -8,7 +8,7 @@ import { Category } from "../../config/kdapLogger.config";
 import { IService } from "../IService";
 //TODO: Common response model
 export class WorkspaceService implements IService {
-    private logger = new KDAPLogger(WorkspaceService.name, Category.Service);
+    private logger = new KDAPLogger(WorkspaceService.name);
     private db!: IDatabaseAdapter;
     private static WorkspaceEventEmitter: EventEmitter = new EventEmitter(); // To be used for dispatching event
 

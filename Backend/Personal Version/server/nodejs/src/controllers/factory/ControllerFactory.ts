@@ -3,7 +3,7 @@ import { BuildOption } from "./BuildOptions";
 import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 export class ControllerFactory {
-    private static Logger = new KDAPLogger(ControllerFactory.name, Category.Controller);
+    private static Logger = new KDAPLogger(ControllerFactory.name);
     public static async Build<T extends IController>(
         controllerClass: { new(...args: any[]): T },
         option?: BuildOption,

@@ -3,7 +3,6 @@ import { IController } from "./IController";
 import { WorkspaceModel } from "../models/WorkspaceModel";
 import { WorkspaceService } from "../services/workspace/WorkspaceService";
 import { KDAPLogger } from "../util/KDAPLogger";
-import { Category } from "../config/kdapLogger.config";
 import { ServiceFactory } from "../services/ServiceFactory";
 import { ResponseException } from "../models/exception/ResponseException";
 import { sendResponse } from "../helper/ResHelper";
@@ -12,7 +11,7 @@ import { HttpStatusCode } from "../util/HttpCodes";
 //TODO: Hide this from other files
 //TODO: Better exception handling in the future
 export class WorkspaceController implements IController {
-    private log = new KDAPLogger(WorkspaceController.name, Category.Controller);
+    private log = new KDAPLogger(WorkspaceController.name);
 
     private workspaceService!: WorkspaceService;
 
@@ -29,7 +28,7 @@ export class WorkspaceController implements IController {
 
         const workspace = req.body as WorkspaceModel;
         if (!workspace.name) {
-            throw new ResponseException("Name for workspace is undefined in payload", 405);
+            throw new ResponseException("Name for workspace is undefined in payload", HttpStatusCode.PAYLOAD_TOO_LARGE);
         }
         const addedWorkspace = await this.workspaceService.createWorkspace(workspace);
         if (addedWorkspace)

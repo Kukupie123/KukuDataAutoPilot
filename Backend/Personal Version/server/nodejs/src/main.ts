@@ -8,7 +8,6 @@ import { RecordRoute } from './routes/RecordRoute';
 
 const startServer = async () => {
     const logger = new KDAPLogger("MAIN");
-    const loggerErr = new KDAPLogger("MAIN_ERROR", Category.Error)
     const app = express();
 
     //Setup middleware, routes and start server.
@@ -27,7 +26,7 @@ const startServer = async () => {
         });
 
     } catch (error) {
-        loggerErr.log(`Failed to initialize server: ${JSON.stringify(error)}`);
+        logger.log(`Failed to initialize server: ${JSON.stringify(error)}`, Category.Error);
         process.exit(1); // Exit the process with an error code
     }
 
@@ -36,13 +35,13 @@ const startServer = async () => {
     //ResponseException handling
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
         const e = err as ResponseException
-        loggerErr.log(`Status code of Response Exception is ${e.status}`);
+        logger.log(`Status code of Response Exception is ${e.status}`, Category.Error);
         if (e.status === undefined) {
-            loggerErr.log(JSON.stringify(err))
+            logger.log(JSON.stringify(err), Category.Error)
             res.status(500).json({ msg: "unhandled exception" })
             return;
         }
-        loggerErr.log(`${e.message} with stack ${e.stack}`)
+        logger.log(`${e.message} with stack ${e.stack}`, Category.Error)
         res.status(e.status).json({ msg: "KDAP Server encountered an error", data: e.message })
     });
 }
@@ -50,6 +49,12 @@ const startServer = async () => {
 //TODO: Complete workspace and record service
 //TODO: Refactor and clean up these services
 //TODO: Refactor the code to use event driven architecture
+/**
+ * Now  we are going to go for event driven architecture refactor
+ * Since event dispatcher has an dispatcher and listener its going to be something like
+ * one for dispatching and other for listening
+ * So now dispatchers can implement dispatcher and dispatch, while listener can listen
+ */
 startServer();
 /**
  * 
