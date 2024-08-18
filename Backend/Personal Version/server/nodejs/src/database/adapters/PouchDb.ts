@@ -5,9 +5,11 @@ import { KDAPLogger } from "../../util/KDAPLogger";
 import { Category } from "../../config/kdapLogger.config";
 import { RecordModel } from "../../models/RecordModel";
 import { createDirectory } from "../../helper/DirHelper";
+import { ResponseException } from "../../models/exception/ResponseException";
 
 export class PouchDb implements IDatabaseAdapter {
-    private logger = new KDAPLogger(PouchDb.name, Category.Database);
+    //TODO: Refactor Database to do purely database related stuff without doing other unrelated stuff. Using Event system to dispatch events
+    private logger = new KDAPLogger(PouchDb.name);
     private workspaceDb!: PouchDB.Database;
     private recordDb!: PouchDB.Database;
 
@@ -28,13 +30,15 @@ export class PouchDb implements IDatabaseAdapter {
     async dispose(): Promise<void> {
     }
 
+
+
     async createWorkspace(workspace: WorkspaceModel): Promise<WorkspaceModel> {
         if (!workspace.name) {
             throw new Error("Name is missing in workspace object");
         }
         workspace.created = new Date(Date.now());
         workspace.updated = new Date(Date.now());
-        workspace.records = JSON.stringify([])
+        //workspace.records = JSON.stringify([])
 
         const result = await this.workspaceDb.put({ _id: workspace.name, ...workspace });
         if (result.ok) {
@@ -123,12 +127,12 @@ export class PouchDb implements IDatabaseAdapter {
         }
 
         //Update workspace's record data
-        let rec = ws.records as string;
-        let parsed: any[] = JSON.parse(rec); //"[1,2,3]""
-        parsed.push(record.name);
+        //let rec = ws.records as string;
+        // let parsed: any[] = JSON.parse(rec); //"[1,2,3]""
+        // parsed.push(record.name);
         // Fetch the latest revision of the workspace document. This is required to update the document
         // Update the document with the new records
-        ws.records = JSON.stringify(parsed);
+        //ws.records = JSON.stringify(parsed);
 
         // Try to put the updated document back into the database
         const updateResult = await this.workspaceDb.put({ _id: ws.name, ...ws });
@@ -160,5 +164,43 @@ export class PouchDb implements IDatabaseAdapter {
          * 4.  If all is good then get dynamically created record table
          * 5. add them
          */
+    }
+
+
+    //Workspace
+    async addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel> {
+        this.logger.log(`Adding new workspace ${workspaceName}, ${description}`);
+        // Prepare a new workspace DTO without `_rev` since it's a new document
+        const ws: WorkspaceModel = new WorkspaceModel(workspaceName, description);
+
+        // Save the new workspace to the database
+        const result = await this.workspaceDb.put({ _id: ws.name, ...ws });
+        if (!result.ok) {
+            const msg = `Failed to add Workspace to Table ${JSON.stringify(ws)}`;
+            this.logger.log(msg, Category.Error);
+            throw new ResponseException(msg, 500);
+        }
+
+        //Functions are not transferred so doing savedWorkspace.foo() will not work.
+        const savedWorkspace = await this.workspaceDb.get(result.id) as WorkspaceModel;
+        return savedWorkspace;
+
+    }
+
+
+
+    async deleteWorkspace(id: string): Promise<boolean> {
+        this.logger.log(`Deleting workspace with ID ${id}`);
+        try {
+            // Fetch the document first to get the revision ID
+            const doc = await this.workspaceDb.get(id);
+            // Remove the document using its ID and revision ID
+            await this.workspaceDb.remove(doc._id, doc._rev);
+            this.logger.log(`Successfully deleted workspace with ID ${id}`);
+            return true;
+        } catch (er) {
+            this.logger.log(`Error deleting workspace with ID`);
+            return false;
+        }
     }
 }

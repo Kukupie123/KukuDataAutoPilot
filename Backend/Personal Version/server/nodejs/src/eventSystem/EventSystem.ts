@@ -1,4 +1,7 @@
-import { EventEmitter } from "events";  // Use 'events' instead of 'stream' for Node.js EventEmitter
+import { EventEmitter } from "events";
+
+///Custom event system created which uses classes to enforce static events
+
 
 // Base class for custom events
 export abstract class CustomEvent<T> {
