@@ -30,16 +30,15 @@ export interface IDatabaseAdapter {
             "DOB": "date;optional"
         }
     */
-    //Task
-    createWorkspace(workspace: WorkspaceModel): Promise<WorkspaceModel>;
-    getWorkspace(id: string): Promise<WorkspaceModel>;
-    getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
 
     //Records
     createRecord(workspaceID: string, record: RecordModel): Promise<RecordModel>;
     getRecords(skip: number, limit: number): Promise<RecordModel[]>;
 
+    //Workspace
     addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel>;
+    getWorkspace(workspaceName: string): Promise<WorkspaceModel>;
     deleteWorkspace(id: string): Promise<boolean>;
+    getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
 
 }

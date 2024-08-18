@@ -30,58 +30,6 @@ export class PouchDb implements IDatabaseAdapter {
     async dispose(): Promise<void> {
     }
 
-
-
-    async createWorkspace(workspace: WorkspaceModel): Promise<WorkspaceModel> {
-        if (!workspace.name) {
-            throw new Error("Name is missing in workspace object");
-        }
-        workspace.created = new Date(Date.now());
-        workspace.updated = new Date(Date.now());
-        //workspace.records = JSON.stringify([])
-
-        const result = await this.workspaceDb.put({ _id: workspace.name, ...workspace });
-        if (result.ok) {
-            this.logger.log(`Workspace ${workspace.name} created successfully`);
-            return workspace;
-        }
-        this.logger.log(`Failed to create workspace ${workspace.name}`);
-        throw new Error("Failed to create workspace");
-    }
-
-    async getWorkspace(id: string): Promise<WorkspaceModel> {
-        this.logger.log(`Attempting to get workspace with id ${id}`);
-        const result = await this.workspaceDb.get(id) as WorkspaceModel;
-        this.logger.log(`Retreived document is ${JSON.stringify(result)}`)
-        return result;
-    }
-
-    async getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]> {
-        this.logger.log(`Fetching workspaces with skip=${skip} and limit=${limit}`);
-        try {
-            // Fetch all documents with pagination
-            const result = await this.workspaceDb.allDocs({ skip: skip, limit: limit, include_docs: true });
-            this.logger.log(`Fetched ${result.rows.length} workspaces`);
-
-            // Map the docs into an array of WorkspaceModel
-            const workspaces: WorkspaceModel[] = result.rows.map((row) => {
-                this.logger.log(`Current Row : ${JSON.stringify(row)}`)
-                const doc = row.doc as unknown as WorkspaceModel;
-                this.logger.log(`Parsed doc = ${JSON.stringify(doc)}`)
-                return doc;
-
-            });
-
-            this.logger.log(`Mapped ${workspaces.length} workspaces to models`);
-            // Return the array of workspaces
-            return workspaces;
-        } catch (error) {
-            // Handle errors appropriately
-            this.logger.log(`Error fetching workspaces: ${JSON.stringify(error)}`);
-            throw new Error('Unable to fetch workspaces');
-        }
-    }
-
     async createRecord(workspaceID: string, record: RecordModel): Promise<RecordModel> {
         /* 1. Validate record, especially the attribute. It needs to have _id and it's attributes need to specify type and optional/mandatory
          * 2. Add record in record's table
@@ -181,26 +129,39 @@ export class PouchDb implements IDatabaseAdapter {
             throw new ResponseException(msg, 500);
         }
 
-        //Functions are not transferred so doing savedWorkspace.foo() will not work.
+        //Functions are not transferred so doing savedWorkspace.foo() will not work. If it did I would have used some other way
         const savedWorkspace = await this.workspaceDb.get(result.id) as WorkspaceModel;
         return savedWorkspace;
 
     }
 
+    async getWorkspace(workspaceName: string): Promise<WorkspaceModel> {
+        const doc = await this.workspaceDb.get(workspaceName);
+        let ws = doc as unknown as WorkspaceModel;
+        return ws;
+    }
 
-
-    async deleteWorkspace(id: string): Promise<boolean> {
-        this.logger.log(`Deleting workspace with ID ${id}`);
+    async deleteWorkspace(workspaceName: string): Promise<boolean> {
+        //Not using getWorkspace function as we need "_rev" attribute to delete
+        this.logger.log(`Deleting workspace with ID ${workspaceName}`);
         try {
-            // Fetch the document first to get the revision ID
-            const doc = await this.workspaceDb.get(id);
-            // Remove the document using its ID and revision ID
+            const doc = await this.workspaceDb.get(workspaceName);
             await this.workspaceDb.remove(doc._id, doc._rev);
-            this.logger.log(`Successfully deleted workspace with ID ${id}`);
+            this.logger.log(`Successfully deleted workspace with ID ${workspaceName}`);
             return true;
-        } catch (er) {
-            this.logger.log(`Error deleting workspace with ID`);
+        } catch (error) {
+            this.logger.log(`Error deleting workspace with ID ${workspaceName}`);
             return false;
         }
+    }
+
+    async getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]> {
+        const result = await this.workspaceDb.allDocs({ skip: skip, limit: limit });
+        const docs = result.rows;
+        const wss: WorkspaceModel[] = docs.map((doc) => {
+            const ws = doc.doc as unknown as WorkspaceModel;
+            return ws;
+        })
+        return wss;
     }
 }
