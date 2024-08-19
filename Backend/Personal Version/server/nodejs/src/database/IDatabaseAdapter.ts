@@ -49,7 +49,7 @@ export interface IDatabaseAdapter {
      * @param recID ID of the Record to get.
      * @param workspaceID  ID of the workspace the record is from..
      */
-    getRecord(recID: string, workspaceID: string): Promise<RecordModel>;
+    getRecord(recID: string, workspaceID: string): Promise<RecordModel | undefined>;
     /**
      * Delete a record by ID
      * @param recID ID of the record to delete.
@@ -68,7 +68,7 @@ export interface IDatabaseAdapter {
     //Workspace
     addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel>;
     updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean>
-    getWorkspace(workspaceName: string): Promise<WorkspaceModel>;
+    getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined>;
     deleteWorkspace(id: string): Promise<boolean>;
     getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
 

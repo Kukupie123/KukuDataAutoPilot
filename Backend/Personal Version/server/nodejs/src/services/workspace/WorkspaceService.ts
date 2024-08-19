@@ -21,7 +21,7 @@ export class WorkspaceService implements IService {
         return ws;
     }
 
-    async getWorkspace(id: string): Promise<WorkspaceModel> {
+    async getWorkspace(id: string): Promise<WorkspaceModel | undefined> {
         this.logger.log({ msg: `Getting workspace with id ${id}`, func: this.getWorkspace })
         const ws = await this.db.getWorkspace(id);
         this.logger.log({ msg: `Workspace retreived : ${JSON.stringify(ws)}`, func: this.getWorkspace })

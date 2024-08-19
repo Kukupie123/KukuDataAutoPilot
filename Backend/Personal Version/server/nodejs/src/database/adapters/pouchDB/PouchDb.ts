@@ -4,10 +4,7 @@ import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../../util/KDAPLogger";
 import { Category } from "../../../config/kdapLogger.config";
 import { RecordModel } from "../../../models/RecordModel";
-import { HttpStatusCode } from "../../../util/HttpCodes";
 import { workspaceDbDir, recordDbDir, generateProjectID } from "./PouchHelper";
-import { EventManager } from "../../../eventSystem/EventSystem";
-import { RecordAddedEvent } from "../../../eventSystem/customEvents/RecordAddedEvent";
 import { validateAttribute } from "../../../util/RecordHelper";
 
 export class PouchDb implements IDatabaseAdapter {
@@ -23,22 +20,6 @@ export class PouchDb implements IDatabaseAdapter {
             this.logger.log({ msg: "Initialized Pouch", func: this.init });
 
             this.logger.log({ msg: `Setting up listeners`, func: this.init });
-            EventManager.on(RecordAddedEvent, async (payload) => {
-                this.logger.log({ msg: `Event Listener Triggered ${RecordAddedEvent.name}`, func: this.init })
-                try {
-                    if (payload.workspaceID === undefined) {
-                        this.logger.log({ msg: `WorkspaceID is null for added record ${payload.name}`, func: this.init });
-                        throw new Error(`Record ${payload.name} has invalid workspace ID`);
-                    }
-                    this.logger.log({ msg: `Adding recID ${payload.name} to workspace ${payload.workspaceID}`, func: this.init })
-                    const ws = await this.getWorkspace(payload.workspaceID);
-                    ws.records.push(payload.name);
-                    await this.updateWorkspace(ws);
-                } catch (err: any) {
-                    this.logger.log({ msg: `Failed to handle RecordAddedEvent: ${err.message}`, func: this.init });
-                    // Handle error (e.g., rethrow, log, or ignore based on the case)
-                }
-            });
         } catch (err: any) {
             this.logger.log({ msg: `Failed to initialize PouchDb: ${err.message}`, func: this.init });
             throw err;
@@ -46,7 +27,6 @@ export class PouchDb implements IDatabaseAdapter {
     }
 
     async dispose(): Promise<void> {
-
     }
 
     // Workspace Operations
@@ -81,7 +61,7 @@ export class PouchDb implements IDatabaseAdapter {
         //To update a doc in PouchDB we need to pass latest rev
         this.logger.log({ msg: `Updating Workspace ${updatedWS.name}`, func: this.updateWorkspace });
         try {
-            // Fetch the current version of the document
+            // Fetch the current version of the document. Will throw exception if it's missing
             const wsRaw = await this.workspaceDb.get(updatedWS.name);
             const rev = wsRaw._rev;
             const id = wsRaw._id;
@@ -103,13 +83,13 @@ export class PouchDb implements IDatabaseAdapter {
 
         } catch (err: any) {
             const msg = `Failed to update workspace due to error: ${err.message}`;
-            this.logger.log({ msg: msg, func: this.updateWorkspace });
-            throw new Error(msg);
+            this.logger.log({ msg: msg, func: this.updateWorkspace, category: Category.Error });
+            return false;
         }
     }
 
 
-    async getWorkspace(workspaceName: string): Promise<WorkspaceModel> {
+    async getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined> {
         this.logger.log({ msg: `Getting workspace with id ${workspaceName}`, func: this.getWorkspace });
         try {
             const doc = await this.workspaceDb.get(workspaceName);
@@ -117,14 +97,14 @@ export class PouchDb implements IDatabaseAdapter {
             if (!ws) {
                 const msg = `Workspace ${workspaceName} not found`;
                 this.logger.log({ msg: msg, func: this.getWorkspace });
-                throw new Error(msg);
+                return undefined;
             }
             this.logger.log({ msg: `Got workspace with id ${workspaceName}: ${JSON.stringify(ws)}`, func: this.getWorkspace });
             return ws;
         } catch (err: any) {
             const msg = `Failed to get workspace due to error: ${err.message}`;
             this.logger.log({ msg: msg, func: this.getWorkspace });
-            throw new Error(msg);
+            return undefined;
         }
     }
 
@@ -132,12 +112,7 @@ export class PouchDb implements IDatabaseAdapter {
         this.logger.log({ msg: `Deleting workspace with ID ${workspaceName}`, func: this.deleteWorkspace });
         try {
             const doc = await this.workspaceDb.get(workspaceName);
-            if (!doc) {
-                const msg = `Workspace ${workspaceName} not found!`;
-                this.logger.log({ msg: msg, func: this.deleteWorkspace });
-                return false;
-            }
-            const result = await this.workspaceDb.remove(doc._id, doc._rev);
+            const result = await this.workspaceDb.remove({ _id: doc._id, _rev: doc._rev });
             if (!result.ok) {
                 const msg = `Failed to delete workspace ${workspaceName}`;
                 this.logger.log({ msg: msg, func: this.deleteRecord });
@@ -148,7 +123,7 @@ export class PouchDb implements IDatabaseAdapter {
         } catch (err: any) {
             const msg = `Failed to delete workspace due to error: ${err.message}`;
             this.logger.log({ msg: msg, func: this.deleteWorkspace });
-            throw new Error(msg);
+            return false
         }
     }
 

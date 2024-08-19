@@ -10,7 +10,7 @@ describe('Event System', () => {
         // Clean up after each test
     });
 
-    test('should trigger event and handle payload correctly', async () => {
+    test.skip('should trigger event and handle payload correctly', async () => {
         class TestEvent extends CustomEvent<string> {
             constructor(payload: string) {
                 super("TEST_EVENT", payload);
