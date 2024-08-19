@@ -45,7 +45,7 @@ const startServer = async () => {
         res.status(e.status).json({ msg: "KDAP Server encountered an error", data: e.message })
     });
 }
-
+//TODO: Add service manager to handle services and get rid of listeners in database 
 //TODO: Complete workspace and record service
 //TODO: Refactor and clean up these services
 //TODO: Refactor the code to use event driven architecture
