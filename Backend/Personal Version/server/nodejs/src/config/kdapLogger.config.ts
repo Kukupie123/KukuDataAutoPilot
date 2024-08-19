@@ -16,4 +16,4 @@ export enum Category {
 }
 
 // Define the log directory
-export const LOG_DIRECTORY = process.env.LOG_DIRECTORY || './log'; // Use environment variable or default path
+export const LOG_DIRECTORY = process.env.LOG_DIRECTORY || './log';

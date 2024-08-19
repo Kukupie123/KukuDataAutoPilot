@@ -32,11 +32,38 @@ export interface IDatabaseAdapter {
     */
 
     //Records
+    /**
+     * Add a new record to the workspace.
+     * @param record record model to add.
+     * @param workspaceID workspaceID the record is for.
+     */
     addRecord(record: RecordModel, workspaceID: string): Promise<RecordModel>;
+    /**
+     * Update existing record
+     * @param updatedRecord Updated Record 
+     * @param workspaceID ID of the workspace the record is from.
+     */
     updateRecord(updatedRecord: RecordModel, workspaceID: string): Promise<boolean>;
+    /**
+     * Get record by ID
+     * @param recID ID of the Record to get.
+     * @param workspaceID  ID of the workspace the record is from..
+     */
     getRecord(recID: string, workspaceID: string): Promise<RecordModel>;
+    /**
+     * Delete a record by ID
+     * @param recID ID of the record to delete.
+     * @param workspaceID ID of the workspace the record is from.
+     */
     deleteRecord(recID: string, workspaceID: string): Promise<boolean>;
-    getRecords(skip: number, limit: number, workspaceID: string, recID: string): Promise<RecordModel[]>;
+    /**
+     * Returns all the records of a workspace
+     * @param workspaceID 
+     * @param skip How many to skip
+     * @param limit How many to get at once
+     * @returns  List of Records
+     */
+    getRecords(workspaceID: string, skip: number, limit: number): Promise<RecordModel[]>;
 
     //Workspace
     addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel>;

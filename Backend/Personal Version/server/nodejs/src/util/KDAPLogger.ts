@@ -5,6 +5,11 @@ import { Category, LOG_DIRECTORY } from "../config/kdapLogger.config";
 /**
  * A logger class for KDAP which supports Levels, Categories, File Logs
  */
+export interface LogData {
+    msg: string,
+    category?: Category;
+    func?: Function;
+}
 //TODO: Use object identifier to determine the instance. This will allow single class to have multiple loggers without increasing the instnce Count
 export class KDAPLogger {
     private identifier: string;
@@ -42,10 +47,25 @@ export class KDAPLogger {
         });
     }
 
-    private formatMessage(category: Category, msg: string): string {
+    private formatMessage(logData: LogData): string {
+        const { msg, category = Category.Info, func } = logData;
         const timestamp = new Date().toISOString();
-        return `[${this.identifier}-${this.instanceNumber}] : [${category}] : [${msg}] : [${timestamp}]`;
+
+        // Build the log message parts
+        const parts = [
+            `[${this.identifier}-${this.instanceNumber}]`,
+            func ? `[${func.name}]` : null, // Only add this part if func is defined
+            `[${category}]`,
+            `[${timestamp}]`,
+            `: ${msg}`
+        ];
+
+        // Filter out any null parts and join them with a space
+        return parts.filter(part => part !== null).join(' ');
     }
+
+
+
 
 
     /**
@@ -53,9 +73,11 @@ export class KDAPLogger {
      * @param msg The message to log
      * @param category Optional. To change the log category. By default will be the one set in constructor
      */
-    public log(msg: string, category: Category = Category.Info) {
+    public log(logData: LogData) {
+        const { msg, category = Category.Info, func } = logData;
+
         // Format the message
-        const formattedMessage = this.formatMessage(category, msg);
+        const formattedMessage = this.formatMessage(logData);
 
         // Log to the console
         console.log(formattedMessage);

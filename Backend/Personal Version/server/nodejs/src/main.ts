@@ -1,10 +1,12 @@
 import express from 'express';
 import { KDAPLogger } from './util/KDAPLogger';
-import { ResponseException } from './models/exception/ResponseException';
 import { Category } from './config/kdapLogger.config';
 import { buildRoute } from './routes/builder/RouteBuilder';
 import { WorkspaceRoute } from './routes/WorkspaceRoute';
 import { RecordRoute } from './routes/RecordRoute';
+import { sendResponse } from './helper/ResHelper';
+import { HttpStatusCode } from './util/HttpCodes';
+import { ResponseDataGeneric } from './models/response/ResponseDataGeneric';
 
 const startServer = async () => {
     const logger = new KDAPLogger("MAIN");
@@ -26,26 +28,18 @@ const startServer = async () => {
         });
 
     } catch (error) {
-        logger.log(`Failed to initialize server: ${JSON.stringify(error)}`, Category.Error);
+        logger.log({ msg: `Failed to initialize server: ${JSON.stringify(error)}`, func: startServer });
         process.exit(1); // Exit the process with an error code
     }
 
     //Setup Post Middle ware
 
     //ResponseException handling
-    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const e = err as ResponseException
-        logger.log(`Status code of Response Exception is ${e.status}`, Category.Error);
-        if (e.status === undefined) {
-            logger.log(JSON.stringify(err), Category.Error)
-            res.status(500).json({ msg: "unhandled exception" })
-            return;
-        }
-        logger.log(`${e.message} with stack ${e.stack}`, Category.Error)
-        res.status(e.status).json({ msg: "KDAP Server encountered an error", data: e.message })
+    app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        sendResponse(HttpStatusCode.INTERNAL_SERVER_ERROR, err.message, new ResponseDataGeneric(null), res);
     });
 }
-
+//TODO: Mock db for test to keep it separate from main db
 //TODO: Complete workspace and record service
 //TODO: Refactor and clean up these services
 //TODO: Refactor the code to use event driven architecture

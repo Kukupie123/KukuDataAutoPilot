@@ -4,186 +4,247 @@ import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../../util/KDAPLogger";
 import { Category } from "../../../config/kdapLogger.config";
 import { RecordModel } from "../../../models/RecordModel";
-import { ResponseException } from "../../../models/exception/ResponseException";
 import { HttpStatusCode } from "../../../util/HttpCodes";
-import { validateAttribute, workspaceDbDir, recordDbDir, getUserTableDirectory } from "./PouchHelper";
+import { workspaceDbDir, recordDbDir, generateProjectID } from "./PouchHelper";
 import { EventManager } from "../../../eventSystem/EventSystem";
 import { RecordAddedEvent } from "../../../eventSystem/customEvents/RecordAddedEvent";
+import { validateAttribute } from "../../../util/RecordHelper";
 
 export class PouchDb implements IDatabaseAdapter {
-    //TODO: Refactor Database to do purely database related stuff without doing other unrelated stuff. Using Event system to dispatch events
     private logger = new KDAPLogger(PouchDb.name);
     private workspaceDb!: PouchDB.Database;
+    private recordDB!: PouchDB.Database;
 
     async init(): Promise<void> {
-        this.logger.log("Initializing PouchDb");
-        // In PouchDb each table is it's own database
-        this.workspaceDb = new databasePouch(workspaceDbDir);
-        this.logger.log("Initialized PouchDb");
+        this.logger.log({ msg: "Initializing Pouch", func: this.init });
+        try {
+            this.workspaceDb = new databasePouch(workspaceDbDir);
+            this.recordDB = new databasePouch(recordDbDir);
+            this.logger.log({ msg: "Initialized Pouch", func: this.init });
 
-        //Event listener setup
-        EventManager.on(RecordAddedEvent, async (payload) => {
-            this.logger.log(`Event Listener Triggered ${RecordAddedEvent.name}`)
-            //TODO: Fix this
-            if (payload.workspaceID === undefined) {
-                this.logger.log(`WorkspaceID is null for added record ${payload.name}`);
-                throw new Error();
-            }
-            this.logger.log(`Record Added. Adding recID ${payload.name} to workspace ${payload.workspaceID}`)
-            const ws = await this.getWorkspace(payload.workspaceID!);
-            ws.records.push(payload.name);
-            await this.updateWorkspace(ws);
-        })
+            this.logger.log({ msg: `Setting up listeners`, func: this.init });
+            EventManager.on(RecordAddedEvent, async (payload) => {
+                this.logger.log({ msg: `Event Listener Triggered ${RecordAddedEvent.name}`, func: this.init })
+                try {
+                    if (payload.workspaceID === undefined) {
+                        this.logger.log({ msg: `WorkspaceID is null for added record ${payload.name}`, func: this.init });
+                        throw new Error(`Record ${payload.name} has invalid workspace ID`);
+                    }
+                    this.logger.log({ msg: `Adding recID ${payload.name} to workspace ${payload.workspaceID}`, func: this.init })
+                    const ws = await this.getWorkspace(payload.workspaceID);
+                    ws.records.push(payload.name);
+                    await this.updateWorkspace(ws);
+                } catch (err: any) {
+                    this.logger.log({ msg: `Failed to handle RecordAddedEvent: ${err.message}`, func: this.init });
+                    // Handle error (e.g., rethrow, log, or ignore based on the case)
+                }
+            });
+        } catch (err: any) {
+            this.logger.log({ msg: `Failed to initialize PouchDb: ${err.message}`, func: this.init });
+            throw err;
+        }
     }
 
     async dispose(): Promise<void> {
+
     }
 
-    //Workspace
+    // Workspace Operations
     async addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel> {
-        this.logger.log(`Adding new workspace ${workspaceName}, ${description}`);
-        const ws: WorkspaceModel = new WorkspaceModel(workspaceName, description);
-        // Save the new workspace to the database
-        const result = await this.workspaceDb.put({ _id: ws.name, ...ws });
-        if (!result.ok) {
-            const msg = `Failed to add Workspace to Table ${JSON.stringify(ws)}`;
-            this.logger.log(msg, Category.Error);
-            throw new ResponseException(msg, 500);
+        this.logger.log({ msg: `Adding new workspace ${workspaceName}, ${description}`, func: this.addWorkspace });
+        try {
+            const ws: WorkspaceModel = new WorkspaceModel(workspaceName, description);
+
+            /*
+            Concern : Won't this update and overwrite if a workspace with the same ID exists?
+            Ans : No, to update in pouchDB you need to pass in _id and rev. We are not passing rev. This will throw
+            an exception if an entry with the same id exist.
+            */
+            const res = await this.workspaceDb.put({ _id: ws.name, ...ws });
+
+            if (!res.ok) {
+                const msg = `Failed to add Workspace to Table ${JSON.stringify(ws)}`;
+                this.logger.log({ msg: msg, func: this.addWorkspace });
+                throw new Error(msg);
+            }
+
+            const savedWorkspace = await this.workspaceDb.get(res.id) as WorkspaceModel;
+            return savedWorkspace;
+        } catch (err: any) {
+            const msg = `Failed to add workspace due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.addWorkspace });
+            throw new Error(msg);
         }
-        //Functions are not transferred so doing savedWorkspace.foo() will not work. If it did I would have used some other way
-        const savedWorkspace = await this.workspaceDb.get(result.id) as WorkspaceModel;
-        return savedWorkspace;
     }
 
     async updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean> {
-        this.logger.log(`Updating Workspace ${updatedWS.name}`);
-        const ws = await this.workspaceDb.get(updatedWS.name) as WorkspaceModel;
-        if (!ws) {
-            const msg = `Workspace ${updatedWS.name} doesn't exist`;
-            this.logger.log(msg, Category.Error);
-            throw new ResponseException(msg, HttpStatusCode.NOT_FOUND);
+        //To update a doc in PouchDB we need to pass latest rev
+        this.logger.log({ msg: `Updating Workspace ${updatedWS.name}`, func: this.updateWorkspace });
+        try {
+            // Fetch the current version of the document
+            const wsRaw = await this.workspaceDb.get(updatedWS.name);
+            const rev = wsRaw._rev;
+            const id = wsRaw._id;
+            const ws = wsRaw as unknown as WorkspaceModel;
+            if (!ws) {
+                const msg = `Workspace ${updatedWS.name} doesn't exist`;
+                this.logger.log({ msg: msg, func: this.updateWorkspace });
+                return false;
+            }
+            const updatedDoc = { ...updatedWS, _id: id, _rev: rev };
+            const result = await this.workspaceDb.put(updatedDoc);
+            if (!result.ok) {
+                const msg = `Failed to update workspace ${updatedWS.name}`;
+                this.logger.log({ msg: msg, func: this.updateWorkspace });
+                return false;
+            }
+            this.logger.log({ msg: `Workspace ${updatedWS.name} updated successfully`, func: this.updateWorkspace });
+            return true;
+
+        } catch (err: any) {
+            const msg = `Failed to update workspace due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.updateWorkspace });
+            throw new Error(msg);
         }
-        const result = await this.workspaceDb.put(updatedWS);
-        if (!result.ok) {
-            const msg = `Failed to update workspace ${updatedWS}`;;
-            this.logger.log(msg, Category.Error);
-            throw new ResponseException(msg, HttpStatusCode.INTERNAL_SERVER_ERROR);
-        }
-        return true;
     }
 
+
     async getWorkspace(workspaceName: string): Promise<WorkspaceModel> {
-        this.logger.log(`Getting workspace with id ${workspaceName}`)
-        const doc = await this.workspaceDb.get(workspaceName);
-        let ws = doc as unknown as WorkspaceModel;
-        if (!ws) {
-            const msg = `Workspace ${workspaceName} not found`;
-            this.logger.log(msg, Category.Error);
-            throw new ResponseException(msg, HttpStatusCode.NOT_FOUND);
+        this.logger.log({ msg: `Getting workspace with id ${workspaceName}`, func: this.getWorkspace });
+        try {
+            const doc = await this.workspaceDb.get(workspaceName);
+            let ws = doc as unknown as WorkspaceModel;
+            if (!ws) {
+                const msg = `Workspace ${workspaceName} not found`;
+                this.logger.log({ msg: msg, func: this.getWorkspace });
+                throw new Error(msg);
+            }
+            this.logger.log({ msg: `Got workspace with id ${workspaceName}: ${JSON.stringify(ws)}`, func: this.getWorkspace });
+            return ws;
+        } catch (err: any) {
+            const msg = `Failed to get workspace due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.getWorkspace });
+            throw new Error(msg);
         }
-        this.logger.log(`Got workspace with id ${workspaceName} : ${JSON.stringify(ws)}`)
-        return ws;
     }
 
     async deleteWorkspace(workspaceName: string): Promise<boolean> {
-        this.logger.log(`Deleting workspace with ID ${workspaceName}`);
-        const doc = await this.workspaceDb.get(workspaceName); //We need rev and ID to delete
-        if (!doc) {
-            const msg = `Workspace ${workspaceName} not found!`;
-            this.logger.log(msg, Category.Error)
-            throw new ResponseException(msg, HttpStatusCode.NOT_FOUND);
+        this.logger.log({ msg: `Deleting workspace with ID ${workspaceName}`, func: this.deleteWorkspace });
+        try {
+            const doc = await this.workspaceDb.get(workspaceName);
+            if (!doc) {
+                const msg = `Workspace ${workspaceName} not found!`;
+                this.logger.log({ msg: msg, func: this.deleteWorkspace });
+                return false;
+            }
+            const result = await this.workspaceDb.remove(doc._id, doc._rev);
+            if (!result.ok) {
+                const msg = `Failed to delete workspace ${workspaceName}`;
+                this.logger.log({ msg: msg, func: this.deleteRecord });
+                return false;
+            }
+            this.logger.log({ msg: `Successfully deleted workspace with ID ${workspaceName}`, func: this.deleteWorkspace });
+            return true;
+        } catch (err: any) {
+            const msg = `Failed to delete workspace due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.deleteWorkspace });
+            throw new Error(msg);
         }
-        await this.workspaceDb.remove(doc._id, doc._rev);
-        this.logger.log(`Successfully deleted workspace with ID ${workspaceName}`);
-        return true;
     }
 
     async getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]> {
-        this.logger.log(`Getting workspaces with limit ${limit} and skip ${skip}`);
-        const result = await this.workspaceDb.allDocs({ skip: skip, limit: limit, include_docs: true });
-        const docs = result.rows;
-        this.logger.log(`Iterating docs of count ${docs.length}`)
-        const wss: WorkspaceModel[] = docs.map((doc) => {
-            const ws = doc.doc as unknown as WorkspaceModel;
-            return ws;
-        })
-        this.logger.log(`Got workspaces ${JSON.stringify(wss)}`);
-        return wss;
-    }
-
-
-    //Record
-    async addRecord(record: RecordModel, workspaceID: string): Promise<RecordModel> {
-        this.logger.log(`Adding record ${JSON.stringify(record)} for workspace ${workspaceID}`);
-
-        // Check if workspace exists
-        this.logger.log(`Checking if workspace ${workspaceID} exists`);
-        const ws = await this.getWorkspace(workspaceID);
-        if (!ws) {
-            const msg = `Failed to add record. Invalid workspace ID ${workspaceID}`;
-            this.logger.log(msg);
-            throw new ResponseException(msg, HttpStatusCode.BAD_REQUEST);
-        }
-
-        // Validate record's attributes
-        this.logger.log(`Validating Attributes`);
+        this.logger.log({ msg: `Getting workspaces with limit ${limit} and skip ${skip}`, func: this.getWorkspaces });
         try {
+            const result = await this.workspaceDb.allDocs({ skip: skip, limit: limit, include_docs: true });
+            const docs = result.rows;
+            this.logger.log({ msg: `Iterating docs of count ${docs.length}`, func: this.getWorkspaces });
+            const wss: WorkspaceModel[] = docs.map((doc) => {
+                const ws = doc.doc as unknown as WorkspaceModel;
+                return ws;
+            });
+            this.logger.log({ msg: `Got workspaces ${JSON.stringify(wss)}`, func: this.getWorkspaces });
+            return wss;
+        } catch (err: any) {
+            const msg = `Failed to get workspaces due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.getWorkspaces });
+            throw new Error(msg);
+        }
+    }
+
+    // Record Operations
+    async addRecord(record: RecordModel, workspaceID: string): Promise<RecordModel> {
+        this.logger.log({ msg: `Adding record ${JSON.stringify(record)} for workspace ${workspaceID}`, func: this.addRecord });
+        //Validate workspace
+        try {
+            const ws = await this.getWorkspace(workspaceID);
+            if (!ws) {
+                const msg = `Failed to add record. Invalid workspace ID ${workspaceID}`;
+                this.logger.log({ msg: msg, func: this.addRecord, category: Category.Error });
+                throw new Error(msg);
+            }
+            //Validate attributes
             validateAttribute(record.attributes);
-        } catch (error: any) {
-            this.logger.log(`Attribute validation failed: ${error.message}`, Category.Error);
-            throw new ResponseException(`Attribute validation failed: ${error.message}`, HttpStatusCode.BAD_REQUEST);
+            /*
+            Concern : What will happen if a record with the same name already exists? Won't it get overwritten with this?
+            Ans : No, to update we need to pass rev which we do not.
+            */
+            const addResult = await this.recordDB.put({ _id: generateProjectID(record.name, workspaceID), ...record })
+            if (!addResult.ok) {
+                const msg = `Failed to add record ${JSON.stringify(record)}`;
+                this.logger.log({ msg: msg, func: this.addRecord })
+                throw new Error(msg)
+            }
+            return record;
+        } catch (err: any) {
+            const msg = `Failed to add record due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.addRecord, category: Category.Error });
+            throw new Error(msg);
         }
-
-        // Create & Get the record table dynamically in userTableDir/workspaceID/recordID
-        this.logger.log(`Creating dynamic record table`);
-        const recordDb = new databasePouch(getUserTableDirectory(workspaceID, record.name));
-
-        // Check if the "table_info" document exists
-        const existingDocs = await recordDb.allDocs({ keys: ["table_info"], include_docs: true });
-        const infoEntryExists = existingDocs.rows.some(row => row.key === "table_info");
-
-        if (!infoEntryExists) {
-            this.logger.log(`No info_table entry found for ${record.name}. Creating new one`);
-            await recordDb.put({ _id: "table_info", created: Date.now(), updated: Date.now() });
+    }
+    updateRecord(updatedRecord: RecordModel, workspaceID: string): Promise<boolean> {
+        throw new Error("NOT IMPLEMENTED. Need to decide how to update record properly.")
+    }
+    async getRecord(recordName: string, workspaceID: string): Promise<RecordModel> {
+        this.logger.log({ msg: `Getting record with name ${recordName} in workspace ${workspaceID}`, func: this.getRecord });
+        try {
+            const doc = await this.recordDB.get(generateProjectID(recordName, workspaceID)) as RecordModel;
+            if (!doc) {
+                const msg = `Record ${recordName} not found in workspace ${workspaceID}`;
+                this.logger.log({ msg: msg, func: this.getRecord });
+                throw new Error(msg);
+            }
+            return doc;
+        } catch (err: any) {
+            const msg = `Failed to get record due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.getRecord });
+            throw new Error(msg);
         }
-        else {
-            this.logger.log(`Existing info_table entry found skipping creating new entry.`)
+    }
+
+    async deleteRecord(recordName: string, workspaceID: string): Promise<boolean> {
+        this.logger.log({ msg: `Deleting record with name ${recordName} in workspace ${workspaceID}`, func: this.deleteRecord });
+        try {
+            const doc = await this.recordDB.get(recordName);
+            if (!doc) {
+                const msg = `Record ${recordName} not found in workspace ${workspaceID}`;
+                this.logger.log({ msg: msg, func: this.getRecord });
+                return false;
+            }
+            const result = await this.recordDB.remove({ _id: doc._id, _rev: doc._rev });
+            if (!result.ok) {
+                const msg = `Failed to delete record ${recordName}`;
+                this.logger.log({ msg: msg, func: this.deleteRecord });
+                return false;
+            }
+            this.logger.log({ msg: `Successfully deleted record with name ${recordName}`, func: this.deleteRecord });
+            return true;
+        } catch (err: any) {
+            const msg = `Failed to delete record due to error: ${err.message}`;
+            this.logger.log({ msg: msg, func: this.deleteRecord });
+            throw new Error(msg);
         }
-        this.logger.log(`Dispatching ${RecordAddedEvent.name} Event`)
-        // Dispatch event
-        EventManager.emit(new RecordAddedEvent(record)); //TODO: Fix this
-        return record;
     }
-    async updateRecord(updatedRecord: RecordModel, workspaceID: string): Promise<boolean> {
-        return true;
-    }
-
-    async getRecord(recID: string, workspaceID: string): Promise<RecordModel> {
-        const userTableDir = getUserTableDirectory(workspaceID, recID);
-        const db = new databasePouch(userTableDir);
-        const result = await db.get(recID) as RecordModel;
-        return result;
-    }
-    async deleteRecord(recID: string, workspaceID: string): Promise<boolean> {
-        const userTableDir = getUserTableDirectory(workspaceID, recID);
-
-        this.logger.log(`Deleting rec ${recID}, workspace ${workspaceID} in dir ${userTableDir}`);
-        const db = new databasePouch(userTableDir);
-        await db.destroy();
-        this.logger.log(`Deleted record ${recID} from workspace ${workspaceID}`);
-        return true;
-    }
-
-    async getRecords(skip: number, limit: number, workspaceID: string, recID: string): Promise<RecordModel[]> {
-        const db = new databasePouch(getUserTableDirectory(workspaceID, recID));
-        const result = await db.allDocs({ skip: skip, limit: limit, include_docs: true });
-        const docs = result.rows;
-        const a = docs.map((doc) => {
-            const id = doc.id;
-            let rec = doc as unknown as RecordModel;
-            rec.name = id;
-            return rec;
-        });
-        return a;
+    async getRecords(workspaceID: string, skip: number, limit: number): Promise<RecordModel[]> {
+        throw new Error("Not yet implemented")
     }
 }

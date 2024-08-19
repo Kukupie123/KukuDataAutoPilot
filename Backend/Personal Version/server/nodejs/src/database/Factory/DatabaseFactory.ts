@@ -7,14 +7,14 @@ import { KDAPLogger } from "../../util/KDAPLogger";
 export class DatabaseFactory {
     private static Logger = new KDAPLogger(DatabaseFactory.name);
     public static async Build(option?: BuildOption): Promise<IDatabaseAdapter> {
-        DatabaseFactory.Logger.log(`Building Database Adapter`)
+        DatabaseFactory.Logger.log({ msg: `Building Database Adapter`, func: this.Build })
         switch (dbSource) {
             case DatabaseType.PouchDb:
-                DatabaseFactory.Logger.log(`Building PouchDb Adapter`)
+                DatabaseFactory.Logger.log({ msg: `Building Pouch Adapter`, func: this.Build })
                 const db = new PouchDb();
-                DatabaseFactory.Logger.log(`Initializing PouchDb Adapter`)
+                DatabaseFactory.Logger.log({ msg: `Initializing Pouch Adapter`, func: this.Build })
                 await db.init();
-                DatabaseFactory.Logger.log(`Initialized PouchDb Adapter`)
+                DatabaseFactory.Logger.log({ msg: `Initialized Pouch Adapter`, func: this.Build })
                 return db;
             default:
                 throw new Error("Invalid dbType in database config");

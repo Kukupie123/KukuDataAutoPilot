@@ -43,9 +43,8 @@ export class EventManager {
                 payloadString = JSON.stringify(payload);
             }
             catch (err) {
-
             }
-            this.logger.log(`${eventName} Dispatched with payload ${payloadString}`)
+            this.logger.log({ msg: `${eventName} Dispatched with payload ${payloadString}`, func: this.on });
             callback(payload);
         });
     }
