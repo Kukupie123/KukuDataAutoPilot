@@ -3,10 +3,10 @@ import { IController } from "./IController";
 import { WorkspaceModel } from "../models/WorkspaceModel";
 import { WorkspaceService } from "../services/workspace/WorkspaceService";
 import { KDAPLogger } from "../util/KDAPLogger";
-import { ServiceFactory } from "../services/ServiceFactory";
 import { sendResponse } from "../helper/ResHelper";
 import { ResponseDataGeneric } from "../models/response/ResponseDataGeneric";
 import { HttpStatusCode } from "../util/HttpCodes";
+import { ServiceManager } from "../services/ServiceManager";
 //TODO: Hide this from other files
 //TODO: Better exception handling in the future
 export class WorkspaceController implements IController {
@@ -16,7 +16,8 @@ export class WorkspaceController implements IController {
 
     async initController(): Promise<void> {
         this.log.log({ msg: "Initializing Workspace Controller", func: this.initController })
-        this.workspaceService = await ServiceFactory.Build(WorkspaceService);
+        await ServiceManager.Register(WorkspaceService);
+        this.workspaceService = ServiceManager.GetService(WorkspaceService);
         this.log.log({ msg: "Initialized Workspace Controller", func: this.initController })
     }
     async foo(req: Request, res: Response): Promise<void> {

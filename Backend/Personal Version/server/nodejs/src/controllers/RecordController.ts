@@ -1,13 +1,13 @@
 import { Response, Request } from "express";
-import { ServiceFactory } from "../services/ServiceFactory";
 import { RecordService } from "../services/record/RecordService";
 import { IController } from "./IController";
-import { RecordModel } from "../models/RecordModel";
+import { ServiceManager } from "../services/ServiceManager";
 
 export class RecordController implements IController {
     private recService!: RecordService;
     async initController(): Promise<void> {
-        this.recService = await ServiceFactory.Build(RecordService);
+        await ServiceManager.Register(RecordService);
+        this.recService = ServiceManager.GetService(RecordService)
     }
 
     async createRecord(req: Request, res: Response) {
