@@ -39,6 +39,7 @@ const startServer = async () => {
         sendResponse(HttpStatusCode.INTERNAL_SERVER_ERROR, err.message, new ResponseDataGeneric(null), res);
     });
 }
+//TODO: Service manager for handling service instances since we have inter service communication
 //TODO: Mock db for test to keep it separate from main db
 //TODO: Complete workspace and record service
 //TODO: Refactor and clean up these services
