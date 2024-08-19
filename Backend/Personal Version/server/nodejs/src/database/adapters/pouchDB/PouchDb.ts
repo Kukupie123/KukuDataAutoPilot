@@ -40,7 +40,7 @@ export class PouchDb implements IDatabaseAdapter {
             Ans : No, to update in pouchDB you need to pass in _id and rev. We are not passing rev. This will throw
             an exception if an entry with the same id exist.
             */
-            const res = await this.workspaceDb.put({ _id: ws.name, ...ws });
+            const res = await this.workspaceDb.put({ _id: ws.name, ...ws }); //Throws exception if ID exists
 
             if (!res.ok) {
                 const msg = `Failed to add Workspace to Table ${JSON.stringify(ws)}`;
@@ -61,8 +61,9 @@ export class PouchDb implements IDatabaseAdapter {
         //To update a doc in PouchDB we need to pass latest rev
         this.logger.log({ msg: `Updating Workspace ${updatedWS.name}`, func: this.updateWorkspace });
         try {
-            // Fetch the current version of the document. Will throw exception if it's missing
-            const wsRaw = await this.workspaceDb.get(updatedWS.name);
+            // Fetch the current version of the document.
+            const wsRaw = await this.workspaceDb.get(updatedWS.name); //Throws exception if doesn't exist
+            //Rev and ID required to update
             const rev = wsRaw._rev;
             const id = wsRaw._id;
             const ws = wsRaw as unknown as WorkspaceModel;
@@ -72,7 +73,7 @@ export class PouchDb implements IDatabaseAdapter {
                 return false;
             }
             const updatedDoc = { ...updatedWS, _id: id, _rev: rev };
-            const result = await this.workspaceDb.put(updatedDoc);
+            const result = await this.workspaceDb.put(updatedDoc); //Throws exception if rev is invalid or outdated
             if (!result.ok) {
                 const msg = `Failed to update workspace ${updatedWS.name}`;
                 this.logger.log({ msg: msg, func: this.updateWorkspace });
@@ -92,9 +93,9 @@ export class PouchDb implements IDatabaseAdapter {
     async getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined> {
         this.logger.log({ msg: `Getting workspace with id ${workspaceName}`, func: this.getWorkspace });
         try {
-            const doc = await this.workspaceDb.get(workspaceName);
+            const doc = await this.workspaceDb.get(workspaceName); //Throws exception if workspace doesn't exist
             let ws = doc as unknown as WorkspaceModel;
-            if (!ws) {
+            if (!ws || ws.name === undefined) {
                 const msg = `Workspace ${workspaceName} not found`;
                 this.logger.log({ msg: msg, func: this.getWorkspace });
                 return undefined;
