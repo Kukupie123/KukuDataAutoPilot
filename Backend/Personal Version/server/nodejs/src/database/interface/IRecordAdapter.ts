@@ -1,16 +1,11 @@
-import { RecordModel } from "../../models/RecordModel";
+import { IRecordAttributeInfo, RecordModel } from "../../models/RecordModel";
 
 export interface IRecordAdapter {
     /**
      * Add a new record
      * Note for Devs :- Only Create a new record entry.
      */
-    addRecord(record: RecordModel): Promise<RecordModel>;
-
-    /**
-     * Update existing record
-     */
-    updateRecord(updatedRecord: RecordModel): Promise<boolean>;
+    addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string): Promise<boolean>;
 
     /**
      * Get record by ID
@@ -29,5 +24,5 @@ export interface IRecordAdapter {
      * @param limit How many to get at once
      * @returns  List of Records
      */
-    getRecords(workspaceID: string, skip: number, limit: number): Promise<RecordModel[]>;
+    getRecords(skip: number, limit: number): Promise<RecordModel[]>;
 }

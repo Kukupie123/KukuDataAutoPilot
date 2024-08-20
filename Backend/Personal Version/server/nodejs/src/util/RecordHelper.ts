@@ -1,37 +1,12 @@
-import { IRecordAttribute } from "../models/RecordModel";
+import { IRecordAttributeInfo } from "../models/RecordModel";
 
 /**
- * Checks if attribute is valid. Throws exception if not valid
- * @param attributes 
+ * Checks if attribute is valid. Throws an exception if not valid.
+ * @param attributes An array of IRecordAttribute objects to validate.
  */
-export function validateAttribute(attributes: IRecordAttribute[]): void {
-    attributes.forEach((att) => {
+export function validateAttribute(attributes: Map<string, IRecordAttributeInfo>): void {
+    if (!attributes.has("id")) {
+        throw new Error("id attribute is missing");
+    }
 
-        // Ensure that each attribute object has an '_id' field
-        if (!att['_id']) {
-            throw new Error("Attribute is missing '_id' field");
-        }
-
-        // Validate each attribute's value
-        for (const [key, value] of Object.entries(att)) {
-            const dataType = value.type;
-            const importance = value.importance;
-
-            // Validate importance
-            if (!importance || !(importance === "important" || importance === "optional")) {
-                throw new Error("Importance is missing or invalid. It needs to be 'important' or 'optional'");
-            }
-
-            // Validate dataType
-            switch (dataType) {
-                case "int":
-                case "float":
-                case "text":
-                case "date":
-                    break;
-                default:
-                    throw new Error(`Invalid data type for attribute ${key}. It needs to be 'int', 'float', 'text', or 'date'`);
-            }
-        }
-    });
 }
