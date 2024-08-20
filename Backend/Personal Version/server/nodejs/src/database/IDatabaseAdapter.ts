@@ -70,7 +70,7 @@ export interface IDatabaseAdapter {
      * Adds new Workspace. Throws exception if one already exists
      * @throws Throws Exception if workspace already exists
      */
-    addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel>;
+    addWorkspace(workspaceName: string, description?: string): Promise<boolean>;
     /**
      * Updates Existing workspace
      * @thorws Throws exception if no existing workspace found

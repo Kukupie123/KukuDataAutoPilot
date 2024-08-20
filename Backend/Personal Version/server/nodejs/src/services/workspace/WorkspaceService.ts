@@ -14,11 +14,18 @@ export class WorkspaceService implements IService {
         this.logger.log({ msg: "Initialized Workspace Service", func: this.initService });
     }
 
-    async addWorkspace(workspaceName: string, workspaceDesc: string = ""): Promise<WorkspaceModel> {
+    async addWorkspace(workspaceName: string, workspaceDesc: string = ""): Promise<boolean> {
         this.logger.log({ msg: `Add Workspace with name ${workspaceName}, ${workspaceDesc}`, func: this.addWorkspace });
-        const ws = await this.db.addWorkspace(workspaceName, workspaceDesc);
-        this.logger.log({ msg: `Workspace added : ${JSON.stringify(ws)}`, func: this.addWorkspace })
-        return ws;
+        const result = await this.db.addWorkspace(workspaceName, workspaceDesc);
+        this.logger.log({ msg: `Workspace added returned ${JSON.stringify(result)}`, func: this.addWorkspace })
+        return result;
+    }
+
+    async updateWorkspace(updatedWorkspace: WorkspaceModel): Promise<boolean> {
+        this.logger.log({ msg: `Updating workspace ${JSON.stringify(updatedWorkspace)}`, func: this.updateWorkspace });
+        const result = await this.db.updateWorkspace(updatedWorkspace);
+        this.logger.log({ msg: `Updated workspace result : ${result}`, func: this.updateWorkspace })
+        return result;
     }
 
     async getWorkspace(id: string): Promise<WorkspaceModel | undefined> {
@@ -37,8 +44,8 @@ export class WorkspaceService implements IService {
 
     async deleteWorkspace(id: string): Promise<boolean> {
         this.logger.log({ msg: `Delete workspace with ID ${id}`, func: this.deleteWorkspace })
-        await this.db.deleteWorkspace(id);
-        this.logger.log({ msg: `Deleted workspace with ID ${id}`, func: this.deleteWorkspace })
-        return true;
+        const result = await this.db.deleteWorkspace(id);
+        this.logger.log({ msg: `Deleted workspace Result ${result}`, func: this.deleteWorkspace })
+        return result;
     }
 }

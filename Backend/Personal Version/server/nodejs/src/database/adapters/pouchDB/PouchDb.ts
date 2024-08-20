@@ -30,7 +30,7 @@ export class PouchDb implements IDatabaseAdapter {
     }
 
     // Workspace Operations
-    async addWorkspace(workspaceName: string, description?: string): Promise<WorkspaceModel> {
+    async addWorkspace(workspaceName: string, description?: string): Promise<boolean> {
         this.logger.log({ msg: `Adding new workspace ${workspaceName}, ${description}`, func: this.addWorkspace });
         try {
             const ws: WorkspaceModel = new WorkspaceModel(workspaceName, description);
@@ -45,15 +45,15 @@ export class PouchDb implements IDatabaseAdapter {
             if (!res.ok) {
                 const msg = `Failed to add Workspace to Table ${JSON.stringify(ws)}`;
                 this.logger.log({ msg: msg, func: this.addWorkspace });
-                throw new Error(msg);
+                return false;
             }
 
             const savedWorkspace = await this.workspaceDb.get(res.id) as WorkspaceModel;
-            return savedWorkspace;
+            return true;
         } catch (err: any) {
             const msg = `Failed to add workspace due to error: ${err.message}`;
             this.logger.log({ msg: msg, func: this.addWorkspace });
-            throw new Error(msg);
+            return false;
         }
     }
 
