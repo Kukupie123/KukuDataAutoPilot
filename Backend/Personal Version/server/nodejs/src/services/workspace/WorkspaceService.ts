@@ -1,5 +1,5 @@
 import { DatabaseFactory } from "../../database/Factory/DatabaseFactory";
-import { IDatabaseAdapter } from "../../database/IDatabaseAdapter";
+import { IDatabaseAdapter } from "../../database/interface/IDatabaseAdapter";
 import { WorkspaceModel } from "../../models/WorkspaceModel";
 import { KDAPLogger } from "../../util/KDAPLogger";
 import { IService } from "../IService";

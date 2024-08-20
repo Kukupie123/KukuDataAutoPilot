@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, describe, expect, test, beforeAll } from "@jest/globals";
 import { PouchDb } from "../../../src/database/adapters/pouchDB/PouchDb";
-import { IDatabaseAdapter } from "../../../src/database/IDatabaseAdapter";
+import { IDatabaseAdapter } from "../../../src/database/interface/IDatabaseAdapter";
 import { ServiceManager } from "../../../src/services/ServiceManager";
 import { WorkspaceService } from "../../../src/services/workspace/WorkspaceService";
 import { WorkspaceModel } from "../../../src/models/WorkspaceModel";

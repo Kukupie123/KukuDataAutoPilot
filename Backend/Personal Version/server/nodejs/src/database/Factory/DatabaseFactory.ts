@@ -1,4 +1,4 @@
-import { IDatabaseAdapter } from "../IDatabaseAdapter";
+import { IDatabaseAdapter } from "../interface/IDatabaseAdapter";
 import { BuildOption } from "./BuildOptions";
 import { source as dbSource, DatabaseType } from "../../config/database.config";
 import { PouchDb } from "../adapters/pouchDB/PouchDb";

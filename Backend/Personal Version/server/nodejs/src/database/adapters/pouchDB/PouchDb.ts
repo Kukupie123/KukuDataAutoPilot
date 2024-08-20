@@ -1,11 +1,10 @@
-import { IDatabaseAdapter } from "../../IDatabaseAdapter";
+import { IDatabaseAdapter } from "../../interface/IDatabaseAdapter";
 import { WorkspaceModel } from "../../../models/WorkspaceModel";
 import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../../util/KDAPLogger";
 import { Category } from "../../../config/kdapLogger.config";
+import { workspaceDbDir, recordDbDir } from "./PouchHelper";
 import { RecordModel } from "../../../models/RecordModel";
-import { workspaceDbDir, recordDbDir, generateProjectID } from "./PouchHelper";
-import { validateAttribute } from "../../../util/RecordHelper";
 
 export class PouchDb implements IDatabaseAdapter {
     private logger = new KDAPLogger(PouchDb.name);
@@ -147,80 +146,21 @@ export class PouchDb implements IDatabaseAdapter {
         }
     }
 
-    // Record Operations
-    async addRecord(record: RecordModel, workspaceID: string): Promise<RecordModel> {
-        this.logger.log({ msg: `Adding record ${JSON.stringify(record)} for workspace ${workspaceID}`, func: this.addRecord });
-        //Validate workspace
-        try {
-            const ws = await this.getWorkspace(workspaceID);
-            if (!ws) {
-                const msg = `Failed to add record. Invalid workspace ID ${workspaceID}`;
-                this.logger.log({ msg: msg, func: this.addRecord, category: Category.Error });
-                throw new Error(msg);
-            }
-            //Validate attributes
-            validateAttribute(record.attributes);
-            /*
-            Concern : What will happen if a record with the same name already exists? Won't it get overwritten with this?
-            Ans : No, to update we need to pass rev which we do not.
-            */
-            const addResult = await this.recordDB.put({ _id: generateProjectID(record.name, workspaceID), ...record })
-            if (!addResult.ok) {
-                const msg = `Failed to add record ${JSON.stringify(record)}`;
-                this.logger.log({ msg: msg, func: this.addRecord })
-                throw new Error(msg)
-            }
-            return record;
-        } catch (err: any) {
-            const msg = `Failed to add record due to error: ${err.message}`;
-            this.logger.log({ msg: msg, func: this.addRecord, category: Category.Error });
-            throw new Error(msg);
-        }
+    async addRecord(record: RecordModel): Promise<RecordModel> {
+        throw new Error("Not implemented");
     }
-    updateRecord(updatedRecord: RecordModel, workspaceID: string): Promise<boolean> {
-        throw new Error("NOT IMPLEMENTED. Need to decide how to update record properly.")
+    async updateRecord(updatedRecord: RecordModel): Promise<boolean> {
+        return false;
     }
-    async getRecord(recordName: string, workspaceID: string): Promise<RecordModel> {
-        this.logger.log({ msg: `Getting record with name ${recordName} in workspace ${workspaceID}`, func: this.getRecord });
-        try {
-            const doc = await this.recordDB.get(generateProjectID(recordName, workspaceID)) as RecordModel;
-            if (!doc) {
-                const msg = `Record ${recordName} not found in workspace ${workspaceID}`;
-                this.logger.log({ msg: msg, func: this.getRecord });
-                throw new Error(msg);
-            }
-            return doc;
-        } catch (err: any) {
-            const msg = `Failed to get record due to error: ${err.message}`;
-            this.logger.log({ msg: msg, func: this.getRecord });
-            throw new Error(msg);
-        }
+    async getRecord(recID: string): Promise<RecordModel | undefined> {
+        return undefined;
     }
-
-    async deleteRecord(recordName: string, workspaceID: string): Promise<boolean> {
-        this.logger.log({ msg: `Deleting record with name ${recordName} in workspace ${workspaceID}`, func: this.deleteRecord });
-        try {
-            const doc = await this.recordDB.get(recordName);
-            if (!doc) {
-                const msg = `Record ${recordName} not found in workspace ${workspaceID}`;
-                this.logger.log({ msg: msg, func: this.getRecord });
-                return false;
-            }
-            const result = await this.recordDB.remove({ _id: doc._id, _rev: doc._rev });
-            if (!result.ok) {
-                const msg = `Failed to delete record ${recordName}`;
-                this.logger.log({ msg: msg, func: this.deleteRecord });
-                return false;
-            }
-            this.logger.log({ msg: `Successfully deleted record with name ${recordName}`, func: this.deleteRecord });
-            return true;
-        } catch (err: any) {
-            const msg = `Failed to delete record due to error: ${err.message}`;
-            this.logger.log({ msg: msg, func: this.deleteRecord });
-            throw new Error(msg);
-        }
+    async deleteRecord(recID: string): Promise<boolean> {
+        return false;
     }
     async getRecords(workspaceID: string, skip: number, limit: number): Promise<RecordModel[]> {
-        throw new Error("Not yet implemented")
+        return [];
     }
+
+
 }
