@@ -31,9 +31,36 @@ export interface IDatabaseAdapter {
         }
     */
 
+    //Workspace
+    /**
+     * Adds new Workspace. Throws exception if one already exists
+     * @throws Throws Exception if workspace already exists
+     */
+    addWorkspace(workspaceName: string, description?: string): Promise<boolean>;
+    /**
+     * Updates Existing workspace
+     * @thorws Throws exception if no existing workspace found
+     */
+    updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean>
+    /**
+     * Get workspace by name
+     * @throws Throws exception if workspace doesn't exist
+     */
+    getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined>;
+    /**
+     * Delete workspace by name
+     * @throws Throws exception if workspace doesn't exist
+     */
+    deleteWorkspace(workspaceName: string): Promise<boolean>;
+    /**
+     * Returns all workspaces
+     */
+    getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
+
     //Records
     /**
      * Add a new record to the workspace.
+     * Note for Devs :- Only Create a new record entry.
      * @param record record model to add.
      * @param workspaceID workspaceID the record is for.
      */
@@ -65,30 +92,6 @@ export interface IDatabaseAdapter {
      */
     getRecords(workspaceID: string, skip: number, limit: number): Promise<RecordModel[]>;
 
-    //Workspace
-    /**
-     * Adds new Workspace. Throws exception if one already exists
-     * @throws Throws Exception if workspace already exists
-     */
-    addWorkspace(workspaceName: string, description?: string): Promise<boolean>;
-    /**
-     * Updates Existing workspace
-     * @thorws Throws exception if no existing workspace found
-     */
-    updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean>
-    /**
-     * Get workspace by name
-     * @throws Throws exception if workspace doesn't exist
-     */
-    getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined>;
-    /**
-     * Delete workspace by name
-     * @throws Throws exception if workspace doesn't exist
-     */
-    deleteWorkspace(workspaceName: string): Promise<boolean>;
-    /**
-     * Returns all workspaces
-     */
-    getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]>;
+
 
 }

@@ -1,98 +1,81 @@
+# Workspace and Record Management System
 
+## Overview
 
-# Database Architecture
+This document describes the design for a system managing workspaces and records, including a custom indexing strategy to optimize query performance. The design is implemented using a NoSQL database with a focus on efficiency and scalability.
 
-**Kuku Data Auto Pilot (KDAP)** involves the following key entities:
+## Tables
 
-1. **Workspaces**
-2. **Records**
-3. **Task Automations** (TBD)
+### 1. Workspace Table
 
-## 1. Workspaces
-Workspaces store data in the form of **records**.
+- **`id`**: Unique identifier for the workspace (e.g., UUID or a generated ID).
+- **`name`**: Name of the workspace.
+- **`created`**: Date the workspace was created.
+- **`updated`**: Date the workspace was last updated.
+- **`desc`**: Description of the workspace.
 
-## 2. Records
-Records contain large sets of entries and each has its own attributes, such as an "Inventory Record" having attributes like "ItemID", "Quantity", and "Price".
+### 2. Record Table
 
-## 3. Task Automations
-Details to be defined.
+- **`id`**: Unique identifier for the record.
+- **`name`**: Name of the record.
+- **`created`**: Date the record was created.
+- **`updated`**: Date the record was last updated.
+- **`desc`**: Description of the record.
+- **`attributes`**: Defines the structure or schema of the record, potentially stored as JSON or XML.
 
-## Database Design
+## Indexing Strategy
 
-### 1. Workspaces Table
-Stores information about each workspace.
+To enhance query performance, custom indexing tables are used to manage the relationships between workspaces and records.
 
-**Schema:**
-- `workspace_id` (Primary Key, UUID or BIGINT)
-- `workspace_name` (VARCHAR, indexed)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+### 1. `ws_rec` Table
 
-### 2. Records Table
-Stores metadata about each record, including its relationship to a workspace and the name of the dynamically created table for record data.
+- **Purpose**: This table facilitates fast lookups to determine which records are associated with a given workspace.
+- **Structure**:
+  - **`id`**: A concatenated string of `workspaceID` and `recordID` (e.g., `workspaceID_recordID`).
+- **Indexing**:
+  - The `id` column is indexed to optimize queries.
 
-**Schema:**
-- `record_id` (Primary Key, UUID or BIGINT) (This will also be the generated table's name)
-- `workspace_id` (Foreign Key referencing `Workspaces.workspace_id`)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+### 2. `rec_ws` Table
 
-### 3. Record Structures Table
-Stores the schema of each record. Each entry corresponds to a record in the `Records` table.
+- **Purpose**: This table enables quick lookups to find all workspaces associated with a specific record.
+- **Structure**:
+  - **`id`**: A concatenated string of `recordID` and `workspaceID` (e.g., `recordID_workspaceID`).
+- **Indexing**:
+  - The `id` column is indexed to enhance query performance.
 
-**Schema:**
-- `structure_id` (Primary Key, Foreign Key referencing `Records.record_id`)
-- `structure` (JSON or TEXT, stores the record structure)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+## Query Examples
 
-### 4. Dynamic Tables for Entries
-Each record's entries are stored in a dynamically created table named based on the `table_name` field in the `Records` table.
+### Get Workspaces That Use Record X
 
-**Example:**
+To find all workspaces associated with a specific record:
+- **Find Entries**: Query the `rec_ws` table for entries where `recordID` is equal to `X`.
+- **Extract Data**: Retrieve the associated `workspaceID` values from these entries.
 
-**For an Inventory Record:**
-- **Table Name:** `inventory_record_1_entries`
+**Pseudo-code Example**:
+```
+Find entries in rec_ws where recordID equals 'X'
+Extract workspaceID values from these entries
+```
 
-**Schema:**
-- `entry_id` (Primary Key, UUID or BIGINT)
-- `item_id` (INT)
-- `item_name` (VARCHAR(255))
-- `quantity` (INT)
-- `price` (DECIMAL(10, 2))
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+### Get Records That Are Used in Workspace X
 
-**Example Entries:**
-1. **Entry 1:**
-   - `entry_id`: `1`
-   - `item_id`: `1001`
-   - `item_name`: `"Apple"`
-   - `quantity`: `50`
-   - `price`: `0.99`
-   - `created_at`: `2024-08-14 10:10:00`
-   - `updated_at`: `2024-08-14 10:10:00`
+To find all records associated with a specific workspace:
+- **Find Entries**: Query the `ws_rec` table for entries where `workspaceID` is equal to `X`.
+- **Extract Data**: Retrieve the associated `recordID` values from these entries.
 
-2. **Entry 2:**
-   - `entry_id`: `2`
-   - `item_id`: `1002`
-   - `item_name`: `"Banana"`
-   - `quantity`: `75`
-   - `price`: `0.79`
-   - `created_at`: `2024-08-14 10:12:00`
-   - `updated_at`: `2024-08-14 10:12:00`
+**Pseudo-code Example**:
+```
+Find entries in ws_rec where workspaceID equals 'X'
+Extract recordID values from these entries
+```
 
-## Operations
+## Data Consistency
 
-- **Creating a New Record:**
-  1. Insert metadata into the `Records` table.
-  2. Define the record structure in the `Record Structures` table.
-  3. Create a dynamic table (`inventory_record_1_entries`) for storing data.
+To maintain consistency between the main tables and the indexing tables:
 
-- **Adding Data to the Record:**
-  Insert entries into the dynamically created table.
+- **Additions**: When adding a new workspace or record, ensure that corresponding entries are created in both indexing tables.
+- **Deletions**: When removing a workspace or record, ensure that all related entries are deleted from the indexing tables.
+- **Updates**: Any changes to the relationships between workspaces and records should be reflected in the indexing tables.
 
-- **Querying Data:**
-  Retrieve, update, or delete inventory items from the dynamic table.
-
-This design provides flexibility and scalability for handling records with large datasets and supports a structured approach for managing record schemas and entries within KDAP.
+<br>
+This design provides a robust and efficient method for managing and querying relationships between workspaces and records. By using custom indexing tables, we achieve quick lookups and maintain the scalability of the system.
