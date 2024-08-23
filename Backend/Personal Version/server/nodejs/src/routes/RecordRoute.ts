@@ -19,9 +19,19 @@ export class RecordRoute implements IKDAPRoute {
             },
             {
                 method: "get",
-                path: `${this.rootPath}`,
+                path: this.rootPath,
                 handler: this.recordController.getRecords.bind(this.recordController)
             },
+            {
+                method: "get",
+                path: `${this.rootPath}/:id`,
+                handler: this.recordController.getRecord.bind(this.recordController)
+            },
+            {
+                method: "delete",
+                path:`${this.rootPath}/:id`,
+                handler: this.recordController.deleteRecord.bind(this.recordController)
+            }
         ];
     }
 

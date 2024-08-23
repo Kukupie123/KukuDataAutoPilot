@@ -18,7 +18,7 @@ export class RecordModel {
     desc?: string;
     created?: Date;
     updated?: Date;
-    attributes: Map<string, IRecordAttributeInfo>;
+    attributes: Map<string, IRecordAttributeInfo>; //Doesn't support json parsing
 
 
     constructor(

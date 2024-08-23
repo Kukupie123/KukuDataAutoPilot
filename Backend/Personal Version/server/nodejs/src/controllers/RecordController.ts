@@ -27,19 +27,32 @@ export class RecordController implements IController {
 
         for (const k in attributesJson) {
             const [type, importance] = (attributesJson[k] as string).split(";");
+            this.logger.log({
+                msg: `Type : ${type as RecordAttributeType}`
+                , func: this.addRecord
+            })
 
-            if (Object.values(RecordAttributeType).includes(type as RecordAttributeType) &&
-                Object.values(RecordImportance).includes(importance as RecordImportance)) {
-
-                const attributeInfo: IRecordAttributeInfo = {
-                    attributeType: type as RecordAttributeType,
-                    attributeImportance: importance as RecordImportance,
-                };
-                attributes.set(k, attributeInfo);
-            } else {
-                // Handle invalid types or importance values
-                return res.status(400).json({error: `Invalid type or importance for attribute ${k} : ${type};${importance}`});
+            switch (type) {
+                case RecordAttributeType.int:
+                case RecordAttributeType.text:
+                case RecordAttributeType.float:
+                case RecordAttributeType.date:
+                    break;
+                default:
+                    return res.status(400).json({error: `Invalid type for ${k}:${type}`})
             }
+            switch (importance) {
+                case RecordImportance.optional:
+                case RecordImportance.important:
+                    break;
+                default:
+                    return res.status(500).json({error: `Invalid Importance ${k}:${importance}`})
+            }
+
+            attributes.set(k, {
+                attributeType: type as RecordAttributeType,
+                attributeImportance: importance as RecordImportance
+            })
         }
         const result = await this.recService.addRecord(name, attributes, desc);
         sendResponse(result ? HttpStatusCode.OK : HttpStatusCode.EXPECTATION_FAILED,
@@ -51,20 +64,25 @@ export class RecordController implements IController {
 
 
     async getRecord(req: Request, res: Response) {
-        const recID = req.params['id']
+        const recID = req.params.id;
         this.logger.log({msg: `Getting record ${recID}`, func: this.getRecord});
+
         const rec = await this.recService.getRecord(recID);
-        let statusCode = 200;
-        let msg = "Added";
-        if (!rec) {
-            statusCode = HttpStatusCode.NOT_FOUND;
-            msg = "Not found";
+        //Map is not directly supported by JSON.parse
+        if (rec) {
+            const attributesObj = Object.fromEntries(rec.attributes); // Convert Map to an Object
+            const recWithObjAttributes = {
+                ...rec,
+                attributes: attributesObj
+            };
+            sendResponse(HttpStatusCode.OK, "Record retrieved", new ResponseDataGeneric(recWithObjAttributes), res);
+        } else {
+            sendResponse(HttpStatusCode.NOT_FOUND, "Not found", new ResponseDataGeneric<RecordModel | undefined>(undefined), res);
         }
-        sendResponse(statusCode, msg, new ResponseDataGeneric<RecordModel | undefined>(rec), res)
     }
 
     async deleteRecord(req: Request, res: Response) {
-        const recID = req.params['id'];
+        const recID = req.params.id;
         this.logger.log({msg: `Deleting record ${recID}`, func: this.deleteRecord});
         const result = await this.recService.deleteRecord(recID);
         let statusCode = 200;
@@ -80,6 +98,14 @@ export class RecordController implements IController {
         const skip = parseInt(req.query['skip'] as string, 0) || 0;
         const limit = parseInt(req.query['limit'] as string, 10) || 10;
         this.logger.log({msg: `Getting ALL records with skip ${skip}, limit : ${limit} `, func: this.getRecord});
-        return await this.recService.getRecords(skip, limit);
+        const recs =  await this.recService.getRecords(skip, limit);
+        const resRecs = recs.map(rec=>{
+            const attrObj = Object.fromEntries(rec.attributes);
+            return {
+                ...rec,
+                attributes: attrObj
+            };
+        })
+        sendResponse(200,"Retrieved",new ResponseDataGeneric(resRecs),res);
     }
 }
