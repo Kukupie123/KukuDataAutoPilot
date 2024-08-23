@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import chalk from 'chalk';
-import { Category, LOG_DIRECTORY } from "../config/kdapLogger.config";
-
+import {Category, LOG_DIRECTORY} from "../config/kdapLogger.config";
+import  {color} from "console-log-colors"
 /**
  * A logger class for KDAP which supports Levels, Categories, File Logs
  */
@@ -51,13 +50,14 @@ export class KDAPLogger {
     private formatMessage(logData: LogData): string {
         const { msg, category = Category.Info, func } = logData;
         const timestamp = new Date().toISOString();
+        const a = color.blue("asdasd")
 
         // Build the log message parts
         const parts = [
-            `[${chalk.blue(this.identifier)}-${chalk.red(this.instanceNumber)}]`,
-            func ? `[${chalk.yellow(func.name)}]` : null, // Only add this part if func is defined
-            `[${chalk.green(category)}]`,
-            `[${chalk.gray(timestamp)}]`,
+            `[${color.blue(this.identifier)}-${color.red(this.instanceNumber)}]`,
+            func ? `[${color.yellow(func.name)}]` : null, // Only add this part if func is defined
+            `[${color.green(category)}]`,
+            `[${color.gray(timestamp)}]`,
             `: ${msg}`
         ];
 

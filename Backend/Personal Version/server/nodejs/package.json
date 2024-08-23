@@ -11,7 +11,7 @@
   "author": "kukukodes",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^5.3.0",
+    "console-log-colors": "^0.5.0",
     "express": "^4.19.2",
     "kdap_server": "file:",
     "pouchdb": "^9.0.0"
