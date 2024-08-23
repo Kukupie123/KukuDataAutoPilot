@@ -9,4 +9,24 @@ export function validateAttribute(attributes: Map<string, IRecordAttributeInfo>)
         throw new Error("id attribute is missing");
     }
 
+    attributes.forEach((v, k) => {
+        switch (v.attributeImportance) {
+            case "important":
+            case "optional":
+                break;
+            default:
+                throw new Error(`Invalid attributeImportance ${v.attributeImportance}`);
+        }
+
+        switch (v.attributeType) {
+            case "date":
+            case "float":
+            case "int":
+            case "text":
+                break;
+            default:
+                throw new Error(`Invalid attributeType ${v.attributeType}`);
+        }
+    })
+
 }

@@ -12,7 +12,11 @@ export class PouchDbRecord {
     }
 
     async addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string): Promise<boolean> {
-        this.logger.log({ msg: `Adding record ${name} with attributes ${JSON.stringify(attributes)}`, func: this.addRecord })
+        let attributesString = "";
+        attributes.forEach((v, k) => {
+            attributesString = `${attributesString} ${k} : ${v.attributeImportance}, ${v.attributeType}\n`
+        })
+        this.logger.log({ msg: `Adding record ${name} with attributes := \n${attributesString}`, func: this.addRecord })
         try {
             validateAttribute(attributes);
         }
