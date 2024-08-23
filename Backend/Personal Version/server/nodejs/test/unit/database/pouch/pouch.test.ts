@@ -53,7 +53,7 @@ describe.skip("Pouch DB Workspace Tests", () => {
 
         //Adding already exisiting workspace test
         try {
-            const ws2 = await addWs();
+            await addWs();
             e(true).toBe(false); //Fail
         }
         catch (err) {
@@ -214,7 +214,11 @@ describe("Pouch Record table tests", () => {
             e(true).toBe(true)
         }
 
-
     })
+
+    //Remaining tests :-
+    //Get records of workspace X, Get workspace using record X.
+
+
 
 })

@@ -15,7 +15,7 @@ export class RecordRoute implements IKDAPRoute {
             {
                 method: "post",
                 path: `${this.rootPath}`,
-                handler: this.recordController.createRecord.bind(this.recordController)
+                handler: this.recordController.addRecord.bind(this.recordController)
             },
             {
                 method: "get",
