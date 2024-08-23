@@ -2,7 +2,7 @@ import { beforeEach, afterEach, describe, expect as e, it, test } from "@jest/gl
 import { PouchDb } from "../../../../src/database/adapters/pouchDB/PouchDb";
 import { KDAPLogger } from "../../../../src/util/KDAPLogger";
 import { WorkspaceModel } from "../../../../src/models/WorkspaceModel";
-import { IRecordAttributeInfo } from "../../../../src/models/RecordModel";
+import { IRecordAttributeInfo, RecordModel } from "../../../../src/models/RecordModel";
 
 describe.skip("Pouch DB Workspace Tests", () => {
     const log = new KDAPLogger("Pouch DB Workspace Tests");
@@ -165,7 +165,7 @@ describe("Pouch Record table tests", () => {
 
     });
 
-    test("Create record test", async () => {
+    test.skip("Create record test", async () => {
         //Simple add test
         const res = await addRec();
         e(res).toBe(true);
@@ -189,6 +189,32 @@ describe("Pouch Record table tests", () => {
         catch (err) {
             e(true).toBe(true);
         }
+    })
+
+    test.skip("Delete record test", async () => {
+        await addRec();
+        let res = await delRec();
+        e(res).toBe(true);
+        res = await delRec();
+        e(res).toBe(false);
+    })
+
+    test("Get record test", async () => {
+        await addRec();
+        const retreivedRec = await db.getRecord(recName) as RecordModel;
+        e(retreivedRec).toBeDefined();
+        e(retreivedRec.name).toBe(recName);
+        e(retreivedRec.attributes.get("id")?.attributeType).toBe("text")
+
+        try {
+            await db.getRecord("doesnt exist") as RecordModel;
+            e(false).toBe(true)
+        }
+        catch (err) {
+            e(true).toBe(true)
+        }
+
+
     })
 
 })

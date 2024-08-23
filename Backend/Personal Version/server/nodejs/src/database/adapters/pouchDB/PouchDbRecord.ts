@@ -2,6 +2,7 @@ import { Category } from "../../../config/kdapLogger.config";
 import { IRecordAttributeInfo, RecordModel } from "../../../models/RecordModel";
 import { KDAPLogger } from "../../../util/KDAPLogger";
 import { validateAttribute } from "../../../util/RecordHelper";
+import { RecordDTO } from "./DTO/RecordDTO";
 
 export class PouchDbRecord {
     private recordDb!: PouchDB.Database;
@@ -12,11 +13,7 @@ export class PouchDbRecord {
     }
 
     async addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string): Promise<boolean> {
-        let attributesString = "";
-        attributes.forEach((v, k) => {
-            attributesString = `${attributesString} ${k} : ${v.attributeImportance}, ${v.attributeType}\n`
-        })
-        this.logger.log({ msg: `Adding record ${name} with attributes := \n${attributesString}`, func: this.addRecord })
+        this.logger.log({ msg: `Adding record ${name} with attributes := ${JSON.stringify(Array.from(attributes.entries()))}`, func: this.addRecord })
         try {
             validateAttribute(attributes);
         }
@@ -25,9 +22,9 @@ export class PouchDbRecord {
             this.logger.log({ category: Category.Error, msg: msg, func: this.addRecord })
             throw new Error(msg) //TODO: Throw exception that can be caught and sent as response
         }
-        const rec = new RecordModel(name, attributes, desc, new Date(Date.now()), new Date(Date.now()));
         try {
-            await this.recordDb.put({ _id: rec.name, ...rec });
+            const att2 = new RecordDTO(name, JSON.stringify(Array.from(attributes)), new Date(Date.now()), new Date(Date.now()), desc);
+            await this.recordDb.put(att2);
             return true;
         }
         catch (err) {
@@ -36,16 +33,22 @@ export class PouchDbRecord {
             return false;
         }
     }
+
     async getRecord(recID: string): Promise<RecordModel | undefined> {
-        this.logger.log({ msg: `Getting record ${recID}`, func: this.getRecord })
+        this.logger.log({ msg: `Getting record ${recID}`, func: this.getRecord });
         try {
-            return await this.recordDb.get(recID) as RecordModel
-        }
-        catch (err) {
-            this.logger.log({ msg: `Failed to get record ${(err as Error).message}`, func: this.getRecord })
+            const result = await this.recordDb.get<RecordDTO>(recID);
+            const recordDTO = new RecordDTO(result.name, result.attributes, new Date(result.created), new Date(result.updated), result._rev);
+            this.logger.log({ msg: `Gotten record DTO :  ${JSON.stringify(recordDTO)}`, func: this.getRecord });
+            const recModel = recordDTO.toRecordModel();
+            this.logger.log({ msg: `Gotten record : ${JSON.stringify(recModel)} with attributes : ${JSON.stringify(Array.from(recModel.attributes.entries()))}` })
+            return recModel;
+        } catch (err) {
+            this.logger.log({ msg: `Failed to get record ${(err as Error).message}`, func: this.getRecord });
             return undefined;
         }
     }
+
     async deleteRecord(recID: string): Promise<boolean> {
         this.logger.log({ msg: `Deleting record ${recID}`, func: this.deleteRecord });
         try {
