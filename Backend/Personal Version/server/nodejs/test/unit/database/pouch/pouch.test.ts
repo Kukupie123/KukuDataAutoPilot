@@ -209,7 +209,7 @@ describe("Pouch Record table tests", () => {
         const retreivedRec = await db.getRecord(recName) as RecordModel;
         e(retreivedRec).toBeDefined();
         e(retreivedRec.name).toBe(recName);
-        e(retreivedRec.attributes.get("id")?.attributeType).toBe("text")
+        e(retreivedRec.attributes.get("id")?.attributeType).toBe(RecordAttributeType.float)
 
         try {
             await db.getRecord("doesnt exist") as RecordModel;
