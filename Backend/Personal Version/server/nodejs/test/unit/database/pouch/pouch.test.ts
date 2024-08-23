@@ -165,7 +165,7 @@ describe("Pouch Record table tests", () => {
 
     });
 
-    test.skip("Create record test", async () => {
+    test("Create record test", async () => {
         //Simple add test
         const res = await addRec();
         e(res).toBe(true);
@@ -191,7 +191,7 @@ describe("Pouch Record table tests", () => {
         }
     })
 
-    test.skip("Delete record test", async () => {
+    test("Delete record test", async () => {
         await addRec();
         let res = await delRec();
         e(res).toBe(true);

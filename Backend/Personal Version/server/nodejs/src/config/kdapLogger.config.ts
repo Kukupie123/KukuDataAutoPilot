@@ -7,12 +7,13 @@ export enum Category {
     Warn = 'Warn',
     Error = 'Error',
     Fatal = 'Fatal',
+    Warning = "Warning",
 
     // Custom categories
     Database = 'Database',
     Factory = 'Factory',
     Controller = 'Controller',
-    Service = 'Service'
+    Service = 'Service',
 }
 
 // Define the log directory

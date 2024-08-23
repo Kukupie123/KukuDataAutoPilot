@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import chalk from 'chalk';
 import { Category, LOG_DIRECTORY } from "../config/kdapLogger.config";
 
 /**
@@ -53,10 +54,10 @@ export class KDAPLogger {
 
         // Build the log message parts
         const parts = [
-            `[${this.identifier}-${this.instanceNumber}]`,
-            func ? `[${func.name}]` : null, // Only add this part if func is defined
-            `[${category}]`,
-            `[${timestamp}]`,
+            `[${chalk.blue(this.identifier)}-${chalk.red(this.instanceNumber)}]`,
+            func ? `[${chalk.yellow(func.name)}]` : null, // Only add this part if func is defined
+            `[${chalk.green(category)}]`,
+            `[${chalk.gray(timestamp)}]`,
             `: ${msg}`
         ];
 
