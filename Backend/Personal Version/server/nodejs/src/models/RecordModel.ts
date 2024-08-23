@@ -1,6 +1,16 @@
+export enum RecordAttributeType{
+    text = "text",
+    int = "int",
+    float = "float",
+    date = "date",
+}
+export enum RecordImportance{
+    important = "important",
+    optional = "optional",
+}
 export interface IRecordAttributeInfo {
-    attributeType: "int" | "float" | "text" | "date";
-    attributeImportance: "important" | "optional";
+    attributeType: RecordAttributeType;
+    attributeImportance: RecordImportance;
 }
 
 export class RecordModel {

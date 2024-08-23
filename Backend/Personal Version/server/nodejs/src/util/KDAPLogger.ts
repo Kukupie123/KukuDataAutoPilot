@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import {Category, LOG_DIRECTORY} from "../config/kdapLogger.config";
-import  {color} from "console-log-colors"
+import {color} from "console-log-colors"
+
 /**
  * A logger class for KDAP which supports Levels, Categories, File Logs
  */
@@ -10,6 +11,7 @@ export interface LogData {
     category?: Category;
     func?: Function;
 }
+
 //TODO: Use object identifier to determine the instance. This will allow single class to have multiple loggers without increasing the instnce Count
 export class KDAPLogger {
     private readonly identifier: string;
@@ -18,6 +20,7 @@ export class KDAPLogger {
     // Static maps to track instance counts and instance numbers
     private static instanceCounts: Map<string, number> = new Map();
     private static instanceNumbers: Map<string, number> = new Map();
+
     constructor(identifier: string) {
         this.identifier = identifier;
 
@@ -32,7 +35,7 @@ export class KDAPLogger {
 
         // Ensure the log directory exists
         if (!fs.existsSync(LOG_DIRECTORY)) {
-            fs.mkdirSync(LOG_DIRECTORY, { recursive: true });
+            fs.mkdirSync(LOG_DIRECTORY, {recursive: true});
             console.log(`Created log directory at ${LOG_DIRECTORY}`);
         }
 
@@ -48,15 +51,13 @@ export class KDAPLogger {
     }
 
     private formatMessage(logData: LogData): string {
-        const { msg, category = Category.Info, func } = logData;
+        const {msg, category = Category.Info, func} = logData;
         const timestamp = new Date().toISOString();
-        const a = color.blue("asdasd")
-
         // Build the log message parts
         const parts = [
             `[${color.blue(this.identifier)}-${color.red(this.instanceNumber)}]`,
             func ? `[${color.yellow(func.name)}]` : null, // Only add this part if func is defined
-            `[${color.green(category)}]`,
+            `[${color.blueBright(category)}]`,
             `[${color.gray(timestamp)}]`,
             `: ${msg}`
         ];
@@ -65,17 +66,8 @@ export class KDAPLogger {
         return parts.filter(part => part !== null).join(' ');
     }
 
-
-
-
-
-    /**
-     * 
-     * @param msg The message to log
-     * @param category Optional. To change the log category. By default will be the one set in constructor
-     */
     public log(logData: LogData) {
-        const { msg, category = Category.Info, func } = logData;
+        const {msg, category = Category.Info, func} = logData;
 
         // Format the message
         const formattedMessage = this.formatMessage(logData);

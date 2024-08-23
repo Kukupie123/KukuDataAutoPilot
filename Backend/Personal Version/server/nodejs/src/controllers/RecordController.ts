@@ -2,7 +2,7 @@ import {RecordService} from "../services/record/RecordService";
 import {IController} from "./IController";
 import {ServiceManager} from "../services/ServiceManager";
 import {KDAPLogger} from "../util/KDAPLogger";
-import {IRecordAttributeInfo, RecordModel} from "../models/RecordModel";
+import {IRecordAttributeInfo, RecordAttributeType, RecordImportance, RecordModel} from "../models/RecordModel";
 import {Request, Response} from "express"
 import {sendResponse} from "../helper/ResHelper";
 import {HttpStatusCode} from "../util/HttpCodes";
@@ -17,30 +17,38 @@ export class RecordController implements IController {
         this.recService = ServiceManager.GetService(RecordService)
     }
 
-    /**
-     * Expected payload {name:"",attributes:"{type;importance}",desc:""}
-     * @returns
-     */
     async addRecord(req: Request, res: Response) {
-        const name = req.body['name'];
-        const attributesString = req.body['attributes'];
-        const attributeJSON = JSON.parse(attributesString) as [string, IRecordAttributeInfo][];
-        const attributes = new Map(attributeJSON)
-        const desc = req.body['desc'];
-        this.logger.log({
-            msg: `Adding Record ${name}, with attributes ${JSON.stringify(Array.from(attributes))}`,
-            func: this.addRecord
-        })
-        const success = await this.recService.addRecord(name, attributes, desc);
-        let statusCode = 200;
-        let msg = 'Added';
-        if (!success) {
-            statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
-            msg = 'Something went wrong';
+        const name = req.body.name;
+        const desc = req.body.desc;
+        const attributesString = req.body.attributes;
+        const attributesJson = JSON.parse(attributesString); // Key is the attribute name, value is the "type;importance"
+
+        const attributes = new Map<string, IRecordAttributeInfo>();
+
+        for (const k in attributesJson) {
+            const [type, importance] = (attributesJson[k] as string).split(";");
+
+            if (Object.values(RecordAttributeType).includes(type as RecordAttributeType) &&
+                Object.values(RecordImportance).includes(importance as RecordImportance)) {
+
+                const attributeInfo: IRecordAttributeInfo = {
+                    attributeType: type as RecordAttributeType,
+                    attributeImportance: importance as RecordImportance,
+                };
+                attributes.set(k, attributeInfo);
+            } else {
+                // Handle invalid types or importance values
+                return res.status(400).json({error: `Invalid type or importance for attribute ${k} : ${type};${importance}`});
+            }
         }
-        this.logger.log({msg: `add record status : ${success}`, func: this.addRecord})
-        sendResponse(statusCode, msg, new ResponseDataGeneric<boolean>(success), res);
+        const result = await this.recService.addRecord(name, attributes, desc);
+        sendResponse(result ? HttpStatusCode.OK : HttpStatusCode.EXPECTATION_FAILED,
+            result ? "Added Record" : "Failed to add Record",
+            new ResponseDataGeneric(null),
+            res);
+
     }
+
 
     async getRecord(req: Request, res: Response) {
         const recID = req.params['id']

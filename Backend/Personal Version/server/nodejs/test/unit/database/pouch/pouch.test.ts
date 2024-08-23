@@ -1,8 +1,13 @@
-import { beforeEach, afterEach, describe, expect as e, it, test } from "@jest/globals";
-import { PouchDb } from "../../../../src/database/adapters/pouchDB/PouchDb";
-import { KDAPLogger } from "../../../../src/util/KDAPLogger";
-import { WorkspaceModel } from "../../../../src/models/WorkspaceModel";
-import { IRecordAttributeInfo, RecordModel } from "../../../../src/models/RecordModel";
+import {afterEach, beforeEach, describe, expect as e, test} from "@jest/globals";
+import {PouchDb} from "../../../../src/database/adapters/pouchDB/PouchDb";
+import {KDAPLogger} from "../../../../src/util/KDAPLogger";
+import {WorkspaceModel} from "../../../../src/models/WorkspaceModel";
+import {
+    IRecordAttributeInfo,
+    RecordAttributeType,
+    RecordImportance,
+    RecordModel
+} from "../../../../src/models/RecordModel";
 
 describe.skip("Pouch DB Workspace Tests", () => {
     const log = new KDAPLogger("Pouch DB Workspace Tests");
@@ -155,9 +160,9 @@ describe("Pouch Record table tests", () => {
         db = new PouchDb();
         await db.init();
         att.clear();
-        att.set("id", { attributeImportance: "important", attributeType: "text" });
-        att.set("att1", { attributeImportance: "important", attributeType: "text" });
-        att.set("att2", { attributeImportance: "optional", attributeType: "text" });
+        att.set("id", { attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.float });
+        att.set("att1", { attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.int });
+        att.set("att2", { attributeImportance: RecordImportance.important, attributeType: RecordAttributeType.int});
     });
 
     afterEach(async () => {
@@ -173,7 +178,7 @@ describe("Pouch Record table tests", () => {
         e(delRes).toBe(true)
         //Adding without id
         const testAtt: Map<string, IRecordAttributeInfo> = new Map();
-        testAtt.set("not id", { attributeImportance: "important", attributeType: "int" });
+        testAtt.set("not id", { attributeImportance: RecordImportance.important, attributeType: RecordAttributeType.text });
         try {
             await addRec(recName, testAtt);
             e(true).toBe(false);
