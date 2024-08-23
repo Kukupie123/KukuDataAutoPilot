@@ -17,7 +17,9 @@ export class DatabaseFactory {
                 DatabaseFactory.Logger.log({ msg: `Initialized Pouch Adapter`, func: this.Build })
                 return db;
             default:
-                throw new Error("Invalid dbType in database config");
+                const msg = "Invalid dbType in database config";
+                DatabaseFactory.Logger.log({ msg: msg, func: this.Build })
+                throw new Error(msg);
         }
     }
 }

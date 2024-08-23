@@ -1,6 +1,5 @@
 import express from 'express';
 import { KDAPLogger } from './util/KDAPLogger';
-import { Category } from './config/kdapLogger.config';
 import { buildRoute } from './routes/builder/RouteBuilder';
 import { WorkspaceRoute } from './routes/WorkspaceRoute';
 import { RecordRoute } from './routes/RecordRoute';

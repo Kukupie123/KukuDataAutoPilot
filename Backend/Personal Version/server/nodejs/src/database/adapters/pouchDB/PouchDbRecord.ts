@@ -23,8 +23,8 @@ export class PouchDbRecord {
             throw new Error(msg) //TODO: Throw exception that can be caught and sent as response
         }
         try {
-            const att2 = new RecordDTO(name, JSON.stringify(Array.from(attributes)), new Date(Date.now()), new Date(Date.now()), desc);
-            await this.recordDb.put(att2);
+            const recDTO = new RecordDTO(name, JSON.stringify(Array.from(attributes)), new Date(Date.now()), new Date(Date.now()), desc);
+            await this.recordDb.put(recDTO);
             return true;
         }
         catch (err) {

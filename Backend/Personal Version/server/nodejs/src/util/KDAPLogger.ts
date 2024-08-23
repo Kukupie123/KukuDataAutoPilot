@@ -13,8 +13,8 @@ export interface LogData {
 }
 //TODO: Use object identifier to determine the instance. This will allow single class to have multiple loggers without increasing the instnce Count
 export class KDAPLogger {
-    private identifier: string;
-    private instanceNumber: number;
+    private readonly identifier: string;
+    private readonly instanceNumber: number;
 
     // Static maps to track instance counts and instance numbers
     private static instanceCounts: Map<string, number> = new Map();

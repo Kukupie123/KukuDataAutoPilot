@@ -13,7 +13,7 @@ export class RecordService implements IService {
 
     async addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string): Promise<boolean> {
         this.logger.log({ msg: `Adding Record ${name}, with attributes ${JSON.stringify(Array.from(attributes))}`, func: this.addRecord })
-        return await this.db.addRecord(name, attributes);
+        return await this.db.addRecord(name, attributes, desc);
     }
 
     async getRecord(recID: string): Promise<RecordModel | undefined> {
