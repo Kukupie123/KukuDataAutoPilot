@@ -1,11 +1,9 @@
 import { IDatabaseAdapter } from "../../interface/IDatabaseAdapter";
 import { WorkspaceModel } from "../../../models/WorkspaceModel";
-import databasePouch, {name} from "pouchdb";
+import databasePouch from "pouchdb";
 import { KDAPLogger } from "../../../util/KDAPLogger";
-import { Category } from "../../../config/kdapLogger.config";
 import {workspaceDbDir, recordDbDir, wsRecIndexDbDir, recWsIndexDbDir} from "./PouchHelper";
 import { IRecordAttributeInfo, RecordModel } from "../../../models/RecordModel";
-import { validateAttribute } from "../../../util/RecordHelper";
 import { PouchDbWorkspace } from "./PouchDbWorkspace";
 import { PouchDbRecord } from "./PouchDbRecord";
 import {PouchDbIndexTable} from "./PouchDbIndexTable";
