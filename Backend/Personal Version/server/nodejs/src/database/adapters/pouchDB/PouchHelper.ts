@@ -5,6 +5,6 @@ export const recordDbDir = `${rootDir}/record`;
 export const wsRecIndexDbDir = `${rootDir}/wsRecIndexDb`;
 export const recWsIndexDbDir = `${rootDir}/recWsIndexDb`;
 
-export function generateProjectID(projectName: string, workspaceID: string): string {
-    return `${workspaceID};${projectName}`;
+export function combineStrings(s1: string, s2: string): string {
+    return `${s1};${s2}`;
 }

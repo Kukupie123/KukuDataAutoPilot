@@ -3,14 +3,15 @@ import {IRecordAttributeInfo, RecordModel} from "../../../models/RecordModel";
 import {KDAPLogger} from "../../../util/KDAPLogger";
 import {validateAttribute} from "../../../util/RecordHelper";
 import {RecordDTO} from "./DTO/RecordDTO";
+import {PouchDb} from "./PouchDb";
 
 export class PouchDbRecord {
-    private recordDb!: PouchDB.Database;
-    private logger!: KDAPLogger;
+    private pouchDb: PouchDb;
+    private logger: KDAPLogger;
 
-    constructor(recordDb: PouchDB.Database) {
+    constructor(pouchDb: PouchDb) {
         this.logger = new KDAPLogger(PouchDbRecord.name);
-        this.recordDb = recordDb;
+        this.pouchDb = pouchDb;
     }
 
     async addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string): Promise<boolean> {
@@ -23,7 +24,7 @@ export class PouchDbRecord {
             validateAttribute(attributes);
         } catch (err: any) {
             const msg = `Failed to validate attributes ${(err as Error).message}`;
-            this.logger.log({ category: Category.Error, msg: msg, func: this.addRecord });
+            this.logger.log({category: Category.Error, msg: msg, func: this.addRecord});
             throw new Error(msg); // TODO: Throw exception that can be caught and sent as response
         }
 
@@ -38,27 +39,30 @@ export class PouchDbRecord {
                 new Date(Date.now()),
                 desc
             );
-            await this.recordDb.put(recDTO);
+            await this.pouchDb.recordDB.put(recDTO);
             return true;
         } catch (err) {
             const e = err as Error;
-            this.logger.log({ msg: `Failed to add record due to: ${e.message}`, func: this.addRecord });
+            this.logger.log({msg: `Failed to add record due to: ${e.message}`, func: this.addRecord});
             return false;
         }
     }
 
 
     async getRecord(recID: string): Promise<RecordModel | undefined> {
-        this.logger.log({ msg: `Getting record with ID: ${recID}`, func: this.getRecord });
+        this.logger.log({msg: `Getting record with ID: ${recID}`, func: this.getRecord});
 
         try {
-            const result = await this.recordDb.get<RecordDTO>(recID);
+            const result = await this.pouchDb.recordDB.get<RecordDTO>(recID);
 
             // Log the raw DTO fetched from the database
-            this.logger.log({ msg: `Fetched RecordDTO: ${JSON.stringify(result)}`, func: this.getRecord });
+            this.logger.log({msg: `Fetched RecordDTO: ${JSON.stringify(result)}`, func: this.getRecord});
             // Convert the attributes from JSON string back to an object
             const attributesObject = JSON.parse(result.attributes) as Record<string, IRecordAttributeInfo>;
-            this.logger.log({ msg: `AttributesObject RecordDTO: ${JSON.stringify(attributesObject)}`, func: this.getRecord });
+            this.logger.log({
+                msg: `AttributesObject RecordDTO: ${JSON.stringify(attributesObject)}`,
+                func: this.getRecord
+            });
             // Convert the object back to a Map
             const attributesMap = new Map<string, IRecordAttributeInfo>();
             for (const [key, value] of Object.entries(attributesObject)) {
@@ -91,8 +95,8 @@ export class PouchDbRecord {
     async deleteRecord(recID: string): Promise<boolean> {
         this.logger.log({msg: `Deleting record ${recID}`, func: this.deleteRecord});
         try {
-            const rec = await this.recordDb.get(recID);
-            await this.recordDb.remove({_id: rec._id, _rev: rec._rev});
+            const rec = await this.pouchDb.recordDB.get(recID);
+            await this.pouchDb.recordDB.remove({_id: rec._id, _rev: rec._rev});
             return true;
         } catch (err) {
             this.logger.log({msg: `Failed to delete due to ${(err as Error).message}`, func: this.deleteRecord})
@@ -102,16 +106,16 @@ export class PouchDbRecord {
 
     async getRecords(skip: number, limit: number): Promise<RecordModel[]> {
         try {
-            this.logger.log({ msg: `Getting records with skip ${skip}, limit: ${limit}`, func: this.getRecords });
+            this.logger.log({msg: `Getting records with skip ${skip}, limit: ${limit}`, func: this.getRecords});
 
             // Fetch documents from the database
-            const result = await this.recordDb.allDocs({ skip: skip, limit: limit, include_docs: true });
+            const result = await this.pouchDb.recordDB.allDocs({skip: skip, limit: limit, include_docs: true});
 
             return result.rows.map(doc => {
                 const recDTO = doc.doc as RecordDTO;
 
                 // Log the raw attributes JSON string
-                this.logger.log({ msg: `Current Attributes JSON: ${recDTO.attributes}`, func: this.getRecords });
+                this.logger.log({msg: `Current Attributes JSON: ${recDTO.attributes}`, func: this.getRecords});
 
                 // Parse the attributes from the JSON string into an object
                 const attributesObject = JSON.parse(recDTO.attributes) as Record<string, IRecordAttributeInfo>;
