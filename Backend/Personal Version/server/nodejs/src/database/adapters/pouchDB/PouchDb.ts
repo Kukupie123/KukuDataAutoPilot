@@ -41,45 +41,56 @@ export class PouchDb implements IDatabaseAdapter {
     async dispose(): Promise<void> {
     }
 
-    async addWorkspace(workspaceName: string, description?: string | undefined): Promise<boolean> {
-        return await this.pouchWorkspace.addWorkspace(workspaceName, description);
+    addWorkspace(workspaceName: string, description?: string | undefined): Promise<boolean> {
+        return this.pouchWorkspace.addWorkspace(workspaceName, description);
     }
 
-    async updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean> {
-        return await this.pouchWorkspace.updateWorkspace(updatedWS);
+    updateWorkspace(updatedWS: WorkspaceModel): Promise<boolean> {
+        return this.pouchWorkspace.updateWorkspace(updatedWS);
     }
 
-    async getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined> {
-        return await this.pouchWorkspace.getWorkspace(workspaceName);
+    getWorkspace(workspaceName: string): Promise<WorkspaceModel | undefined> {
+        return this.pouchWorkspace.getWorkspace(workspaceName);
     }
 
-    async deleteWorkspace(workspaceName: string): Promise<boolean> {
-        return await this.pouchWorkspace.deleteWorkspace(workspaceName);
+    deleteWorkspace(workspaceName: string): Promise<boolean> {
+        return this.pouchWorkspace.deleteWorkspace(workspaceName);
     }
 
-    async getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]> {
-        return await this.pouchWorkspace.getWorkspaces(skip, limit);
+    getWorkspaces(skip: number, limit: number): Promise<WorkspaceModel[]> {
+        return this.pouchWorkspace.getWorkspaces(skip, limit);
     }
 
-    async addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string | undefined): Promise<boolean> {
-        return await this.pouchRecord.addRecord(name, attributes, desc);
+    addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string | undefined): Promise<boolean> {
+        return this.pouchRecord.addRecord(name, attributes, desc);
     }
 
-    async getRecord(recID: string): Promise<RecordModel | undefined> {
-        return await this.pouchRecord.getRecord(recID);
+    getRecord(recID: string): Promise<RecordModel | undefined> {
+        return this.pouchRecord.getRecord(recID);
     }
 
-    async deleteRecord(recID: string): Promise<boolean> {
-        return await this.pouchRecord.deleteRecord(recID);
+    deleteRecord(recID: string): Promise<boolean> {
+        return this.pouchRecord.deleteRecord(recID);
     }
 
-    async getRecords(skip: number, limit: number): Promise<RecordModel[]> {
-        return await this.pouchRecord.getRecords(skip, limit);
+    getRecords(skip: number, limit: number): Promise<RecordModel[]> {
+        return this.pouchRecord.getRecords(skip, limit);
     }
 
-    async link(recordIDWorkspaceIDTuples: [string, string][]): Promise<string[]> {
-        return await this.pouchDbIndexTable.link(recordIDWorkspaceIDTuples);
+    link(recordIDWorkspaceIDTuples: [string, string][]): Promise<[string, string][]> {
+        return this.pouchDbIndexTable.link(recordIDWorkspaceIDTuples);
     }
 
+    getRecordsOfWorkspace(workspaceID: string, skip: number, limit: number): Promise<string[]> {
+        return this.pouchDbIndexTable.getRecordsOfWorkspace(workspaceID, skip, limit);
+    }
+
+    getWorkspacesOfRecord(workspaceID: string, skip: number, limit: number): Promise<string[]> {
+        return this.pouchDbIndexTable.getWorkspacesOfRecord(workspaceID, skip, limit);
+    }
+
+    deleteLink(workspaceID: string, recordID: string): Promise<boolean> {
+        return this.pouchDbIndexTable.deleteLink(workspaceID, recordID);
+    }
 
 }

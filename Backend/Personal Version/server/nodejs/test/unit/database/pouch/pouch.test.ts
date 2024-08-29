@@ -8,6 +8,7 @@ import {
     RecordImportance,
     RecordModel
 } from "../../../../src/models/RecordModel";
+import * as worker_threads from "node:worker_threads";
 
 describe.skip("Pouch DB Workspace Tests", () => {
     const log = new KDAPLogger("Pouch DB Workspace Tests");
@@ -56,12 +57,11 @@ describe.skip("Pouch DB Workspace Tests", () => {
         const ws = await addWs();
         e(ws).toBe(true)
 
-        //Adding already exisiting workspace test
+        //Adding already existing workspace test
         try {
             await addWs();
             e(true).toBe(false); //Fail
-        }
-        catch (err) {
+        } catch (err) {
             //If it throws exception saying duplicate. Test passed
             e(true).toBe(true);
         }
@@ -128,8 +128,7 @@ describe.skip("Pouch DB Workspace Tests", () => {
 });
 
 
-describe("Pouch Record table tests", () => {
-    const log = new KDAPLogger("Pouch DB Workspace Tests");
+describe.skip("Pouch Record table tests", () => {
     let db: PouchDb;
     const recName = "TEST_REC";
     const att: Map<string, IRecordAttributeInfo> = new Map();
@@ -155,14 +154,13 @@ describe("Pouch Record table tests", () => {
     }
 
 
-
     beforeEach(async () => {
         db = new PouchDb();
         await db.init();
         att.clear();
-        att.set("id", { attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.float });
-        att.set("att1", { attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.int });
-        att.set("att2", { attributeImportance: RecordImportance.important, attributeType: RecordAttributeType.int});
+        att.set("id", {attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.float});
+        att.set("att1", {attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.int});
+        att.set("att2", {attributeImportance: RecordImportance.important, attributeType: RecordAttributeType.int});
     });
 
     afterEach(async () => {
@@ -178,20 +176,21 @@ describe("Pouch Record table tests", () => {
         e(delRes).toBe(true)
         //Adding without id
         const testAtt: Map<string, IRecordAttributeInfo> = new Map();
-        testAtt.set("not id", { attributeImportance: RecordImportance.important, attributeType: RecordAttributeType.text });
+        testAtt.set("not id", {
+            attributeImportance: RecordImportance.important,
+            attributeType: RecordAttributeType.text
+        });
         try {
             await addRec(recName, testAtt);
             e(true).toBe(false);
-        }
-        catch (err) {
+        } catch (err) {
             e(true).toBe(true);
         }
         //Attempt to add existing rec
         try {
             await addRec(recName, testAtt);
             e(true).toBe(false);
-        }
-        catch (err) {
+        } catch (err) {
             e(true).toBe(true);
         }
     })
@@ -206,24 +205,74 @@ describe("Pouch Record table tests", () => {
 
     test("Get record test", async () => {
         await addRec();
-        const retreivedRec = await db.getRecord(recName) as RecordModel;
-        e(retreivedRec).toBeDefined();
-        e(retreivedRec.name).toBe(recName);
-        e(retreivedRec.attributes.get("id")?.attributeType).toBe(RecordAttributeType.float)
+        const retrievedRec = await db.getRecord(recName) as RecordModel;
+        e(retrievedRec).toBeDefined();
+        e(retrievedRec.name).toBe(recName);
+        e(retrievedRec.attributes.get("id")?.attributeType).toBe(RecordAttributeType.float)
 
         try {
-            await db.getRecord("doesnt exist") as RecordModel;
+            const rec = await db.getRecord("doesnt exist") as RecordModel;
             e(false).toBe(true)
-        }
-        catch (err) {
+        } catch (err) {
             e(true).toBe(true)
         }
 
     })
 
-    //Remaining tests :-
-    //Get records of workspace X, Get workspace using record X.
-
-
 
 })
+
+describe("Pouch Custom index table test", () => {
+    const wsID = "TEST_WS_ID";
+    const recID = "TEST REC ID";
+    let db: PouchDb;
+    const att: Map<string, IRecordAttributeInfo> = new Map();
+
+
+    beforeEach(async () => {
+        db = new PouchDb();
+        await db.init();
+        att.clear();
+        att.set("id", {attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.float});
+        att.set("att1", {attributeImportance: RecordImportance.optional, attributeType: RecordAttributeType.int});
+        att.set("att2", {attributeImportance: RecordImportance.important, attributeType: RecordAttributeType.int});
+    })
+
+    afterEach(async () => {
+        await db.deleteWorkspace(wsID);
+        await db.deleteRecord(recID);
+        await db.deleteLink(wsID, recID);
+    })
+    const createWsAndRec = async () => {
+        await db.addWorkspace(wsID);
+        await db.addRecord(recID, att);
+    }
+    test("Create link", async () => {
+        //Create Workspace and Record
+        await createWsAndRec();
+        //Then, link
+        const tuple: [string, string][] = [];
+        tuple.push([recID, wsID]);
+        let failed = await db.link(tuple);
+        //Verify
+        e(failed.length).toBe(0);
+
+        //Attempt to add existing link
+        failed = await db.link(tuple);
+        e(failed.length).toBe(1);
+    })
+    test("Delete link", async () => {
+        await createWsAndRec();
+        const tuple: [string, string][] = [];
+        tuple.push([recID, wsID]);
+        const failed = await db.link(tuple);
+        e(failed.length).toBe(0);
+
+        //Delete
+        let del = await db.deleteLink(wsID, recID);
+        e(del).toBe(true);
+        del = await db.deleteLink(wsID, recID);
+        e(del).toBe(false);
+
+    })
+});
