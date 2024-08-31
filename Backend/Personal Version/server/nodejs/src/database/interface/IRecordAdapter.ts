@@ -3,7 +3,6 @@ import { IRecordAttributeInfo, RecordModel } from "../../models/RecordModel";
 export interface IRecordAdapter {
     /**
      * Add a new record
-     * Note for Devs :- Only Create a new record entry.
      */
     addRecord(name: string, attributes: Map<string, IRecordAttributeInfo>, desc?: string): Promise<boolean>;
 
