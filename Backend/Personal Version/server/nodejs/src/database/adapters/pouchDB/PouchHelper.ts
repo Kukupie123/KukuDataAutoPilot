@@ -8,3 +8,9 @@ export const recWsIndexDbDir = `${rootDir}/recWsIndexDb`;
 export function combineStrings(s1: string, s2: string): string {
     return `${s1};${s2}`;
 }
+
+export function breakStrings(combinedString: string): [string, string] {
+    const [s1, s2] = combinedString.split(";")
+    console.log(`Broke string ${combinedString} into ${s1} and ${s2}`)
+    return [s1, s2];
+}

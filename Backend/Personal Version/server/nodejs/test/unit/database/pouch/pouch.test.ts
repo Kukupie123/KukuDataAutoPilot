@@ -260,6 +260,11 @@ describe("Pouch Custom index table test", () => {
         //Attempt to add existing link
         failed = await db.link(tuple);
         e(failed.length).toBe(1);
+
+        //Attempt to add non-existing ws
+        tuple.push([recID, "DOESNT EXIST"]);
+        failed = await db.link(tuple);
+        e(failed.length).toBe(2);
     })
     test("Delete link", async () => {
         await createWsAndRec();
@@ -274,5 +279,31 @@ describe("Pouch Custom index table test", () => {
         del = await db.deleteLink(wsID, recID);
         e(del).toBe(false);
 
+    })
+
+    test("Get workspaces for record (SINGLE RECORD)", async () => {
+        await createWsAndRec();
+        const tuple: [string, string][] = [];
+        tuple.push([recID, wsID]);
+        const failed = await db.link(tuple);
+
+        e(failed.length).toBe(0);
+
+        const wss = await db.getWorkspacesOfRecord(recID);
+        wss.forEach(ws=>console.log( `WS : ${ws}`));
+        e(wss.length).toBe(1);
+        e(wss[0]).toBe(wsID);
+    })
+
+    test("Get record test (SINGLE WS)", async () => {
+        await createWsAndRec();
+        const tuple: [string, string][] = [];
+        tuple.push([recID, wsID]);
+        const failed = await db.link(tuple);
+        e(failed.length).toBe(0);
+
+        const recs = await db.getRecordsOfWorkspace(wsID);
+        e(recs.length).toBe(1);
+        e(recs[0]).toBe(recID);
     })
 });

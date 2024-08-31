@@ -1,7 +1,8 @@
 import {KDAPLogger} from "../../../util/KDAPLogger";
 import {ICusomtIndexAdapter} from "../../interface/ICusomtIndexAdapter";
-import {combineStrings} from "./PouchHelper";
+import {breakStrings, combineStrings} from "./PouchHelper";
 import {PouchDb} from "./PouchDb";
+import {Category} from "../../../config/kdapLogger.config";
 
 export class PouchDbIndexTable implements ICusomtIndexAdapter {
     private pouchDb: PouchDb;
@@ -25,11 +26,18 @@ export class PouchDbIndexTable implements ICusomtIndexAdapter {
 
                 this.logger.log({msg: `Linking Record ${recID} to Workspace ${wsID}`, func: this.link});
                 //TODO: Validate if rec and ws exists
+                //Validate if rec exists
+                await this.pouchDb.recordDB.get(recID);
+                await this.pouchDb.workspaceDb.get(wsID);
                 //Add the data to tables
                 await this.pouchDb.wsRecIndexDB.put({_id: combineStrings(wsID, recID)})
                 await this.pouchDb.recWsIndexDB.put({_id: combineStrings(recID, wsID)})
             } catch (err) {
-                this.logger.log({msg: `Failed to link workspace ${wsID} and record ${recID}`, func: this.link});
+                this.logger.log({
+                    msg: `Failed to link workspace ${wsID} and record ${recID}`,
+                    func: this.link,
+                    category: Category.Error
+                });
                 failed.push([recID, wsID]);
             }
         }
@@ -45,7 +53,8 @@ export class PouchDbIndexTable implements ICusomtIndexAdapter {
         const wss: string[] = [];
         docs.rows.forEach(item => {
             if (item.id.startsWith(recordID)) {
-                wss.push(item.id);
+                const [rec, ws] = breakStrings(item.id);
+                wss.push(ws);
             }
         })
         this.logger.log({msg: `Got workspaces ${JSON.stringify(wss)}`, func: this.getWorkspacesOfRecord});
@@ -61,7 +70,8 @@ export class PouchDbIndexTable implements ICusomtIndexAdapter {
         const recs: string[] = [];
         docs.rows.forEach(item => {
             if (item.id.startsWith(workspaceID)) {
-                recs.push(item.id);
+                const [ws, rec] = breakStrings(item.id);
+                recs.push(rec);
             }
         })
         this.logger.log({msg: `Got Records ${JSON.stringify(recs)}`, func: this.getRecordsOfWorkspace});

@@ -81,12 +81,12 @@ export class PouchDb implements IDatabaseAdapter {
         return this.pouchDbIndexTable.link(recordIDWorkspaceIDTuples);
     }
 
-    getRecordsOfWorkspace(workspaceID: string, skip: number, limit: number): Promise<string[]> {
+    getRecordsOfWorkspace(workspaceID: string, skip: number = 0, limit: number = 999): Promise<string[]> {
         return this.pouchDbIndexTable.getRecordsOfWorkspace(workspaceID, skip, limit);
     }
 
-    getWorkspacesOfRecord(workspaceID: string, skip: number, limit: number): Promise<string[]> {
-        return this.pouchDbIndexTable.getWorkspacesOfRecord(workspaceID, skip, limit);
+    getWorkspacesOfRecord(recID: string, skip: number = 0, limit: number = 999): Promise<string[]> {
+        return this.pouchDbIndexTable.getWorkspacesOfRecord(recID, skip, limit);
     }
 
     deleteLink(workspaceID: string, recordID: string): Promise<boolean> {
