@@ -44,14 +44,14 @@
             <artifactId>spring-boot-starter-data-r2dbc</artifactId>
         </dependency>
 
+        <!-- H2 Database -->
         <dependency>
-            <!-- For Testing. A lightweight file/Memory based Db -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <version>2.2.224</version>
         </dependency>
+        <!-- H2 Database Driver -->
         <dependency>
-            <!-- Required for Reactive H2 -->
             <groupId>io.r2dbc</groupId>
             <artifactId>r2dbc-h2</artifactId>
             <version>1.0.0.RELEASE</version>

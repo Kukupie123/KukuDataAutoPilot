@@ -33,3 +33,7 @@
 - Simplifies the setup of common scenarios and reduces the need for manual configuration.
 
 </details>
+
+
+# Bugs and issues
+## Clean maven and download dependencies if everything is valid but doesn't work
