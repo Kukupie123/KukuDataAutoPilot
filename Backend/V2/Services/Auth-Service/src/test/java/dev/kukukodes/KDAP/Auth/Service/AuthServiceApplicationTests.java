@@ -10,4 +10,9 @@ class AuthServiceApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	void H2ConnectionTest(){
+
+	}
+
 }

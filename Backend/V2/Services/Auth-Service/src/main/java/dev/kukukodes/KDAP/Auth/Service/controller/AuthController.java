@@ -7,8 +7,13 @@ import reactor.core.publisher.Mono;
 
 @RestController
 public class AuthController {
-    @GetMapping("/")
+    /**
+     * Authenticate through ID&Password or OAuth
+     * @return
+     */
+    @GetMapping("/authenticate")
     Mono<ResponseEntity<String>> login() {
+        //HOw to show the default login page?
         return Mono.just(ResponseEntity.ok("Hello World"));
     }
 }

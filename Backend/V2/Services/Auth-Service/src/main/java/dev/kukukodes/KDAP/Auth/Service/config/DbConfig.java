@@ -16,7 +16,7 @@ public class DbConfig {
     @Bean
     @Profile("test") //This bean will only be used in test profile
     public ConnectionFactory h2connectionFactory() {
-        log.info("Creating H2 connection factory");
+        log.info("Creating TEST H2 Connection Factory");
         // Define the connection factory options
         ConnectionFactoryOptions options = ConnectionFactoryOptions.builder()
                 .option(ConnectionFactoryOptions.DRIVER, "h2")
@@ -33,7 +33,7 @@ public class DbConfig {
     @Bean
     @Profile("dev") //This bean will only be used in dev profile
     public ConnectionFactory connectionFactory() {
-        log.info("Creating connection factory");
+        log.info("Creating DEV H2 Connection Factory");
         // Define the connection factory options
         ConnectionFactoryOptions options = ConnectionFactoryOptions.builder()
                 .option(ConnectionFactoryOptions.DRIVER, "h2")

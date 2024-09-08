@@ -1,20 +1,22 @@
 package dev.kukukodes.KDAP.Auth.Service.config;
 
-import org.springframework.context.annotation.Bean;
+import io.netty.util.internal.StringUtil;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.util.Base64;
 
 @Configuration //Mark this class as a configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(authRequest -> {
-            authRequest.requestMatchers("/login").permitAll();
-            authRequest.anyRequest().authenticated();
-        }).formLogin(Customizer.withDefaults()).build();
+    public Mono<Authentication> authenticationConverter(ServerWebExchange exchange) {
+        ServerHttpRequest req = exchange.getRequest();
+        //get body and extract it's id and password from it
     }
 }
