@@ -296,3 +296,7 @@ https://www.youtube.com/watch?v=8QDORHQvdu
 
 <br>
 For operations we need to first get authenticated as an admin by logging in as an admin
+
+
+So the way we can create database is by create connection factory bean
+then we can initialize it as needed by creating another bean connection factory initializer. i run my scripts here
