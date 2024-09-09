@@ -1,22 +1,35 @@
 package dev.kukukodes.KDAP.Auth.Service.config;
 
-import io.netty.util.internal.StringUtil;
+
+import dev.kukukodes.KDAP.Auth.Service.service.KukuAuthenticationProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import java.util.Base64;
 
-@Configuration //Mark this class as a configuration
-@EnableWebSecurity
+@Configuration
+@EnableWebFluxSecurity
 public class SecurityConfig {
-    public Mono<Authentication> authenticationConverter(ServerWebExchange exchange) {
-        ServerHttpRequest req = exchange.getRequest();
-        //get body and extract it's id and password from it
+    Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
+
+    @Bean
+    public ReactiveAuthenticationManager authenticationManager() {
+        return new KukuAuthenticationProvider();
+    }
+
+
+    @Bean
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        return http.authorizeExchange(Customizer -> Customizer.anyExchange().authenticated())
+                .authenticationManager(authenticationManager())
+                .formLogin(Customizer.withDefaults())
+                .build();
     }
 }
