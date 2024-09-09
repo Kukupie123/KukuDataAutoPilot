@@ -300,3 +300,10 @@ For operations we need to first get authenticated as an admin by logging in as a
 
 So the way we can create database is by create connection factory bean
 then we can initialize it as needed by creating another bean connection factory initializer. i run my scripts here
+
+
+
+for db repo
+we can have an interface that extends from reactiveCRUD and it will have all base functionalities
+
+or we can have our own interface repo and implement it and mark it as repo. We can then have ReactiveEntityTemplate object to do queries
