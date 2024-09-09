@@ -293,3 +293,6 @@ You will need to know this to implement your custom auth logic
 
 CSRF token importance   
 https://www.youtube.com/watch?v=8QDORHQvdu
+
+<br>
+For operations we need to first get authenticated as an admin by logging in as an admin

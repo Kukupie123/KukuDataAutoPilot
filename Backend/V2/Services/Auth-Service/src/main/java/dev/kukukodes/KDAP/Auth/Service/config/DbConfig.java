@@ -14,34 +14,32 @@ public class DbConfig {
     Logger log = LoggerFactory.getLogger(DbConfig.class);
 
     @Bean
-    @Profile("test") //This bean will only be used in test profile
+    @Profile("test")
     public ConnectionFactory h2connectionFactory() {
         log.info("Creating TEST H2 Connection Factory");
-        // Define the connection factory options
-        ConnectionFactoryOptions options = ConnectionFactoryOptions.builder().option(ConnectionFactoryOptions.DRIVER, "h2")
-                .option(ConnectionFactoryOptions.PROTOCOL, "mem") // In-memory database
-                .option(ConnectionFactoryOptions.DATABASE, "testdb") // Database name
+        ConnectionFactoryOptions options = ConnectionFactoryOptions.builder()
+                .option(ConnectionFactoryOptions.DRIVER, "h2")
+                .option(ConnectionFactoryOptions.PROTOCOL, "file") // In-memory database
+                .option(ConnectionFactoryOptions.DATABASE, "./testDb") // Database name
                 .option(ConnectionFactoryOptions.USER, "kuku")
                 .option(ConnectionFactoryOptions.PASSWORD, "kuku")
                 .build();
-
-        // Return the connection factory
         return ConnectionFactories.get(options);
     }
 
     @Bean
-    @Profile("dev") //This bean will only be used in dev profile
+    @Profile("dev")
     public ConnectionFactory connectionFactory() {
         log.info("Creating DEV H2 Connection Factory");
-        // Define the connection factory options
-        ConnectionFactoryOptions options = ConnectionFactoryOptions.builder().option(ConnectionFactoryOptions.DRIVER, "h2")
-                .option(ConnectionFactoryOptions.PROTOCOL, "mem") // In-memory database
-                .option(ConnectionFactoryOptions.DATABASE, "devDb") // Database name
+        ConnectionFactoryOptions options = ConnectionFactoryOptions.builder()
+                .option(ConnectionFactoryOptions.DRIVER, "h2")
+                .option(ConnectionFactoryOptions.PROTOCOL, "file") // In-memory database
+                .option(ConnectionFactoryOptions.DATABASE, "./devDb") // Database name
                 .option(ConnectionFactoryOptions.USER, "kuku")
                 .option(ConnectionFactoryOptions.PASSWORD, "kuku")
                 .build();
-
-        // Return the connection factory
         return ConnectionFactories.get(options);
     }
+
+
 }
