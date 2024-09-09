@@ -29,29 +29,33 @@
 
 ## Automated Tasks
 
-KDAP supports automated tasks to enhance data handling efficiency. Start with the following simple tasks:
+KDAP supports a range of automated tasks to enhance data handling efficiency. Key tasks include:
 
-1. **Create Entry**
-   - **Description**: Automatically add a new entry to a specified data structure.
+1. **CRUD Operations**
+   - **Description**: Perform basic create, read, update, and delete operations automatically within your data structures.
    - **Parameters**:
      - Data Structure (e.g., User, Post)
+     - Action (Create, Update, Delete)
+     - Conditions (e.g., id = 123)
      - Fields and Values (e.g., name: John, email: john@example.com)
-   - **Use Case**: Create a new user when a form is submitted.
+   - **Use Cases**:
+     - Create a new user when a form is submitted.
+     - Update a user’s status after verification.
+     - Delete a post when it’s reported for violation.
 
-2. **Update Entry**
-   - **Description**: Modify an existing entry in a data structure based on specific criteria.
+2. **Backup Data Store**
+   - **Description**: Automatically create backups of data stores at scheduled intervals.
    - **Parameters**:
-     - Data Structure (e.g., User)
-     - Conditions (e.g., id = 123)
-     - Fields to Update (e.g., status: active)
-   - **Use Case**: Update a user’s status after verification.
+     - Data Store (e.g., Sales, Inventory)
+     - Backup Schedule (e.g., daily, weekly)
+   - **Use Case**: Back up the Users data store every night to prevent data loss.
 
-3. **Delete Entry**
-   - **Description**: Remove an entry from a data structure that matches specified conditions.
+3. **Interval-Based Tasks**
+   - **Description**: Execute tasks at specified intervals based on a time schedule.
    - **Parameters**:
-     - Data Structure (e.g., Post)
-     - Conditions (e.g., id = 123)
-   - **Use Case**: Delete a post when it’s reported for violation.
+     - Task (e.g., data cleanup, report generation)
+     - Interval (e.g., hourly, daily)
+   - **Use Case**: Generate a sales report every week and send it to the sales team.
 
 4. **Conditional Task Trigger**
    - **Description**: Execute a task only if a certain condition is met within a data structure.
@@ -63,7 +67,7 @@ KDAP supports automated tasks to enhance data handling efficiency. Start with th
 
 ## Future Enhancements
 
-- **Webhooks**: Integration with other apps and services to extend KDAP's functionality and utilize data across different platforms.
+- **Custom Webhook Events**: Integration with other apps and services through customizable webhooks to extend KDAP's functionality and utilize data across different platforms.
 - **Plugin Support**: Customizable plugins to override or add functionality to existing features, allowing for enhanced flexibility and extended capabilities.
 
 ---
