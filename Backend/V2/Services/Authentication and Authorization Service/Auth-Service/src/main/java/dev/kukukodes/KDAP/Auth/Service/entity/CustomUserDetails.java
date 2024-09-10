@@ -1,6 +1,7 @@
 package dev.kukukodes.KDAP.Auth.Service.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Slf4j
 @AllArgsConstructor
+@ToString
 public class CustomUserDetails implements UserDetails {
 
     private final int id;
