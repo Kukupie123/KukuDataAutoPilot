@@ -115,10 +115,10 @@ http
 ### OAuth2 for API-based Requests
 
 Process:
-1. Client (e.g., mobile app) initiates OAuth2 flow, often using a web view.
+1. Client (e.g., mobile app, or direct URL) initiates OAuth2 flow, often using a web view.
 2. User authenticates with the OAuth2 provider.
-3. Provider returns tokens to the client.
-4. Client includes the access token in the Authorization header for API requests.
+3. Token is generated and the "redirect URL" is called. This needs to be url to backend endpoint. This url will include required values
+4. When the redirect URL is hit the backend can now validate, create user if none found, generate JWT and return back. It can do what ever it wants
 
 Configuration:
 

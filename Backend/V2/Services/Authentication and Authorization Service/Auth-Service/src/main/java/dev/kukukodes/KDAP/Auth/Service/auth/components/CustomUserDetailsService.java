@@ -1,8 +1,8 @@
-package dev.kukukodes.KDAP.Auth.Service.components.authComponents;
+package dev.kukukodes.KDAP.Auth.Service.auth.components;
 
 
-import dev.kukukodes.KDAP.Auth.Service.entity.CustomUserDetails;
-import dev.kukukodes.KDAP.Auth.Service.repo.IUserRepository;
+import dev.kukukodes.KDAP.Auth.Service.auth.entity.CustomUserDetails;
+import dev.kukukodes.KDAP.Auth.Service.user.repo.IUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;

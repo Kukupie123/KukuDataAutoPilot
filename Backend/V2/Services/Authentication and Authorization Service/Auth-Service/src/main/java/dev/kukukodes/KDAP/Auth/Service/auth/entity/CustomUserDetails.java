@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.Service.entity;
+package dev.kukukodes.KDAP.Auth.Service.auth.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.ToString;

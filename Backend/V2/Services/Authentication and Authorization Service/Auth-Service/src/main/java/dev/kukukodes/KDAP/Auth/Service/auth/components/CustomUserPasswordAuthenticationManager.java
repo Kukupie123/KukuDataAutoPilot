@@ -1,7 +1,9 @@
-package dev.kukukodes.KDAP.Auth.Service.components.authComponents;
+package dev.kukukodes.KDAP.Auth.Service.auth.components;
 
+import dev.kukukodes.KDAP.Auth.Service.auth.constants.AuthConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +24,7 @@ import reactor.core.publisher.Mono;
  * - Uses the {@link CustomUserDetailsService} to retrieve user details based on the username.
  * - Compares the provided password with the stored password for validation.
  * - Creates a new {@link UsernamePasswordAuthenticationToken} with the authenticated user details if the credentials
- *   are valid.
+ * are valid.
  * - Returns an error with a {@link BadCredentialsException} if the credentials are invalid or the user is not found.
  *
  * <p>This class provides a reactive approach to authentication, making use of Project Reactor's `Mono` type for asynchronous
@@ -30,7 +32,8 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 @Component
-public class CustomAuthenticationManager implements ReactiveAuthenticationManager {
+@Qualifier(AuthConstants.CustomAuthenticationManagerQualifier.USER_PASSWORD)
+public class CustomUserPasswordAuthenticationManager implements ReactiveAuthenticationManager {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
@@ -44,7 +47,7 @@ public class CustomAuthenticationManager implements ReactiveAuthenticationManage
      *
      * @param authentication The authentication request containing the username and password to be validated.
      * @return A {@link Mono} containing the authenticated {@link Authentication} token if the credentials are valid,
-     *         or an error if they are not.
+     * or an error if they are not.
      */
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {

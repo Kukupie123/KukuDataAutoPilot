@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.Service.config;
+package dev.kukukodes.KDAP.Auth.Service.db.config;
 
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;

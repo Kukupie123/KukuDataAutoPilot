@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.Service.enums;
+package dev.kukukodes.KDAP.Auth.Service.user.enums;
 
 import lombok.Getter;
 

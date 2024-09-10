@@ -1,6 +1,6 @@
-package dev.kukukodes.KDAP.Auth.Service.repo;
+package dev.kukukodes.KDAP.Auth.Service.user.repo;
 
-import dev.kukukodes.KDAP.Auth.Service.entity.UserDbLevel;
+import dev.kukukodes.KDAP.Auth.Service.db.entity.UserDbLevel;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

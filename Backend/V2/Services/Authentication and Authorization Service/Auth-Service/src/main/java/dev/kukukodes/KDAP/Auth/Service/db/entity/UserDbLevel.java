@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.Service.entity;
+package dev.kukukodes.KDAP.Auth.Service.db.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

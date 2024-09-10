@@ -1,7 +1,7 @@
-package dev.kukukodes.KDAP.Auth.Service.components.dbComponents;
+package dev.kukukodes.KDAP.Auth.Service.db.components;
 
-import dev.kukukodes.KDAP.Auth.Service.entity.UserDbLevel;
-import dev.kukukodes.KDAP.Auth.Service.enums.UserStatus;
+import dev.kukukodes.KDAP.Auth.Service.db.entity.UserDbLevel;
+import dev.kukukodes.KDAP.Auth.Service.user.enums.UserStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
