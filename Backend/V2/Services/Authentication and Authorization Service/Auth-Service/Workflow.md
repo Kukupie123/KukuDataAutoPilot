@@ -3,12 +3,12 @@
 ## Connection and optional initial processing.
 To connect a database we first need to have it's driver mentioned in the maven.
 Next we need to create a connection factory which will create a connection to the database
-[Connection Factory Snippet](src/main/java/dev/kukukodes/KDAP/Auth/Service/general/config/DbConfig.java)
+[Connection Factory Snippet](src/main/java/dev/kukukodes/KDAP/Auth/general/config/DbConfig.java)
 We mark it as bean and set it to be active in "test" profile.
 
 Next we might want to do some post connection initialization. In my case I wanted to make sure the table schema is created.
 To initialize the database after it has been connected we override existing ```ConnectionFactoryInitializer``` by creating our own bean
-[ConnectionFactoryInitializer Snippet](src/main/java/dev/kukukodes/KDAP/Auth/Service/general/config/DbConfig.java)
+[ConnectionFactoryInitializer Snippet](src/main/java/dev/kukukodes/KDAP/Auth/general/config/DbConfig.java)
 
 ## Creating repositories
 Now that we have connected and initialized our database connection we now will create repositories.
@@ -43,9 +43,9 @@ public interface IUserRepository extends ReactiveCrudRepository<EntityModel, IDT
 }
 ```
 We created our repository by having an interface which has all functions required mentioned
-[UserRepository Interface](src/main/java/dev/kukukodes/KDAP/Auth/Service/db/repo/IUserRepository.java)
+[UserRepository Interface](src/main/java/dev/kukukodes/KDAP/Auth/db/repo/IUserRepository.java)
 And then implemented a test class which will only be active for test profile
-[UserRepository Test Implementation](src/main/java/dev/kukukodes/KDAP/Auth/Service/db/repo/UserRepositoryTest.java)
+[UserRepository Test Implementation](src/main/java/dev/kukukodes/KDAP/Auth/db/repo/UserRepositoryTest.java)
 
 # Custom Authentication with basic id and password
 
