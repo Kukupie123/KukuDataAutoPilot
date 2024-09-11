@@ -1,8 +1,8 @@
 package dev.kukukodes.KDAP.Auth.db;
 
-import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.data.TableSchemaDefinition;
-import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.TableQueryDialectGenerator;
-import dev.kukukodes.KDAP.Auth.v2.components.database.PostgresDialectAdapter;
+import dev.kukukodes.KDAP.Auth.data.database.tableQueryDialect.TableSchemaDefinition;
+import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
+import dev.kukukodes.KDAP.Auth.components.database.PostgresDialectAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
