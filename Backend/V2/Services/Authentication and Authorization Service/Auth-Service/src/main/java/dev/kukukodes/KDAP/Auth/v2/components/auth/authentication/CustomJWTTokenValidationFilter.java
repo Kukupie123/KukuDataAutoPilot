@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.auth.components;
+package dev.kukukodes.KDAP.Auth.v2.components.auth.authentication;
 
 import dev.kukukodes.KDAP.Auth.jwt.service.JWTService;
 import io.jsonwebtoken.Claims;

@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.auth.constants;
+package dev.kukukodes.KDAP.Auth.v2.constants.auth;
 
 public class AuthConstants {
 

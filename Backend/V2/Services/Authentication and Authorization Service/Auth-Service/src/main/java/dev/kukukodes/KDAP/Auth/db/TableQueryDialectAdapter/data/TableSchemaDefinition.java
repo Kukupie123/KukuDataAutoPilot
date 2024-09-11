@@ -2,6 +2,7 @@ package dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.data;
 
 import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.enums.TableColumnDataType;
 import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.models.ColumnDefinition;
+import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 

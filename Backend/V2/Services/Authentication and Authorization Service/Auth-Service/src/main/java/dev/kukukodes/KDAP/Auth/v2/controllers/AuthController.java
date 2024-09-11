@@ -1,7 +1,7 @@
-package dev.kukukodes.KDAP.Auth.auth.controller;
+package dev.kukukodes.KDAP.Auth.v2.controllers;
 
-import dev.kukukodes.KDAP.Auth.auth.service.AuthenticationService;
-import dev.kukukodes.KDAP.Auth.auth.dto.IdPasswordAuthenticationDTO;
+import dev.kukukodes.KDAP.Auth.v2.services.auth.AuthenticationService;
+import dev.kukukodes.KDAP.Auth.v2.dataTransferObject.IdPasswordAuthenticationDTO;
 import dev.kukukodes.KDAP.Auth.db.repo.IUserRepository;
 import dev.kukukodes.KDAP.Auth.jwt.service.JWTService;
 import lombok.extern.slf4j.Slf4j;

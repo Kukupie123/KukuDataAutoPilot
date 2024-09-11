@@ -1,6 +1,6 @@
-package dev.kukukodes.KDAP.Auth.auth.service;
+package dev.kukukodes.KDAP.Auth.v2.services.auth;
 
-import dev.kukukodes.KDAP.Auth.auth.components.AuthenticationManagers.CustomUserPasswordAuthenticationManager;
+import dev.kukukodes.KDAP.Auth.v2.components.auth.authentication.managers.CustomUserPasswordAuthenticationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

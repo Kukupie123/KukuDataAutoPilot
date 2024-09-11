@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.auth.dto;
+package dev.kukukodes.KDAP.Auth.v2.dataTransferObject;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,7 +1,7 @@
-package dev.kukukodes.KDAP.Auth.auth.config;
+package dev.kukukodes.KDAP.Auth.v2.configurations.auth;
 
-import dev.kukukodes.KDAP.Auth.auth.components.AuthenticationManagers.CustomDelegatingAuthenticationManager;
-import dev.kukukodes.KDAP.Auth.auth.components.CustomJWTTokenValidationFilter;
+import dev.kukukodes.KDAP.Auth.v2.components.auth.authentication.managers.CustomDelegatingAuthenticationManager;
+import dev.kukukodes.KDAP.Auth.v2.components.auth.authentication.CustomJWTTokenValidationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

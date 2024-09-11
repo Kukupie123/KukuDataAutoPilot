@@ -1,7 +1,7 @@
-package dev.kukukodes.KDAP.Auth.auth.components.AuthenticationManagers;
+package dev.kukukodes.KDAP.Auth.v2.components.auth.authentication.managers;
 
-import dev.kukukodes.KDAP.Auth.auth.components.CustomUserDetailsService;
-import dev.kukukodes.KDAP.Auth.auth.constants.AuthConstants;
+import dev.kukukodes.KDAP.Auth.v2.components.auth.CustomUserDetailsService;
+import dev.kukukodes.KDAP.Auth.v2.constants.auth.AuthConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;

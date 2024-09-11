@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.auth.models;
+package dev.kukukodes.KDAP.Auth.v2.models.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.ToString;
