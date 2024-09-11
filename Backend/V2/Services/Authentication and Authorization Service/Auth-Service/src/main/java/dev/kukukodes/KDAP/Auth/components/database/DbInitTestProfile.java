@@ -3,7 +3,6 @@ package dev.kukukodes.KDAP.Auth.components.database;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
 import dev.kukukodes.KDAP.Auth.data.database.tableQueryDialect.TableSchemaDefinition;
 import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
-import dev.kukukodes.KDAP.Auth.repo.database.IUserRepository;
 import dev.kukukodes.KDAP.Auth.enums.user.UserStatus;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
@@ -43,17 +42,17 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
 
     @Autowired
     PasswordEncoder passwordEncoder;
-
-    @Autowired
-    IUserRepository userRepository;
     @Autowired
     private R2dbcEntityTemplate template;
+    @Autowired
+    TableQueryDialectGenerator tableQueryDialectGenerator;
+
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         //Create Tables first
         var postgresTableQueryAdapter = new PostgresDialectAdapter();
-        String query = TableQueryDialectGenerator.createUserTable(postgresTableQueryAdapter, TableSchemaDefinition.UserTableColumns);
+        String query = tableQueryDialectGenerator.createUserTable(TableSchemaDefinition.UserTableColumns);
         template.getDatabaseClient().sql(query).then().block();
         template.insert(createRootAuthUser()).block();
     }

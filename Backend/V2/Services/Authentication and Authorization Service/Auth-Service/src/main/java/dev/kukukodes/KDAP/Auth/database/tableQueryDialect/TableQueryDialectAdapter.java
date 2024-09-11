@@ -2,7 +2,7 @@ package dev.kukukodes.KDAP.Auth.database.tableQueryDialect;
 
 import dev.kukukodes.KDAP.Auth.models.database.tableQueryDialect.ColumnDefinition;
 
-public interface DatabaseDialectAdapter {
+public interface TableQueryDialectAdapter {
     ///Eg :- "CREATE TABLE IF NOT EXIST"
     String createTableQuery(String tableName);
 

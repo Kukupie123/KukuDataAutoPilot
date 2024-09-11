@@ -1,6 +1,6 @@
 package dev.kukukodes.KDAP.Auth.jwt;
 
-import dev.kukukodes.KDAP.Auth.jwt.service.JWTService;
+import dev.kukukodes.KDAP.Auth.services.jwt.JWTService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

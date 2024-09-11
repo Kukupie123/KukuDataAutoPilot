@@ -4,37 +4,6 @@
 
 This system provides a scalable and flexible approach to generate SQL queries for table operations in R2DBC, which doesn't natively support such operations. By utilizing interfaces, classes, and enums, we've created a robust system that allows for easy expansion and maintenance of database operations across different SQL dialects.
 
-## Project Structure
-
-```
-db
-├── components
-│   └── DatabaseInitializerTEST
-├── config
-│   └── DbConfigTEST
-├── constants
-│   └── DbConstants
-├── entity
-│   └── UserDbLevel
-├── enums
-│   └── TableColumnDataType
-├── extras.TableQueryGenerator
-│   ├── extra
-│   │   └── TableSchemaDefinition
-│   ├── implementation.postgres
-│   │   └── PostgresDialectAdapter
-│   ├── MandatoryInterface
-│   │   └── DatabaseDialectAdapter
-│   ├── models
-│   │   └── ColumnDefinition
-│   └── TableQueryGenerator
-├── repo
-│   ├── IUserRepository
-│   └── UserRepositoryTest
-├── README.md
-└── Database_Design.md
-```
-
 ## Core Components
 
 ### 1. TableQueryGenerator

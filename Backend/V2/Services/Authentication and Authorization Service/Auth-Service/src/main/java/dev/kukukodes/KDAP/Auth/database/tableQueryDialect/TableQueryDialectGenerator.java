@@ -8,21 +8,27 @@ import java.util.List;
 
 @Slf4j
 public class TableQueryDialectGenerator {
-    public static String createUserTable(DatabaseDialectAdapter tableQueryAdapter, List<ColumnDefinition> columns) {
-        StringBuilder query = new StringBuilder().append(tableQueryAdapter.createTableQuery(DbConstants.TableNames.Users));
+    private final TableQueryDialectAdapter dialectAdapter;
+
+    public TableQueryDialectGenerator(TableQueryDialectAdapter dialectAdapter) {
+        this.dialectAdapter = dialectAdapter;
+    }
+
+    public String createUserTable(List<ColumnDefinition> columns) {
+        StringBuilder query = new StringBuilder().append(dialectAdapter.createTableQuery(DbConstants.TableNames.Users));
         for (int i = 0; i < columns.size(); i++) {
-            query.append(tableQueryAdapter.parseColumnForCreateTable(columns.get(i)));
+            query.append(dialectAdapter.parseColumnForCreateTable(columns.get(i)));
             if (i != columns.size() - 1) {
-                query.append(tableQueryAdapter.doAfterEachFieldForCreateTable());
+                query.append(dialectAdapter.doAfterEachFieldForCreateTable());
             }
         }
-        query.append(tableQueryAdapter.createTableAfterFields());
+        query.append(dialectAdapter.createTableAfterFields());
         String queryString = query.toString();
         log.info("Generated query : \n{}", queryString);
         return queryString;
     }
 
-    public static String dropUserTable(DatabaseDialectAdapter tableQueryAdapter) {
-        return tableQueryAdapter.dropTableQuery(DbConstants.TableNames.Users);
+    public String dropUserTable() {
+        return dialectAdapter.dropTableQuery(DbConstants.TableNames.Users);
     }
 }

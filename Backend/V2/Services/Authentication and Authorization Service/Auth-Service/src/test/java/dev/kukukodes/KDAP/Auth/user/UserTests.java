@@ -1,6 +1,6 @@
 package dev.kukukodes.KDAP.Auth.user;
 
-import dev.kukukodes.KDAP.Auth.v2.repo.database.IUserRepository;
+import dev.kukukodes.KDAP.Auth.repo.database.IUserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
