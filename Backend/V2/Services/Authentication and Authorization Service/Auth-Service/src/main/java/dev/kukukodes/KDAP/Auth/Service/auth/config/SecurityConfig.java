@@ -1,8 +1,7 @@
 package dev.kukukodes.KDAP.Auth.Service.auth.config;
 
-import dev.kukukodes.KDAP.Auth.Service.auth.constants.AuthConstants;
+import dev.kukukodes.KDAP.Auth.Service.auth.components.AuthenticationManagers.CustomDelegatingAuthenticationManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -15,32 +14,25 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    @Autowired
-    @Qualifier(AuthConstants.CustomAuthenticationManagerQualifier.USER_PASSWORD)
-    private ReactiveAuthenticationManager userPwdAuthenticationManager;
+    /**
+     * This refers to the {@link CustomDelegatingAuthenticationManager}
+     * as the primary authentication manager in our system. <br>
+     * It is responsible for delegating authentication requests to other custom authentication managers that are configured,
+     * allowing multiple authentication strategies (e.g., user/password, OAuth) to be handled seamlessly. <br>
+     * By using this delegating approach, we ensure that different authentication mechanisms are supported within a unified flow.
+     */
 
     @Autowired
-    @Qualifier(AuthConstants.CustomAuthenticationManagerQualifier.OAUTH)
-    private ReactiveAuthenticationManager oAuthAuthenticationManager;
+    ReactiveAuthenticationManager authenticationManager;
+
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
+                .authenticationManager(authenticationManager)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/authenticate/**", "/api/authenticate/**").permitAll()
                         .anyExchange().authenticated()
-                )
-                .httpBasic(httpBasic -> httpBasic
-                        // Use UserPassword authentication for HTTP Basic
-                        .authenticationManager(userPwdAuthenticationManager)
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        // Use OAuth authentication for OAuth2 login
-                        .authenticationManager(oAuthAuthenticationManager)
-                )
-                .oauth2Client(oauth2Client -> oauth2Client
-                        // Use OAuth authentication for OAuth2 client
-                        .authenticationManager(oAuthAuthenticationManager)
                 )
                 .formLogin(formLogin -> formLogin.disable())
                 .csrf(csrf -> csrf.requireCsrfProtectionMatcher(exchange -> {
