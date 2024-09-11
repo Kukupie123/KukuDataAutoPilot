@@ -2,7 +2,7 @@ package dev.kukukodes.KDAP.Auth.Service.auth.components.UserDetailsService;
 
 
 import dev.kukukodes.KDAP.Auth.Service.auth.entity.CustomUserDetails;
-import dev.kukukodes.KDAP.Auth.Service.user.repo.IUserRepository;
+import dev.kukukodes.KDAP.Auth.Service.db.repo.IUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
@@ -14,14 +14,13 @@ import reactor.core.publisher.Mono;
 @Component
 public class CustomUserDetailsService implements ReactiveUserDetailsService {
 
-
     @Autowired
     private IUserRepository userRepository;
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         log.info("Finding User {}", username);
-        return userRepository.getUsersByUserId(username)
+        return userRepository.getUserByUserId(username)
                 .map(
                         userDbLevel -> {
                             CustomUserDetails user = new CustomUserDetails(userDbLevel.getId(), userDbLevel.getUserID(), userDbLevel.getPasswordHash());
@@ -29,10 +28,6 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService {
                             return (UserDetails) user;
                         }
                 )
-                .switchIfEmpty(Mono.defer(() -> {
-                            log.info("User {} not found", username);
-                            return Mono.empty();
-                        })
-                ).next();
+                .switchIfEmpty(Mono.empty());
     }
 }

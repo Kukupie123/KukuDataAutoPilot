@@ -43,9 +43,9 @@ public interface IUserRepository extends ReactiveCrudRepository<EntityModel, IDT
 }
 ```
 We created our repository by having an interface which has all functions required mentioned
-[UserRepository Interface](src/main/java/dev/kukukodes/KDAP/Auth/Service/user/repo/IUserRepository.java)
+[UserRepository Interface](src/main/java/dev/kukukodes/KDAP/Auth/Service/db/repo/IUserRepository.java)
 And then implemented a test class which will only be active for test profile
-[UserRepository Test Implementation](src/main/java/dev/kukukodes/KDAP/Auth/Service/user/repo/UserRepositoryTest.java)
+[UserRepository Test Implementation](src/main/java/dev/kukukodes/KDAP/Auth/Service/db/repo/UserRepositoryTest.java)
 
 # Custom Authentication with basic id and password
 

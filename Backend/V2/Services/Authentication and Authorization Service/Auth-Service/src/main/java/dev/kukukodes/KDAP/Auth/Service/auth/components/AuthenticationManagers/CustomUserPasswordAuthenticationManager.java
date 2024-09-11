@@ -17,23 +17,19 @@ public class CustomUserPasswordAuthenticationManager implements ReactiveAuthenti
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
-    public CustomUserPasswordAuthenticationManager() {
-        log.info("CustomUserPasswordAuthenticationManager");
-    }
-
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         String password = authentication.getCredentials().toString();
         String username = authentication.getName();
         log.info("Authenticating user {} with password {}", username, password);
         return customUserDetailsService.findByUsername(username)
+                .switchIfEmpty(Mono.error(new BadCredentialsException("User not found")))
                 .flatMap(userDetails -> {
                     if (userDetails.getPassword().equals(password)) {
                         return Mono.just((Authentication) new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities()));
                     } else {
-                        return Mono.error(new BadCredentialsException("Invalid username or password"));
+                        return Mono.error(new BadCredentialsException("Invalid password"));
                     }
-                })
-                .switchIfEmpty(Mono.error(new BadCredentialsException("Invalid username or password")));
+                });
     }
 }

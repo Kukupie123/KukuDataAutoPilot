@@ -1,12 +1,15 @@
 package dev.kukukodes.KDAP.Auth.Service.auth.config;
 
 import dev.kukukodes.KDAP.Auth.Service.auth.components.AuthenticationManagers.CustomDelegatingAuthenticationManager;
+import dev.kukukodes.KDAP.Auth.Service.auth.components.ExtraFilters.CustomJWTTokenValidationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 
@@ -24,12 +27,15 @@ public class SecurityConfig {
 
     @Autowired
     ReactiveAuthenticationManager authenticationManager;
+    @Autowired
+    CustomJWTTokenValidationFilter jwtTokenValidationFilter;
 
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
                 .authenticationManager(authenticationManager)
+                .addFilterBefore(jwtTokenValidationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/authenticate/**", "/api/authenticate/**").permitAll()
                         .anyExchange().authenticated()

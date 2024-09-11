@@ -7,11 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
-import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 
 
 /**
@@ -52,15 +49,14 @@ public class DbConfigTEST {
     /**
      * Initializes the database by executing the SQL script for schema creation.
      * This method reads the SQL script from the classpath and runs it against the database.
+     *
+     * We do not do anything here for now. It exists just for our knowledge
      */
     @Bean
     public ConnectionFactoryInitializer initializeDatabase() {
-        //Path to sql statement to execute
-        Resource resource = new ClassPathResource("db/test/create_table.sql");
         var cfi = new ConnectionFactoryInitializer();
         cfi.setConnectionFactory(testConnectionFactory());
         cfi.setEnabled(true);
-        cfi.setDatabasePopulator(new ResourceDatabasePopulator(resource));
         return cfi;
     }
 

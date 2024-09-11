@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.Service.user.repo;
+package dev.kukukodes.KDAP.Auth.Service.db.repo;
 
 import dev.kukukodes.KDAP.Auth.Service.db.entity.UserDbLevel;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +10,8 @@ import org.springframework.data.relational.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import javax.security.auth.login.AccountNotFoundException;
 
 /**
  * Concrete implementation of UserRepository.
@@ -25,6 +27,11 @@ public class UserRepositoryTest implements IUserRepository {
         log.info("Using Test User Repository");
     }
 
+
+    @Override
+    public Mono<Void> addUser(UserDbLevel user) {
+        return template.insert(user).then();
+    }
 
     @Override
     public Mono<UserDbLevel> getUserById(int id) {
@@ -43,8 +50,7 @@ public class UserRepositoryTest implements IUserRepository {
                 }));
     }
 
-    @Override
-    public Flux<UserDbLevel> getUsersByUserId(String userId) {
+    public Mono<UserDbLevel> getUserByUserId(String userId) {
         return template
                 .select(UserDbLevel.class)
                 .matching(
@@ -52,18 +58,13 @@ public class UserRepositoryTest implements IUserRepository {
                                 Criteria.where("userID").is(userId)
                         )
                 )
-                .all()
-                .doOnNext(user -> log.info("User found: {}", user))
-                .switchIfEmpty(Flux.defer(() -> {
-                    log.info("Found no user in table with id {} when getting users by userID", userId);
-                    return Flux.empty();
-                }));
+                .first()
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("User with id " + userId + " not found")))
+                .doOnEach(userDbLevelSignal -> log.info("Found user in table {}", userDbLevelSignal.get()));
     }
 
     @Override
     public Flux<UserDbLevel> getAllUsers() {
         return template.select(UserDbLevel.class).all().doOnNext(user -> log.info("User found: {}", user));
     }
-
-
 }
