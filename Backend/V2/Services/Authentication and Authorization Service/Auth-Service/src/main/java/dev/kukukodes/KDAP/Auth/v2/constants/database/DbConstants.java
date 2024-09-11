@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.db.contants;
+package dev.kukukodes.KDAP.Auth.v2.constants.database;
 
 public class DbConstants {
     public static class TableNames {

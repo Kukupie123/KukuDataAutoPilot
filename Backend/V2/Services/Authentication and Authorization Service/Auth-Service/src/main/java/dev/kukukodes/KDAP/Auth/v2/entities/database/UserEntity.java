@@ -1,6 +1,6 @@
-package dev.kukukodes.KDAP.Auth.db.Entities;
+package dev.kukukodes.KDAP.Auth.v2.entities.database;
 
-import dev.kukukodes.KDAP.Auth.db.contants.DbConstants;
+import dev.kukukodes.KDAP.Auth.v2.constants.database.DbConstants;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;

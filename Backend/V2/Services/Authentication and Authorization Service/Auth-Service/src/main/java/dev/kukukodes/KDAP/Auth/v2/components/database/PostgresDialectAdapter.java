@@ -1,8 +1,8 @@
-package dev.kukukodes.KDAP.Auth.db.components.tableQueryDialect;
+package dev.kukukodes.KDAP.Auth.v2.components.database;
 
 import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.adapters.DatabaseDialectAdapter;
 import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.models.ColumnDefinition;
-import dev.kukukodes.KDAP.Auth.db.contants.DbConstants;
+import dev.kukukodes.KDAP.Auth.v2.constants.database.DbConstants;
 import org.springframework.stereotype.Component;
 
 @Component(DbConstants.TableQueryDialect.Postgresql)

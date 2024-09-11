@@ -2,7 +2,7 @@ package dev.kukukodes.KDAP.Auth.v2.components.auth;
 
 
 import dev.kukukodes.KDAP.Auth.v2.models.CustomUserDetails;
-import dev.kukukodes.KDAP.Auth.db.repo.IUserRepository;
+import dev.kukukodes.KDAP.Auth.v2.repo.database.IUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;

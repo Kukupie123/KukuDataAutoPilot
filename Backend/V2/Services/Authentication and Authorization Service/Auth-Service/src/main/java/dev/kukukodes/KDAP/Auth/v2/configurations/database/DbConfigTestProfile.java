@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.db.config;
+package dev.kukukodes.KDAP.Auth.v2.configurations.database;
 
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;

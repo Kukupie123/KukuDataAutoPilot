@@ -1,6 +1,6 @@
-package dev.kukukodes.KDAP.Auth.db.repo;
+package dev.kukukodes.KDAP.Auth.v2.repo.database;
 
-import dev.kukukodes.KDAP.Auth.db.Entities.UserEntity;
+import dev.kukukodes.KDAP.Auth.v2.entities.database.UserEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

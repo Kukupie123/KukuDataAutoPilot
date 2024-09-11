@@ -1,10 +1,9 @@
-package dev.kukukodes.KDAP.Auth.db.components;
+package dev.kukukodes.KDAP.Auth.v2.components.database;
 
-import dev.kukukodes.KDAP.Auth.db.Entities.UserEntity;
+import dev.kukukodes.KDAP.Auth.v2.entities.database.UserEntity;
 import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.data.TableSchemaDefinition;
 import dev.kukukodes.KDAP.Auth.db.TableQueryDialectAdapter.TableQueryDialectGenerator;
-import dev.kukukodes.KDAP.Auth.db.components.tableQueryDialect.PostgresDialectAdapter;
-import dev.kukukodes.KDAP.Auth.db.repo.IUserRepository;
+import dev.kukukodes.KDAP.Auth.v2.repo.database.IUserRepository;
 import dev.kukukodes.KDAP.Auth.user.enums.UserStatus;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
