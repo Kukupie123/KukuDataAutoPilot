@@ -1,8 +1,8 @@
-package dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator;
+package dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator;
 
 import dev.kukukodes.KDAP.Auth.Service.db.contants.DbConstants;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.MandatoryInterface.DatabaseDialectAdapter;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.models.ColumnDefinition;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.Interfaces.DatabaseDialectAdapter;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.models.ColumnDefinition;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

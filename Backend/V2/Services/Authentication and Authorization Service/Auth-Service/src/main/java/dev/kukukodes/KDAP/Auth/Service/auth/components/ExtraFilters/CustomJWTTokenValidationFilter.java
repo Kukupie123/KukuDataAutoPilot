@@ -24,27 +24,26 @@ public class CustomJWTTokenValidationFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         log.info("CustomJWTTokenValidationFilter");
         // Extract the authentication from the security context. Security context can be empty if there is no authentication done yet
-        Mono<Authentication> authMono = ReactiveSecurityContextHolder.getContext()
+        return ReactiveSecurityContextHolder.getContext()
                 .map(securityContext -> {
                     log.info("Extracting Authentication from Security context");
                     return securityContext.getAuthentication();
-                });
-        //use auth now
-        return authMono
+                })
                 .flatMap(authentication -> {
                     if (authentication.isAuthenticated()) {
                         log.info("Authentication is authenticated");
-                        return chain.filter(exchange);
-                    }
-                    log.info("Authentication is not authenticated. Validating Bearer Token");
-                    try {
-                        var claims = validateToken(exchange);
-                    } catch (Exception e) {
-                        return Mono.error(e);
+                    } else {
+                        log.info("Authentication is not authenticated. Validating Bearer Token");
+                        try {
+                            var claims = validateToken(exchange);
+                        } catch (Exception e) {
+                            return Mono.error(e);
+                        }
                     }
                     return chain.filter(exchange);
-                }).switchIfEmpty(Mono.defer(() -> {
-                    log.info("No Authentication found Validating Bearer Token");
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.info("No Authentication found. Validating Bearer Token");
                     try {
                         var claims = validateToken(exchange);
                     } catch (Exception e) {
@@ -52,6 +51,7 @@ public class CustomJWTTokenValidationFilter implements WebFilter {
                     }
                     return chain.filter(exchange);
                 }));
+
     }
 
     Claims validateToken(ServerWebExchange exchange) throws JwtException {

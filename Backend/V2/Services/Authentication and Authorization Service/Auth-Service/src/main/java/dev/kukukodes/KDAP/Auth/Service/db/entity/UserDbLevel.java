@@ -15,29 +15,28 @@ import java.time.LocalDate;
 @Table(DbConstants.TableNames.Users)
 @Data
 public class UserDbLevel {
-
     @Id
     private Integer id;
 
-    @Column("userID")
+    @Column(DbConstants.TableColumnNames.UsersTable.userID)
     private String userID;
 
-    @Column("passwordHash")
+    @Column(DbConstants.TableColumnNames.UsersTable.passwordHash)
     private String passwordHash;
 
-    @Column("userDesc")
+    @Column(DbConstants.TableColumnNames.UsersTable.userDesc)
     private String userDesc;
 
-    @Column("created")
+    @Column(DbConstants.TableColumnNames.UsersTable.created)
     private LocalDate created;
 
-    @Column("updated")
+    @Column(DbConstants.TableColumnNames.UsersTable.updated)
     private LocalDate updated;
 
-    @Column("lastActivity")
+    @Column(DbConstants.TableColumnNames.UsersTable.lastActivity)
     private LocalDate lastActivity;
 
-    @Column("status")
+    @Column(DbConstants.TableColumnNames.UsersTable.status)
     private String status;
 
 

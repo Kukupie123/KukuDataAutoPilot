@@ -1,6 +1,6 @@
-package dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.MandatoryInterface;
+package dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.Interfaces;
 
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.models.ColumnDefinition;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.models.ColumnDefinition;
 
 public interface DatabaseDialectAdapter {
     ///Eg :- "CREATE TABLE IF NOT EXIST"

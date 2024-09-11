@@ -1,15 +1,14 @@
-package dev.kukukodes.KDAP.Auth.Service.db.components;
+package dev.kukukodes.KDAP.Auth.Service.db.components.TestProfile;
 
 import dev.kukukodes.KDAP.Auth.Service.db.entity.UserDbLevel;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.extra.TableSchemaDefinition;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.TableQueryGenerator;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.implementation.postgres.PostgresDialectAdapter;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.data.TableSchemaDefinition;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.TableQueryGenerator;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.implementation.PostgresDialectAdapter;
 import dev.kukukodes.KDAP.Auth.Service.db.repo.IUserRepository;
 import dev.kukukodes.KDAP.Auth.Service.user.enums.UserStatus;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -40,17 +39,11 @@ import java.time.LocalDate;
 @Slf4j
 @Component
 @Profile("test")
-public class DatabaseInitializerTEST implements ApplicationListener<ContextRefreshedEvent> {
+public class DbInit implements ApplicationListener<ContextRefreshedEvent> {
     final Dotenv dotenv = Dotenv.configure().directory("./").load();
 
     @Autowired
     PasswordEncoder passwordEncoder;
-
-    @Value("${DB.ROOT.ID}")
-    String userID;
-
-    @Value("${DB.ROOT.PASS}")
-    String password;
 
     @Autowired
     IUserRepository userRepository;
@@ -61,7 +54,7 @@ public class DatabaseInitializerTEST implements ApplicationListener<ContextRefre
     public void onApplicationEvent(ContextRefreshedEvent event) {
         //Create Tables first
         var postgresTableQueryAdapter = new PostgresDialectAdapter();
-        String query = TableQueryGenerator.createUserTable(postgresTableQueryAdapter, TableSchemaDefinition.getUserTableColumns());
+        String query = TableQueryGenerator.createUserTable(postgresTableQueryAdapter, TableSchemaDefinition.UserTableColumns);
         template.getDatabaseClient().sql(query).then().block();
         template.insert(createRootAuthUser()).block();
     }

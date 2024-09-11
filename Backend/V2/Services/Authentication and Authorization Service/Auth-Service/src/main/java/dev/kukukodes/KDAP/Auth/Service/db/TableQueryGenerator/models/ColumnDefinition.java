@@ -1,6 +1,6 @@
-package dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.models;
+package dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.models;
 
-import dev.kukukodes.KDAP.Auth.Service.db.enums.TableColumnDataType;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.enums.TableColumnDataType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

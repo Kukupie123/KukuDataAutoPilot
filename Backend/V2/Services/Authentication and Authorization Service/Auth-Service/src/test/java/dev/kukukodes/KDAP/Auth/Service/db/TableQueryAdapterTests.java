@@ -1,8 +1,8 @@
 package dev.kukukodes.KDAP.Auth.Service.db;
 
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.extra.TableSchemaDefinition;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.TableQueryGenerator;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.implementation.postgres.PostgresDialectAdapter;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.data.TableSchemaDefinition;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.TableQueryGenerator;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.implementation.PostgresDialectAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

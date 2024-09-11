@@ -1,4 +1,4 @@
-package dev.kukukodes.KDAP.Auth.Service.db.config;
+package dev.kukukodes.KDAP.Auth.Service.db.config.TestProfile;
 
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @Slf4j
 @Profile("test")
-public class DbConfigTEST {
+public class DbConfig {
 
     @Bean
     public ConnectionFactory connectionFactory() {

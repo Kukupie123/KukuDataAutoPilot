@@ -1,7 +1,7 @@
-package dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.implementation.postgres;
+package dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.implementation;
 
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.MandatoryInterface.DatabaseDialectAdapter;
-import dev.kukukodes.KDAP.Auth.Service.db.extras.TableQueryGenerator.models.ColumnDefinition;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.Interfaces.DatabaseDialectAdapter;
+import dev.kukukodes.KDAP.Auth.Service.db.TableQueryGenerator.models.ColumnDefinition;
 
 public class PostgresDialectAdapter implements DatabaseDialectAdapter {
 
