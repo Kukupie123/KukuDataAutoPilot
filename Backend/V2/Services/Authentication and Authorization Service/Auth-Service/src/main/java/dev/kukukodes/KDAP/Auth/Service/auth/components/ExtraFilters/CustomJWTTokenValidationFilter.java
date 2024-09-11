@@ -2,6 +2,7 @@ package dev.kukukodes.KDAP.Auth.Service.auth.components.ExtraFilters;
 
 import dev.kukukodes.KDAP.Auth.Service.jwt.service.JWTService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -47,18 +48,19 @@ public class CustomJWTTokenValidationFilter implements WebFilter {
                     try {
                         var claims = validateToken(exchange);
                     } catch (Exception e) {
-                        Mono.error(e);
+                        return Mono.error(e);
                     }
                     return chain.filter(exchange);
                 }));
     }
 
-    Claims validateToken(ServerWebExchange exchange) throws Exception {
+    Claims validateToken(ServerWebExchange exchange) throws JwtException {
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.info("No Bearer token provided, Skipping JWT Token validation");
             return null;
         }
+        log.info("Validating Bearer Token");
         String token = authHeader.substring(7);
         Claims claims = jwtService.extractClaims(token);
         log.info("Extracted claims are: {}", claims);

@@ -1,5 +1,6 @@
 package dev.kukukodes.KDAP.Auth.Service.db.entity;
 
+import dev.kukukodes.KDAP.Auth.Service.db.contants.DbConstants;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -11,7 +12,7 @@ import java.time.LocalDate;
  * Represents a user in the database.
  * Maps to the 'Users' table in the database.
  */
-@Table("Users") //Important: This helps R2DBC repository know which table to look for
+@Table(DbConstants.TableNames.Users)
 @Data
 public class UserDbLevel {
 
