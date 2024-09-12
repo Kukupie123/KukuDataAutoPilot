@@ -1,8 +1,5 @@
-Certainly! Here's a detailed Markdown representation of your database schema with explanations of index and composite index usage for each table and example queries.
 
 ---
-
-# Database Schema
 
 ## Users Table
 
@@ -10,23 +7,23 @@ Certainly! Here's a detailed Markdown representation of your database schema wit
 
 | Column         | Type     | Description                                     |
 |----------------|----------|-------------------------------------------------|
-| `id`           | `int`    | Primary key. **Note:** Index for `userID`.      |
-| `name`         | `text`   | Unique identifier for the user.                |
-| `passwordHash` | `text`   | Hashed password for security.                  |
-| `description`  | `text`   | Description of the user.                       |
-| `created`      | `date`   | Date the user was created.                     |
-| `updated`      | `date`   | Date the user was last updated.                |
-| `lastActivity` | `date`   | Date of the user's last activity.              |
-| `status`       | `enum`   | User status: `active`, `inactive`, `banned`, `pendingVerification`, `verified`, `verificationRejected`. |
+| `id`           | `SERIAL` | Primary key.                                    |
+| `name`         | `TEXT`   | Unique identifier for the user.                |
+| `passwordHash` | `TEXT`   | Hashed password for security.                  |
+| `description`  | `TEXT`   | Description of the user.                       |
+| `created`      | `DATE`   | Date the user was created.                     |
+| `updated`      | `DATE`   | Date the user was last updated.                |
+| `lastActivity` | `DATE`   | Date of the user's last activity.              |
+| `status`       | `TEXT`   | User status: `active`, `inactive`, `banned`, `pendingVerification`, `verified`, `verificationRejected`. |
 
 **Index Usage:**
 
-- **`userID` Index:** Speeds up lookups for users based on `userID`.
+- **`name` Index:** Speeds up lookups for users based on `name`.
 
 **Example Query:**
 
 ```sql
-SELECT * FROM Users WHERE userID = 'user123';
+SELECT * FROM Users WHERE name = 'user123';
 ```
 
 ---
@@ -35,13 +32,13 @@ SELECT * FROM Users WHERE userID = 'user123';
 
 **Table Name:** `Roles`
 
-| Column        | Type     | Description                                 |
-|---------------|----------|---------------------------------------------|
-| `id`           | `int`    | Primary key.                                |
-| `name`         | `text`   | Name of the role. **Note:** Indexed for fast lookup by role name. |
-| `desc`         | `text`   | Description of the role.                   |
-| `created`      | `date`   | Date the role was created.                 |
-| `updated`      | `date`   | Date the role was last updated.            |
+| Column        | Type     | Description                                  |
+|---------------|----------|----------------------------------------------|
+| `id`          | `SERIAL` | Primary key.                                 |
+| `name`        | `TEXT`   | Name of the role. **Indexed for fast lookup by role name.** |
+| `description` | `TEXT`   | Description of the role.                    |
+| `created`     | `DATE`   | Date the role was created.                  |
+| `updated`     | `DATE`   | Date the role was last updated.             |
 
 **Index Usage:**
 
@@ -59,13 +56,13 @@ SELECT * FROM Roles WHERE name = 'Admin';
 
 **Table Name:** `Permissions`
 
-| Column        | Type     | Description                                 |
-|---------------|----------|---------------------------------------------|
-| `id`           | `int`    | Primary key.                                |
-| `name`         | `text`   | Name of the permission. **Note:** Indexed for fast lookup by permission name. |
-| `desc`         | `text`   | Description of the permission.             |
-| `created`      | `date`   | Date the permission was created.           |
-| `updated`      | `date`   | Date the permission was last updated.      |
+| Column        | Type     | Description                                  |
+|---------------|----------|----------------------------------------------|
+| `id`          | `SERIAL` | Primary key.                                 |
+| `name`        | `TEXT`   | Name of the permission. **Indexed for fast lookup by permission name.** |
+| `description` | `TEXT`   | Description of the permission.              |
+| `created`     | `DATE`   | Date the permission was created.            |
+| `updated`     | `DATE`   | Date the permission was last updated.       |
 
 **Index Usage:**
 
@@ -83,13 +80,13 @@ SELECT * FROM Permissions WHERE name = 'ReadAccess';
 
 **Table Name:** `Operations`
 
-| Column        | Type     | Description                                 |
-|---------------|----------|---------------------------------------------|
-| `id`           | `int`    | Primary key.                                |
-| `name`         | `text`   | Name of the operation. **Note:** Indexed for fast lookup by operation name. |
-| `desc`         | `text`   | Description of the operation.              |
-| `created`      | `date`   | Date the operation was created.            |
-| `updated`      | `date`   | Date the operation was last updated.       |
+| Column        | Type     | Description                                  |
+|---------------|----------|----------------------------------------------|
+| `id`          | `SERIAL` | Primary key.                                 |
+| `name`        | `TEXT`   | Name of the operation. **Indexed for fast lookup by operation name.** |
+| `description` | `TEXT`   | Description of the operation.               |
+| `created`     | `DATE`   | Date the operation was created.             |
+| `updated`     | `DATE`   | Date the operation was last updated.        |
 
 **Index Usage:**
 
@@ -109,8 +106,8 @@ SELECT * FROM Operations WHERE name = 'CreateRecord';
 
 | Column        | Type     | Description                                         |
 |---------------|----------|-----------------------------------------------------|
-| `userID`      | `int`    | Composite primary key. **Note:** Indexed for fast lookup by `userID`. |
-| `roleID`      | `int`    | Composite primary key. **Note:** Indexed for fast lookup by `roleID`. |
+| `userID`      | `INT`    | Part of composite primary key. **Indexed for fast lookup by `userID`.** |
+| `roleID`      | `INT`    | Part of composite primary key. **Indexed for fast lookup by `roleID`.** |
 
 **Index Usage:**
 
@@ -138,8 +135,8 @@ SELECT * FROM Operations WHERE name = 'CreateRecord';
 
 | Column        | Type     | Description                                         |
 |---------------|----------|-----------------------------------------------------|
-| `roleID`      | `int`    | Composite primary key. **Note:** Indexed for fast lookup by `roleID`. |
-| `permissionID`| `int`    | Composite primary key. **Note:** Indexed for fast lookup by `permissionID`. |
+| `roleID`      | `INT`    | Part of composite primary key. **Indexed for fast lookup by `roleID`.** |
+| `permissionID`| `INT`    | Part of composite primary key. **Indexed for fast lookup by `permissionID`.** |
 
 **Index Usage:**
 
@@ -167,8 +164,8 @@ SELECT * FROM Operations WHERE name = 'CreateRecord';
 
 | Column        | Type     | Description                                         |
 |---------------|----------|-----------------------------------------------------|
-| `operationID` | `int`    | Composite primary key. **Note:** Indexed for fast lookup by `operationID`. |
-| `roleID`      | `int`    | Composite primary key. **Note:** Indexed for fast lookup by `roleID`. |
+| `operationID` | `INT`    | Part of composite primary key. **Indexed for fast lookup by `operationID`.** |
+| `roleID`      | `INT`    | Part of composite primary key. **Indexed for fast lookup by `roleID`.** |
 
 **Index Usage:**
 
