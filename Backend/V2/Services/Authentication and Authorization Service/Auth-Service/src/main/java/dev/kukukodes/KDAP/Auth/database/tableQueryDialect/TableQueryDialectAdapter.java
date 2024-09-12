@@ -2,19 +2,59 @@ package dev.kukukodes.KDAP.Auth.database.tableQueryDialect;
 
 import dev.kukukodes.KDAP.Auth.models.database.tableQueryDialect.ColumnDefinition;
 
+import java.util.List;
+
+/**
+ * Enables implementation of table operations.<br>
+ * View {{@link dev.kukukodes.KDAP.Auth.components.database.tablqQueryDialect.PostgresDialectAdapter}} to see implementation.
+ */
 public interface TableQueryDialectAdapter {
-    ///Eg :- "CREATE TABLE IF NOT EXIST"
-    String createTableQuery(String tableName);
+    CreateTableDialect getCreateTableDialect();
 
-    ///Eg :- ");"
-    String createTableAfterFields();
+    interface CreateTableDialect {
+        /**
+         * Postgresql example :- "CREATE TABLE IF NOT EXIST <tableName>"
+         *
+         * @param tableName name of the table to create
+         * @param columns   columns that the table will have
+         * @return 1st section query
+         */
+        String startCreateTable(String tableName, List<ColumnDefinition> columns);
 
-    ///Eg <name> <type> <PK> <etc> <etc>
-    String parseColumnForCreateTable(ColumnDefinition column);
+        /**
+         * Postgresql example :- " (\n"
+         *
+         * @param tableName name of the table to create
+         * @param columns   columns that the table will have
+         * @return 2nd section query
+         */
+        String beforePopulatingColumns(String tableName, List<ColumnDefinition> columns);
 
-    ///Eg :- Go to next line after putting column data
-    String doAfterEachFieldForCreateTable();
+        /**
+         * Postgresql example :- " id SERIAL PRIMARY KEY, name TEXT, NOT NULL,..."
+         *
+         * @param tableName name of the table to create
+         * @param columns   columns that the table will have
+         * @return 3rd section query
+         */
+        String populateColumns(String tableName, List<ColumnDefinition> columns);
 
-    ///Eg :- DROP TABLE IF EXISTS <name>
-    String dropTableQuery(String tableName);
+        /**
+         * Postgresql example :- ")"
+         *
+         * @param tableName name of the table to create
+         * @param columns   columns that the table will have
+         * @return 4th section query
+         */
+        String afterPopulatingColumns(String tableName, List<ColumnDefinition> columns);
+
+        /**
+         * Postgresql example :- ";"
+         *
+         * @param tableName name of the table to create
+         * @param columns   columns that the table will have
+         * @return 5th section query
+         */
+        String endCreateTable(String tableName, List<ColumnDefinition> columns);
+    }
 }

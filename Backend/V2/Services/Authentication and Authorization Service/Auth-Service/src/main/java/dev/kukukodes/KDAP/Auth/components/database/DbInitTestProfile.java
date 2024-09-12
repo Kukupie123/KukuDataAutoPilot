@@ -1,7 +1,7 @@
 package dev.kukukodes.KDAP.Auth.components.database;
 
+import dev.kukukodes.KDAP.Auth.constants.auth.AuthConstants;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
-import dev.kukukodes.KDAP.Auth.data.database.tableQueryDialect.TableSchemaDefinition;
 import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
 import dev.kukukodes.KDAP.Auth.enums.user.UserStatus;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -43,18 +43,27 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
-    private R2dbcEntityTemplate template;
-    @Autowired
     TableQueryDialectGenerator tableQueryDialectGenerator;
-
+    @Autowired
+    private R2dbcEntityTemplate template;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        //Create Tables first
-        var postgresTableQueryAdapter = new PostgresDialectAdapter();
-        String query = tableQueryDialectGenerator.createUserTable(TableSchemaDefinition.UserTableColumns);
+        log.info("Dropping existing tables");
+        //Drop existing table
+        String query = tableQueryDialectGenerator.userGenerator.dropUserTable(); //User
         template.getDatabaseClient().sql(query).then().block();
-        template.insert(createRootAuthUser()).block();
+        query = tableQueryDialectGenerator.roleGenerator.dropRoleTable(); //Role
+        template.getDatabaseClient().sql(query).then().block();
+
+        //Create Tables first
+        log.info("Creating new tables");
+        query = tableQueryDialectGenerator.userGenerator.createUserTable();
+        template.getDatabaseClient().sql(query).then().block();
+        //Create user
+        var rootUser = createRootAuthUser();
+        log.info("adding root user {}", rootUser.toString());
+        template.insert(rootUser).block();
     }
 
     @Override
@@ -64,8 +73,8 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
 
     ///Create user with full control
     UserEntity createRootAuthUser() {
-        String id = dotenv.get("ROOT_USER_ID_TEST");
-        String pwd = dotenv.get("ROOT_USER_PASS_TEST");
+        String id = dotenv.get(AuthConstants.RootUser.RootUserName);
+        String pwd = dotenv.get(AuthConstants.RootUser.RootUserPassword);
         log.info("Creating Root User < {} > for test profile", id);
         UserEntity rootUser = new UserEntity();
         rootUser.setCreated(LocalDate.now());

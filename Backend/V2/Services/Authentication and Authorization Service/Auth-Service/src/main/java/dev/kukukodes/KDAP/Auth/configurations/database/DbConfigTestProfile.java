@@ -17,7 +17,7 @@ public class DbConfigTestProfile {
     public ConnectionFactory connectionFactory() {
         var postgresConfig = PostgresqlConnectionConfiguration.builder()
                 .host("localhost")
-                .port(54321)
+                .port(5432)
                 .password("root")
                 .username("postgres")
                 .database("kdap")

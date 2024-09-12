@@ -10,9 +10,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component(AuthConstants.CustomAuthenticationManagerQualifier.OAUTH)
 public class CustomOAuthAuthenticationManager implements ReactiveAuthenticationManager {
-    public CustomOAuthAuthenticationManager(){
-        log.info("Custom OAuth Authentication Manager");
-    }
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         return Mono.just(authentication);

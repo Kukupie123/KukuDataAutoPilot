@@ -1,6 +1,6 @@
 package dev.kukukodes.KDAP.Auth.db;
 
-import dev.kukukodes.KDAP.Auth.data.database.tableQueryDialect.TableSchemaDefinition;
+import dev.kukukodes.KDAP.Auth.data.database.tableQueryDialect.TableQueryDialectSchemaDefinition;
 import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ public class TableQueryAdapterTests {
 
     @Test
     void testTableQueryGenerator() {
-        String query = tableQueryDialectGenerator.createUserTable(TableSchemaDefinition.UserTableColumns);
+        String query = tableQueryDialectGenerator.userGenerator.createUserTable();
         log.info(query);
     }
 }
