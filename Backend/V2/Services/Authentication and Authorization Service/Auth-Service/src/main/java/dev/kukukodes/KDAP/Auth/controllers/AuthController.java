@@ -1,6 +1,6 @@
 package dev.kukukodes.KDAP.Auth.controllers;
 
-import dev.kukukodes.KDAP.Auth.services.auth.impl.AuthenticationService;
+import dev.kukukodes.KDAP.Auth.services.auth.AuthenticationService;
 import dev.kukukodes.KDAP.Auth.dataTransferObject.IdPasswordAuthenticationDTO;
 import dev.kukukodes.KDAP.Auth.repo.database.IUserRepository;
 import dev.kukukodes.KDAP.Auth.services.jwt.JWTService;

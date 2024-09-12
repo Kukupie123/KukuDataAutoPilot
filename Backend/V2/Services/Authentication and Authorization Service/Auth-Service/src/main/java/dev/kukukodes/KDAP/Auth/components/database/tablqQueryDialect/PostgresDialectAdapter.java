@@ -12,16 +12,16 @@ public class PostgresDialectAdapter implements TableQueryDialectAdapter {
 
     public String parseColumnForCreateTable(ColumnDefinition column) {
         StringBuilder query = new StringBuilder();
-        query.append(column.getColumnName().trim()); //<name>
+        query.append(column.columnName().trim()); //<name>
         String type;
-        switch (column.getColumnType()) {
+        switch (column.columnType()) {
             case INT -> type = "INT";
             case DATE -> type = "DATE";
             case TEXT -> type = "TEXT";
             case AUTOINCREMENT_INT -> type = "SERIAL";
             case BOOL -> type = "BOOL";
             case FLOAT -> type = "DECIMAL(10,5)"; //10 digits and 5 after point.
-            default -> throw new IllegalArgumentException("Invalid column type: " + column.getColumnType());
+            default -> throw new IllegalArgumentException("Invalid column type: " + column.columnType());
         }
         query.append(" ").append(type); //<name> <type>
         if (column.isPrimaryKey()) {
@@ -31,7 +31,7 @@ public class PostgresDialectAdapter implements TableQueryDialectAdapter {
         if (column.isUnique()) {
             query.append(" UNIQUE");
         }
-        if (!column.isCanBeNull()) {
+        if (!column.canBeNull()) {
             query.append(" NOT NULL");
         }
         return query.toString();

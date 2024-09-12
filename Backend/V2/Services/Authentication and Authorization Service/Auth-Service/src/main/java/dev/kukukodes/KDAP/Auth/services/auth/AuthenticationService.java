@@ -1,9 +1,10 @@
-package dev.kukukodes.KDAP.Auth.services.auth.impl;
+package dev.kukukodes.KDAP.Auth.services.auth;
 
 import dev.kukukodes.KDAP.Auth.components.auth.authentication.managers.CustomUserPasswordAuthenticationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -16,6 +17,6 @@ public class AuthenticationService {
     public Mono<Boolean> authenticateUserAndPassword(String username, String password) {
         return userPwdAuthManager.
                 authenticate(new UsernamePasswordAuthenticationToken(username, password))
-                .map(authentication -> authentication.isAuthenticated());
+                .map(Authentication::isAuthenticated);
     }
 }

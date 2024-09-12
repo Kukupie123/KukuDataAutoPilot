@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .pathMatchers("/authenticate/**", "/api/authenticate/**").permitAll()
                         .anyExchange().authenticated()
                 )
-                .formLogin(formLogin -> formLogin.disable())
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .csrf(csrf -> csrf.requireCsrfProtectionMatcher(exchange -> {
                     boolean isAPI = exchange.getRequest().getPath().value().startsWith("/api/");
                     return isAPI ? ServerWebExchangeMatcher.MatchResult.notMatch()
