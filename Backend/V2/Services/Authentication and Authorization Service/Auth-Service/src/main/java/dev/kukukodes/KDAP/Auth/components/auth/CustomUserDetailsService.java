@@ -20,10 +20,10 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService {
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         log.info("Finding User {}", username);
-        return userRepository.getUserByUserId(username)
+        return userRepository.getUserByName(username)
                 .map(
                         userDbLevel -> {
-                            CustomUserDetails user = new CustomUserDetails(userDbLevel.getId(), userDbLevel.getUserID(), userDbLevel.getPasswordHash());
+                            CustomUserDetails user = new CustomUserDetails(userDbLevel.getId(), userDbLevel.getName(), userDbLevel.getPasswordHash());
                             log.info("Found user {}", user);
                             return (UserDetails) user;
                         }

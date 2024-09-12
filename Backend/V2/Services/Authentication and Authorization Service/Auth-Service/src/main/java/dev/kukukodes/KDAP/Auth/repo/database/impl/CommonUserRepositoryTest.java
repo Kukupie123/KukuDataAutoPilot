@@ -1,5 +1,6 @@
 package dev.kukukodes.KDAP.Auth.repo.database.impl;
 
+import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
 import dev.kukukodes.KDAP.Auth.repo.database.IUserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -19,53 +20,40 @@ import javax.security.auth.login.AccountNotFoundException;
  */
 @Repository
 @Slf4j
-@Profile("test")
 public class CommonUserRepositoryTest implements IUserRepository {
     @Autowired
     private R2dbcEntityTemplate template;
 
-    CommonUserRepositoryTest() {
-        log.info("Using Test User Repository");
-    }
-
-
     @Override
-    public Mono<Void> addUser(UserEntity user) {
-        return template.insert(user).then();
+    public Mono<Integer> addUser(UserEntity user) {
+        user.setId(null);
+        return template.insert(user).map(UserEntity::getId);
     }
 
     @Override
     public Mono<UserEntity> getUserById(int id) {
         log.info("getUserById {}", id);
         return template.
-                select(
-                        UserEntity.class
-                ).matching(
+                select(UserEntity.class).matching(
                         Query.query(
-                                Criteria.where("id").is(id)
+                                Criteria.where(DbConstants.TableColumnNames.CommonColumns.id).is(id)
                         )
-                ).one()
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.info("Found no user in table with id {}", id);
-                    return Mono.empty();
-                }));
+                ).one();
     }
 
-    public Mono<UserEntity> getUserByUserId(String userId) {
+    public Mono<UserEntity> getUserByName(String userId) {
         return template
                 .select(UserEntity.class)
                 .matching(
                         Query.query(
-                                Criteria.where("userID").is(userId)
+                                Criteria.where(DbConstants.TableColumnNames.CommonColumns.name).is(userId)
                         )
                 )
-                .first()
-                .switchIfEmpty(Mono.error(new AccountNotFoundException("User with id " + userId + " not found")))
-                .doOnEach(userDbLevelSignal -> log.info("Found user in table {}", userDbLevelSignal.get()));
+                .first();
     }
 
     @Override
     public Flux<UserEntity> getAllUsers() {
-        return template.select(UserEntity.class).all().doOnNext(user -> log.info("User found: {}", user));
+        return template.select(UserEntity.class).all();
     }
 }

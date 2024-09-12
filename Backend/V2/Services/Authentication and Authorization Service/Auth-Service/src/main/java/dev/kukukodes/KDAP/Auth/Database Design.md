@@ -8,12 +8,12 @@ Certainly! Here's a detailed Markdown representation of your database schema wit
 
 **Table Name:** `Users`
 
-| Column        | Type     | Description                                     |
-|---------------|----------|-------------------------------------------------|
+| Column         | Type     | Description                                     |
+|----------------|----------|-------------------------------------------------|
 | `id`           | `int`    | Primary key. **Note:** Index for `userID`.      |
-| `userID`       | `text`   | Unique identifier for the user.                |
+| `name`         | `text`   | Unique identifier for the user.                |
 | `passwordHash` | `text`   | Hashed password for security.                  |
-| `userDesc`     | `text`   | Description of the user.                       |
+| `description`  | `text`   | Description of the user.                       |
 | `created`      | `date`   | Date the user was created.                     |
 | `updated`      | `date`   | Date the user was last updated.                |
 | `lastActivity` | `date`   | Date of the user's last activity.              |

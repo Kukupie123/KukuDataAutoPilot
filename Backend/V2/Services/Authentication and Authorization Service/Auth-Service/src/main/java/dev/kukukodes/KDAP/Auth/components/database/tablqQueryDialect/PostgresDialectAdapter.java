@@ -42,7 +42,7 @@ public class PostgresDialectAdapter implements TableQueryDialectAdapter {
         return new CreateTableDialect() {
             @Override
             public String startCreateTable(String tableName, List<ColumnDefinition> columns) {
-                return "CREATE TABLE IF NOT EXIST "+ tableName;
+                return "CREATE TABLE IF NOT EXISTS " + tableName;
             }
 
             @Override
@@ -53,12 +53,12 @@ public class PostgresDialectAdapter implements TableQueryDialectAdapter {
             @Override
             public String populateColumns(String tableName, List<ColumnDefinition> columns) {
                 StringBuilder sql = new StringBuilder();
-                for(var i = 0 ; i < columns.size() ; i++) {
+                for (var i = 0; i < columns.size(); i++) {
 
                     String columnSyntax = parseColumnForCreateTable(columns.get(i));
                     sql.append(columnSyntax);
                     //Add a comma if it isn't the last element
-                    if(i != columns.size() - 1) {
+                    if (i != columns.size() - 1) {
                         sql.append(", ");
                     }
                 }
@@ -74,6 +74,26 @@ public class PostgresDialectAdapter implements TableQueryDialectAdapter {
 
             @Override
             public String endCreateTable(String tableName, List<ColumnDefinition> columns) {
+                return ";";
+            }
+        };
+    }
+
+    @Override
+    public DropTableDialect getDropTableDialect() {
+        return new DropTableDialect() {
+            @Override
+            public String beforeDropTable(String tableName) {
+                return "DROP TABLE IF EXISTS ";
+            }
+
+            @Override
+            public String dropTable(String tableName) {
+                return tableName;
+            }
+
+            @Override
+            public String afterDropTable(String tableName) {
                 return ";";
             }
         };

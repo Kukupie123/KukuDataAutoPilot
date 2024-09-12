@@ -25,24 +25,22 @@ public class TableQueryDialectGenerator {
 
     public String createTable(String tableName, List<ColumnDefinition> columns) {
         StringBuilder sql = new StringBuilder();
-        sql.append(dialectAdapter.createTable(tableName));
-        sql.append(dialectAdapter.createTableBeforeFields());
-
-        for (int i = 0; i < columns.size(); i++) {
-            sql.append(dialectAdapter.createTableBeforeEachField(tableName));
-            sql.append(dialectAdapter.parseColumnForCreateTable(columns.get(i)));
-            if (i != columns.size() - 1) {
-                sql.append(dialectAdapter.createTableAfterEachFieldLastField(tableName));
-            }
-        }
-        sql.append(dialectAdapter.createTableAfterFields(tableName));
-        log.info("Create table queryDialect generated : {}", sql);
+        sql.append(dialectAdapter.getCreateTableDialect().startCreateTable(tableName, columns));
+        sql.append(dialectAdapter.getCreateTableDialect().beforePopulatingColumns(tableName, columns));
+        sql.append(dialectAdapter.getCreateTableDialect().populateColumns(tableName, columns));
+        sql.append(dialectAdapter.getCreateTableDialect().afterPopulatingColumns(tableName, columns));
+        sql.append(dialectAdapter.getCreateTableDialect().endCreateTable(tableName, columns));
+        log.info("Generated CreateTable dialect : {}", sql);
         return sql.toString();
     }
 
     public String dropTable(String tableName) {
         StringBuilder sql = new StringBuilder();
-        return sql.append(dialectAdapter.dropTableQuery(tableName)).toString();
+         sql.append(dialectAdapter.getDropTableDialect().beforeDropTable(tableName)).toString();
+         sql.append(dialectAdapter.getDropTableDialect().dropTable(tableName));
+         sql.append(dialectAdapter.getDropTableDialect().afterDropTable(tableName));
+         log.info("Generated DropTable dialect : {}", sql);
+         return sql.toString();
     }
 
     public class UsersTableQueryDialectGenerator {

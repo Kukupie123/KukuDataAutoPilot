@@ -1,6 +1,7 @@
 package dev.kukukodes.KDAP.Auth.components.database;
 
 import dev.kukukodes.KDAP.Auth.constants.auth.AuthConstants;
+import dev.kukukodes.KDAP.Auth.entities.database.RoleEntity;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
 import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
 import dev.kukukodes.KDAP.Auth.enums.user.UserStatus;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * Initializes the test database with a root user after the Spring application context is fully refreshed.
@@ -58,8 +60,14 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
 
         //Create Tables first
         log.info("Creating new tables");
-        query = tableQueryDialectGenerator.userGenerator.createUserTable();
+        query = tableQueryDialectGenerator.userGenerator.createUserTable(); //User
         template.getDatabaseClient().sql(query).then().block();
+        query = tableQueryDialectGenerator.roleGenerator.createRoleTable(); //Role
+        template.getDatabaseClient().sql(query).then().block();
+        //Create role
+        var rootRole = createRootRole();
+        log.info("Creating root role {}", rootRole);
+        template.insert(rootRole).then().block();
         //Create user
         var rootUser = createRootAuthUser();
         log.info("adding root user {}", rootUser.toString());
@@ -75,15 +83,27 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
     UserEntity createRootAuthUser() {
         String id = dotenv.get(AuthConstants.RootUser.RootUserName);
         String pwd = dotenv.get(AuthConstants.RootUser.RootUserPassword);
+        var currentDate = new Date();
         log.info("Creating Root User < {} > for test profile", id);
         UserEntity rootUser = new UserEntity();
-        rootUser.setCreated(LocalDate.now());
-        rootUser.setUpdated(LocalDate.now());
+        rootUser.setCreated(currentDate);
+        rootUser.setUpdated(currentDate);
         rootUser.setUserDesc("Default Root User");
         rootUser.setStatus(UserStatus.ACTIVE.toString());
-        rootUser.setLastActivity(LocalDate.now());
+        rootUser.setLastActivity(currentDate);
         rootUser.setPasswordHash(passwordEncoder.encode(pwd));
-        rootUser.setUserID(id);
+        rootUser.setName(id);
         return rootUser;
+    }
+
+    ///Create root role
+    RoleEntity createRootRole() {
+        var role = new RoleEntity();
+        var currentDate = new Date();
+        role.setName(AuthConstants.RootUser.RootRoleName);
+        role.setCreated(currentDate);
+        role.setUpdated(currentDate);
+        role.setDesc("Root User ROLE with global access");
+        return role;
     }
 }

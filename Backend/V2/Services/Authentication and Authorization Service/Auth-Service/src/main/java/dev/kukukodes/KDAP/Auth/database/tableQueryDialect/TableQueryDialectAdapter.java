@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface TableQueryDialectAdapter {
     CreateTableDialect getCreateTableDialect();
-
+    DropTableDialect getDropTableDialect();
     interface CreateTableDialect {
         /**
          * Postgresql example :- "CREATE TABLE IF NOT EXIST <tableName>"
@@ -56,5 +56,14 @@ public interface TableQueryDialectAdapter {
          * @return 5th section query
          */
         String endCreateTable(String tableName, List<ColumnDefinition> columns);
+    }
+
+    interface DropTableDialect {
+        String beforeDropTable(String tableName);
+
+        String dropTable(String tableName);
+
+        String afterDropTable(String tableName);
+
     }
 }

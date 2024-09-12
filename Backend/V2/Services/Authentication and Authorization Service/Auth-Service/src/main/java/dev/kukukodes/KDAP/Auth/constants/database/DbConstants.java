@@ -15,14 +15,18 @@ public class DbConstants {
     public static class TableColumnNames {
         public static class UsersTable {
             public static final String id = "id";
-            public static final String userID = "userID";
             public static final String passwordHash = "passwordHash";
-            public static final String userDesc = "userDesc";
-            public static final String created = "created";
-            public static final String updated = "updated";
             public static final String lastActivity = "lastActivity";
             public static final String status = "status";
 
+        }
+
+        public static  class CommonColumns{
+            public static final String id = "id";
+            public static final String name = "name";
+            public static final String created = "created";
+            public static final String updated = "updated";
+            public static final String description = "description";
         }
     }
 
