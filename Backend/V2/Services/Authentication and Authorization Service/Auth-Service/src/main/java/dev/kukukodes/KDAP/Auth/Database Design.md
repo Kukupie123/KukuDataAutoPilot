@@ -186,3 +186,58 @@ SELECT * FROM Operations WHERE name = 'CreateRecord';
    ```
 
 ---
+
+
+Mermaid diagram
+```mermaid
+erDiagram
+    Users ||--o{ UserRolesJunction : has
+    Users {
+        SERIAL id PK
+        TEXT name
+        TEXT passwordHash
+        TEXT description
+        DATE created
+        DATE updated
+        DATE lastActivity
+        TEXT status
+    }
+    Roles ||--o{ UserRolesJunction : assigned_to
+    Roles ||--o{ RolesPermissionJunction : has
+    Roles ||--o{ OperationRoleJunction : has
+    Roles {
+        SERIAL id PK
+        TEXT name
+        TEXT description
+        DATE created
+        DATE updated
+    }
+    Permissions ||--o{ RolesPermissionJunction : assigned_to
+    Permissions {
+        SERIAL id PK
+        TEXT name
+        TEXT description
+        DATE created
+        DATE updated
+    }
+    Operations ||--o{ OperationRoleJunction : associated_with
+    Operations {
+        SERIAL id PK
+        TEXT name
+        TEXT description
+        DATE created
+        DATE updated
+    }
+    UserRolesJunction {
+        INT userID PK,FK
+        INT roleID PK,FK
+    }
+    RolesPermissionJunction {
+        INT roleID PK,FK
+        INT permissionID PK,FK
+    }
+    OperationRoleJunction {
+        INT operationID PK,FK
+        INT roleID PK,FK
+    }
+```
