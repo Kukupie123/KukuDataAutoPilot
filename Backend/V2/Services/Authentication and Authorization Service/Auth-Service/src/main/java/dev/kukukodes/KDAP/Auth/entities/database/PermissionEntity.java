@@ -1,10 +1,7 @@
 package dev.kukukodes.KDAP.Auth.entities.database;
 
 import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -12,9 +9,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.util.Date;
 
 @Table(DbConstants.TableNames.Permissions)
-@Getter
-@AllArgsConstructor
-@ToString
+@Data
 public class PermissionEntity {
 
     @Id

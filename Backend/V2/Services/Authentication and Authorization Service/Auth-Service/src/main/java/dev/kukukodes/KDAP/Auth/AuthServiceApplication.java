@@ -10,4 +10,6 @@ public class AuthServiceApplication {
 		SpringApplication.run(AuthServiceApplication.class, args);
 	}
 
+	//TODO: Dependency injection scope fix for many classes and beans such as repositories, template, etc
+
 }

@@ -1,5 +1,6 @@
 package dev.kukukodes.KDAP.Auth.repo.database.impl;
 
+import dev.kukukodes.KDAP.Auth.constants.auth.AuthConstants;
 import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
 import dev.kukukodes.KDAP.Auth.repo.database.IUserRepository;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * Concrete implementation of UserRepository.
  */
@@ -21,35 +24,36 @@ public class CommonUserRepository implements IUserRepository {
     @Autowired
     private R2dbcEntityTemplate template;
 
+
     @Override
-    public Mono<Integer> addUser(UserEntity user) {
-        return template.insert(user).map(UserEntity::getId);
+    public Mono<Integer> add(UserEntity userEntity) {
+        log.info("Adding user {}", userEntity);
+        return template.insert(userEntity).map(UserEntity::getId);
     }
 
     @Override
-    public Mono<UserEntity> getUserById(int id) {
-        log.info("getUserById {}", id);
-        return template.
-                select(UserEntity.class).matching(
-                        Query.query(
-                                Criteria.where(DbConstants.TableColumnNames.CommonColumns.id).is(id)
-                        )
-                ).one();
-    }
-
-    public Mono<UserEntity> getUserByName(String userId) {
-        return template
-                .select(UserEntity.class)
-                .matching(
-                        Query.query(
-                                Criteria.where(DbConstants.TableColumnNames.CommonColumns.name).is(userId)
-                        )
-                )
-                .first();
+    public Mono<UserEntity> getByPK(Integer id) {
+        log.info("Getting user by PK {}", id);
+        return template.select(
+                Query.query(
+                        Criteria.where(DbConstants.TableColumnNames.CommonColumns.id).is(id)
+                ),
+                UserEntity.class).next();
     }
 
     @Override
-    public Flux<UserEntity> getAllUsers() {
+    public Flux<UserEntity> getAll() {
+        log.info("Getting all users");
         return template.select(UserEntity.class).all();
+    }
+
+    @Override
+    public Mono<UserEntity> getUserByName(String username) {
+        return template.select(
+                Query.query(
+                        Criteria.where(DbConstants.TableColumnNames.CommonColumns.name).is(username)
+                ),
+                UserEntity.class
+        ).next();
     }
 }

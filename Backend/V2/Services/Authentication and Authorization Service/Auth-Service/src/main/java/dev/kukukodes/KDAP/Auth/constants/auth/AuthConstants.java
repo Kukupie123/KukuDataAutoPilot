@@ -11,7 +11,5 @@ public class AuthConstants {
         public static final String ENV_RootUserName = "RootUserName";
         public static final String ENV_RootUserPassword = "RootUserPassword";
         public static final String ENV_RootRoleName = "RootUserRole";
-        public static final String ENV_RootUserPermission = "RootUserPermission";
-        public static final String ENV_RootUserOperation = "RootUserOperation";
     }
 }

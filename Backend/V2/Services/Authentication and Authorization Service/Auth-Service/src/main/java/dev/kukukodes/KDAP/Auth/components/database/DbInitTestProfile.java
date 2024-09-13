@@ -1,11 +1,10 @@
 package dev.kukukodes.KDAP.Auth.components.database;
 
 import dev.kukukodes.KDAP.Auth.constants.auth.AuthConstants;
-import dev.kukukodes.KDAP.Auth.entities.database.OperationEntity;
-import dev.kukukodes.KDAP.Auth.entities.database.PermissionEntity;
-import dev.kukukodes.KDAP.Auth.entities.database.RoleEntity;
-import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
+import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
+import dev.kukukodes.KDAP.Auth.entities.database.*;
 import dev.kukukodes.KDAP.Auth.enums.user.UserStatus;
+import dev.kukukodes.KDAP.Auth.repo.database.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,23 +44,31 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
-    private R2dbcEntityTemplate template;
+    IUserRepository userRoleRepository;
+    @Autowired
+    IRoleRepository roleRepository;
+    @Autowired
+    IPermissionRepository permissionRepository;
+    @Autowired
+    IOperationRepository operationRepository;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         log.info("Creating root operation, permission, role and user");
-        //Create operation
-        var operation = createRootOperation();
-        template.insert(operation).then().block();
-        //Create permission
-        var permission = createRootPermission();
-        template.insert(permission).then().block();
-        //Create role
-        var rootRole = createRootRole();
-        template.insert(rootRole).then().block();
-        //Create user
-        var rootUser = createRootAuthUser();
-        template.insert(rootUser).block();
+        //Creating root user
+        String name = dotenv.get(AuthConstants.RootUser.ENV_RootUserName);
+        var rootUser = new UserEntity(name, passwordEncoder.encode(dotenv.get(AuthConstants.RootUser.ENV_RootUserPassword)), "Root user", new Date(), new Date(), new Date(), UserStatus.ACTIVE.toString());
+        userRoleRepository.addUser(rootUser).then().block();
+        //Creating root role
+        var rootRole = new RoleEntity(dotenv.get(AuthConstants.RootUser.ENV_RootRoleName), "Root role", new Date(), new Date());
+        roleRepository.addRole(rootRole).then().block();
+        //Creating root permission
+        var rootPermission = new PermissionEntity("*", "Root permission", new Date(), new Date());
+        permissionRepository.addPermission(rootPermission).block();
+        //Creating root operation
+        var rootOp = new OperationEntity("*", "Root operation", new Date(), new Date());
+        operationRepository.addOperation(rootOp).block();
+        log.info("Populating junction tables");
     }
 
     @Override
@@ -69,30 +76,4 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
         return ApplicationListener.super.supportsAsyncExecution();
     }
 
-    ///Create user with full control
-    UserEntity createRootAuthUser() {
-        String id = dotenv.get(AuthConstants.RootUser.ENV_RootUserName);
-        String pwd = dotenv.get(AuthConstants.RootUser.ENV_RootUserPassword);
-        var currentDate = new Date();
-        log.info("Creating Root User < {} > for test profile", id);
-        return new UserEntity(id, passwordEncoder.encode(pwd), "Default Root user", currentDate, currentDate, currentDate, UserStatus.ACTIVE.toString());
-    }
-
-    ///Create root role
-    RoleEntity createRootRole() {
-        var currentDate = new Date();
-        return new RoleEntity(AuthConstants.RootUser.ENV_RootRoleName, "ROOT User Role", currentDate, currentDate);
-    }
-
-    //create root permission
-    PermissionEntity createRootPermission() {
-        var date = new Date();
-        return new PermissionEntity(dotenv.get(AuthConstants.RootUser.ENV_RootUserPermission), "Root permission", date, date);
-    }
-
-    //create root operation
-    OperationEntity createRootOperation() {
-        var date = new Date();
-        return new OperationEntity(dotenv.get(AuthConstants.RootUser.ENV_RootUserOperation), "Root operation", date, date);
-    }
 }

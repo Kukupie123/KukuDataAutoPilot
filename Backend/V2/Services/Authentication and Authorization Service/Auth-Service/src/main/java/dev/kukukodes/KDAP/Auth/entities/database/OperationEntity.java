@@ -2,6 +2,7 @@ package dev.kukukodes.KDAP.Auth.entities.database;
 
 import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
@@ -11,9 +12,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.util.Date;
 
 @Table(DbConstants.TableNames.Operations)
-@Getter
-@AllArgsConstructor
-@ToString
+@Data
 public class OperationEntity {
 
     @Id

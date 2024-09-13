@@ -19,32 +19,38 @@ public class CommonRoleRepository implements IRoleRepository {
     @Autowired
     R2dbcEntityTemplate template;
 
-    @Override
-    public Mono<Integer> addRole(RoleEntity role) {
-        log.info("Adding new role {}", role);
-        return template.insert(role).map(RoleEntity::getId);
-    }
 
     @Override
-    public Mono<RoleEntity> getRoleByID(int id) {
-        Integer val = id;
-        return template.select(RoleEntity.class).matching(
+    public Mono<RoleEntity> getRoleByName(String name) {
+        log.info("Getting role by name {}", name);
+        return template.select(
                 Query.query(
-                        Criteria.where(DbConstants.TableColumnNames.CommonColumns.id).is(val)
-                )).first();
+                        Criteria.where(DbConstants.TableColumnNames.CommonColumns.name).is(name)
+                ),
+                RoleEntity.class
+        ).next();
     }
 
     @Override
-    public Mono<RoleEntity> getRoleByName(String userId) {
-        return template.select(RoleEntity.class).matching(
+    public Mono<Integer> add(RoleEntity roleEntity) {
+        log.info("Adding role {}", roleEntity);
+        return template.insert(roleEntity).map(RoleEntity::getId);
+    }
+
+    @Override
+    public Mono<RoleEntity> getByPK(Integer id) {
+        log.info("Getting role by id {}", id);
+        return template.selectOne(
                 Query.query(
-                        Criteria.where(DbConstants.TableColumnNames.CommonColumns.name).is(userId)
-                )
-        ).first();
+                        Criteria.where(DbConstants.TableColumnNames.CommonColumns.id).is(id)
+                ),
+                RoleEntity.class
+        );
     }
 
     @Override
-    public Flux<RoleEntity> getAllRoles() {
+    public Flux<RoleEntity> getAll() {
+        log.info("Getting all roles");
         return template.select(RoleEntity.class).all();
     }
 }
