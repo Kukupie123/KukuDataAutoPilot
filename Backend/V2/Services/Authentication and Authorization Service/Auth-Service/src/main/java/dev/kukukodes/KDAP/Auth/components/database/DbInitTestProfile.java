@@ -1,12 +1,10 @@
 package dev.kukukodes.KDAP.Auth.components.database;
 
 import dev.kukukodes.KDAP.Auth.constants.auth.AuthConstants;
-import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
 import dev.kukukodes.KDAP.Auth.entities.database.OperationEntity;
 import dev.kukukodes.KDAP.Auth.entities.database.PermissionEntity;
 import dev.kukukodes.KDAP.Auth.entities.database.RoleEntity;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
-import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
 import dev.kukukodes.KDAP.Auth.enums.user.UserStatus;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
@@ -47,35 +45,11 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
-    TableQueryDialectGenerator tableQueryDialectGenerator;
-    @Autowired
     private R2dbcEntityTemplate template;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        log.info("Dropping existing tables");
-        //Drop existing table
-        String query = tableQueryDialectGenerator.userGenerator.dropTable(); //User
-        template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.roleGenerator.dropTable(); //Role
-        template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.permissionGenerator.dropTable(); //Permission
-        template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.operationGenerator.dropTable();
-        template.getDatabaseClient().sql(query).then().block(); //Operation
-
-        //Create Tables first
-        log.info("Creating new tables");
-        query = tableQueryDialectGenerator.userGenerator.createTable(); //User
-        template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.roleGenerator.createTable(); //Role
-        template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.permissionGenerator.createTable(); //Permission
-        template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.operationGenerator.createTable();
-        template.getDatabaseClient().sql(query).then().block(); //Operation
-
-        log.info("Creating root operation, permission, role, user");
+        log.info("Creating root operation, permission, role and user");
         //Create operation
         var operation = createRootOperation();
         template.insert(operation).then().block();

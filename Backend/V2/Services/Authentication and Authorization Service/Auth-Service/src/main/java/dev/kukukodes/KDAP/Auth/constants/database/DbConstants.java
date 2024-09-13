@@ -28,6 +28,11 @@ public class DbConstants {
             public static final String updated = "updated";
             public static final String description = "description";
         }
+
+        public static class UserRolesJunctionTable {
+            public static final String userID = "userID";
+            public static final String roleID = "roleID";
+        }
     }
 
     public static class TableQueryDialect {
