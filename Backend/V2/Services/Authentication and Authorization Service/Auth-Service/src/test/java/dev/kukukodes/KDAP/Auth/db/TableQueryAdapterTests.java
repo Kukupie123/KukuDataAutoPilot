@@ -15,7 +15,7 @@ public class TableQueryAdapterTests {
 
     @Test
     void testTableQueryGenerator() {
-        String query = tableQueryDialectGenerator.userGenerator.createUserTable();
+        String query = tableQueryDialectGenerator.userGenerator.createTable();
         log.info(query);
     }
 }

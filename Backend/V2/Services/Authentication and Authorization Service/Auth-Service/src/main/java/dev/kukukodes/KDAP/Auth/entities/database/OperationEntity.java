@@ -2,7 +2,6 @@ package dev.kukukodes.KDAP.Auth.entities.database;
 
 import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
@@ -11,28 +10,30 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.Date;
 
-@Table(DbConstants.TableNames.Roles)
-@AllArgsConstructor
+@Table(DbConstants.TableNames.Operations)
 @Getter
+@AllArgsConstructor
 @ToString
-public class RoleEntity {
+public class OperationEntity {
+
     @Id
     @Column(DbConstants.TableColumnNames.CommonColumns.id)
-    private Integer id;
+    Integer id;
     @Column(DbConstants.TableColumnNames.CommonColumns.name)
-    private String name;
+    String name;
     @Column(DbConstants.TableColumnNames.CommonColumns.description)
-    private String desc;
+    String description;
     @Column(DbConstants.TableColumnNames.CommonColumns.created)
-    private Date created;
+    Date created;
     @Column(DbConstants.TableColumnNames.CommonColumns.updated)
-    private Date updated;
-    public RoleEntity(String name, String desc, Date created, Date updated) {
+    Date updated;
+    public OperationEntity(String name, String description, Date created, Date updated) {
         this.name = name;
-        this.desc = desc;
+        this.description = description;
         this.created = created;
         this.updated = updated;
         this.id = null;
+
     }
 
 }

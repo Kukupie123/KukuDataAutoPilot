@@ -29,6 +29,22 @@ public class TableQueryDialectSchemaDefinition {
             getUpdatedColumn()
     );
 
+    public static List<ColumnDefinition> PermissionTableColumns = List.of(
+            new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.id, TableColumnDataType.AUTOINCREMENT_INT, true, false, true),
+            new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.name, TableColumnDataType.TEXT, false, false, true),
+            new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.description, TableColumnDataType.TEXT, false, true, false),
+            getCreatedColumn(),
+            getUpdatedColumn()
+    );
+
+    public static List<ColumnDefinition> OperationTableColumns = List.of(
+            new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.id, TableColumnDataType.AUTOINCREMENT_INT, true, false, true),
+            new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.name, TableColumnDataType.TEXT, false, false, true),
+            new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.description, TableColumnDataType.TEXT, false, true, false),
+            getCreatedColumn(),
+            getUpdatedColumn()
+    );
+
     //For consistency
     private static ColumnDefinition getCreatedColumn() {
         return new ColumnDefinition(DbConstants.TableColumnNames.CommonColumns.created, TableColumnDataType.DATE, false, false, false);

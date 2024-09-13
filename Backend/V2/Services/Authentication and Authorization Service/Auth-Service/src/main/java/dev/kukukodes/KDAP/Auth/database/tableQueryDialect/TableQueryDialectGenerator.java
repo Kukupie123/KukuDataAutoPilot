@@ -13,14 +13,19 @@ import java.util.List;
 @Component
 public class TableQueryDialectGenerator {
 
-    public UsersTableQueryDialectGenerator userGenerator;
-    public RolesTableQueryDialectGenerator roleGenerator;
+    public final PermissionTableQueryDialectGenerator permissionGenerator;
+    public final UsersTableQueryDialectGenerator userGenerator;
+    public final RolesTableQueryDialectGenerator roleGenerator;
+    public final OperationTableQueryDialectGenerator operationGenerator;
     @Autowired
-    protected TableQueryDialectAdapter dialectAdapter;
+    private TableQueryDialectAdapter dialectAdapter;
+
 
     public TableQueryDialectGenerator() {
         this.userGenerator = new UsersTableQueryDialectGenerator();
         this.roleGenerator = new RolesTableQueryDialectGenerator();
+        this.permissionGenerator = new PermissionTableQueryDialectGenerator();
+        this.operationGenerator = new OperationTableQueryDialectGenerator();
     }
 
     public String createTable(String tableName, List<ColumnDefinition> columns) {
@@ -36,31 +41,71 @@ public class TableQueryDialectGenerator {
 
     public String dropTable(String tableName) {
         StringBuilder sql = new StringBuilder();
-         sql.append(dialectAdapter.getDropTableDialect().beforeDropTable(tableName)).toString();
-         sql.append(dialectAdapter.getDropTableDialect().dropTable(tableName));
-         sql.append(dialectAdapter.getDropTableDialect().afterDropTable(tableName));
-         log.info("Generated DropTable dialect : {}", sql);
-         return sql.toString();
+        sql.append(dialectAdapter.getDropTableDialect().beforeDropTable(tableName));
+        sql.append(dialectAdapter.getDropTableDialect().dropTable(tableName));
+        sql.append(dialectAdapter.getDropTableDialect().afterDropTable(tableName));
+        log.info("Generated DropTable dialect : {}", sql);
+        return sql.toString();
     }
 
-    public class UsersTableQueryDialectGenerator {
-        public String createUserTable() {
-            return createTable(DbConstants.TableNames.Users, TableQueryDialectSchemaDefinition.UserTableColumns);
+    private interface tableGenerator {
+        String createTable();
+
+        String dropTable();
+    }
+
+    public class UsersTableQueryDialectGenerator implements tableGenerator {
+
+        @Override
+        public String createTable() {
+            return TableQueryDialectGenerator.this.createTable(DbConstants.TableNames.Users, TableQueryDialectSchemaDefinition.UserTableColumns);
         }
 
-        public String dropUserTable() {
-            return dropTable(DbConstants.TableNames.Users);
+        @Override
+        public String dropTable() {
+            return TableQueryDialectGenerator.this.dropTable(DbConstants.TableNames.Users);
         }
     }
 
-    public class RolesTableQueryDialectGenerator {
-        public String createRoleTable() {
+    public class RolesTableQueryDialectGenerator implements tableGenerator {
+
+        @Override
+        public String createTable() {
             List<ColumnDefinition> columns = TableQueryDialectSchemaDefinition.RoleTableColumns;
-            return createTable(DbConstants.TableNames.Roles, columns);
+
+            return TableQueryDialectGenerator.this.createTable(DbConstants.TableNames.Roles, columns);
         }
 
-        public String dropRoleTable() {
-            return dropTable(DbConstants.TableNames.Roles);
+        @Override
+        public String dropTable() {
+            return TableQueryDialectGenerator.this.dropTable(DbConstants.TableNames.Roles);
+        }
+    }
+
+    public class PermissionTableQueryDialectGenerator implements tableGenerator {
+
+        @Override
+        public String createTable() {
+            List<ColumnDefinition> columns = TableQueryDialectSchemaDefinition.PermissionTableColumns;
+            return TableQueryDialectGenerator.this.createTable(DbConstants.TableNames.Permissions, columns);
+        }
+
+        @Override
+        public String dropTable() {
+            return TableQueryDialectGenerator.this.dropTable(DbConstants.TableNames.Permissions);
+        }
+    }
+
+    public class OperationTableQueryDialectGenerator implements tableGenerator {
+
+        @Override
+        public String createTable() {
+            return TableQueryDialectGenerator.this.createTable(DbConstants.TableNames.Operations, TableQueryDialectSchemaDefinition.OperationTableColumns);
+        }
+
+        @Override
+        public String dropTable() {
+            return TableQueryDialectGenerator.this.dropTable(DbConstants.TableNames.Operations);
         }
     }
 }

@@ -23,7 +23,6 @@ public class CommonUserRepository implements IUserRepository {
 
     @Override
     public Mono<Integer> addUser(UserEntity user) {
-        user.setId(null);
         return template.insert(user).map(UserEntity::getId);
     }
 

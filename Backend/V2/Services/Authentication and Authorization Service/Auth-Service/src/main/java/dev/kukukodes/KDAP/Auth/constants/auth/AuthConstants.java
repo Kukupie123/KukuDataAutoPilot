@@ -7,9 +7,11 @@ public class AuthConstants {
         public static final String OAUTH = "CUSTOM_AUTH_QUALIFIER_OAUTH";
     }
 
-    public static final class RootUser{
-        public static final String RootUserName = "RootUserName";
-        public static final String RootUserPassword = "RootUserPassword";
-        public static final String RootRoleName = "KING";
+    public static final class RootUser {
+        public static final String ENV_RootUserName = "RootUserName";
+        public static final String ENV_RootUserPassword = "RootUserPassword";
+        public static final String ENV_RootRoleName = "RootUserRole";
+        public static final String ENV_RootUserPermission = "RootUserPermission";
+        public static final String ENV_RootUserOperation = "RootUserOperation";
     }
 }

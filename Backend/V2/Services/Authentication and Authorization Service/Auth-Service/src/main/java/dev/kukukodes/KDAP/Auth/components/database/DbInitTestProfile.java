@@ -1,6 +1,9 @@
 package dev.kukukodes.KDAP.Auth.components.database;
 
 import dev.kukukodes.KDAP.Auth.constants.auth.AuthConstants;
+import dev.kukukodes.KDAP.Auth.constants.database.DbConstants;
+import dev.kukukodes.KDAP.Auth.entities.database.OperationEntity;
+import dev.kukukodes.KDAP.Auth.entities.database.PermissionEntity;
 import dev.kukukodes.KDAP.Auth.entities.database.RoleEntity;
 import dev.kukukodes.KDAP.Auth.entities.database.UserEntity;
 import dev.kukukodes.KDAP.Auth.database.tableQueryDialect.TableQueryDialectGenerator;
@@ -15,7 +18,6 @@ import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -53,24 +55,38 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
     public void onApplicationEvent(ContextRefreshedEvent event) {
         log.info("Dropping existing tables");
         //Drop existing table
-        String query = tableQueryDialectGenerator.userGenerator.dropUserTable(); //User
+        String query = tableQueryDialectGenerator.userGenerator.dropTable(); //User
         template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.roleGenerator.dropRoleTable(); //Role
+        query = tableQueryDialectGenerator.roleGenerator.dropTable(); //Role
         template.getDatabaseClient().sql(query).then().block();
+        query = tableQueryDialectGenerator.permissionGenerator.dropTable(); //Permission
+        template.getDatabaseClient().sql(query).then().block();
+        query = tableQueryDialectGenerator.operationGenerator.dropTable();
+        template.getDatabaseClient().sql(query).then().block(); //Operation
 
         //Create Tables first
         log.info("Creating new tables");
-        query = tableQueryDialectGenerator.userGenerator.createUserTable(); //User
+        query = tableQueryDialectGenerator.userGenerator.createTable(); //User
         template.getDatabaseClient().sql(query).then().block();
-        query = tableQueryDialectGenerator.roleGenerator.createRoleTable(); //Role
+        query = tableQueryDialectGenerator.roleGenerator.createTable(); //Role
         template.getDatabaseClient().sql(query).then().block();
+        query = tableQueryDialectGenerator.permissionGenerator.createTable(); //Permission
+        template.getDatabaseClient().sql(query).then().block();
+        query = tableQueryDialectGenerator.operationGenerator.createTable();
+        template.getDatabaseClient().sql(query).then().block(); //Operation
+
+        log.info("Creating root operation, permission, role, user");
+        //Create operation
+        var operation = createRootOperation();
+        template.insert(operation).then().block();
+        //Create permission
+        var permission = createRootPermission();
+        template.insert(permission).then().block();
         //Create role
         var rootRole = createRootRole();
-        log.info("Creating root role {}", rootRole);
         template.insert(rootRole).then().block();
         //Create user
         var rootUser = createRootAuthUser();
-        log.info("adding root user {}", rootUser.toString());
         template.insert(rootUser).block();
     }
 
@@ -81,29 +97,28 @@ public class DbInitTestProfile implements ApplicationListener<ContextRefreshedEv
 
     ///Create user with full control
     UserEntity createRootAuthUser() {
-        String id = dotenv.get(AuthConstants.RootUser.RootUserName);
-        String pwd = dotenv.get(AuthConstants.RootUser.RootUserPassword);
+        String id = dotenv.get(AuthConstants.RootUser.ENV_RootUserName);
+        String pwd = dotenv.get(AuthConstants.RootUser.ENV_RootUserPassword);
         var currentDate = new Date();
         log.info("Creating Root User < {} > for test profile", id);
-        UserEntity rootUser = new UserEntity();
-        rootUser.setCreated(currentDate);
-        rootUser.setUpdated(currentDate);
-        rootUser.setUserDesc("Default Root User");
-        rootUser.setStatus(UserStatus.ACTIVE.toString());
-        rootUser.setLastActivity(currentDate);
-        rootUser.setPasswordHash(passwordEncoder.encode(pwd));
-        rootUser.setName(id);
-        return rootUser;
+        return new UserEntity(id, passwordEncoder.encode(pwd), "Default Root user", currentDate, currentDate, currentDate, UserStatus.ACTIVE.toString());
     }
 
     ///Create root role
     RoleEntity createRootRole() {
-        var role = new RoleEntity();
         var currentDate = new Date();
-        role.setName(AuthConstants.RootUser.RootRoleName);
-        role.setCreated(currentDate);
-        role.setUpdated(currentDate);
-        role.setDesc("Root User ROLE with global access");
-        return role;
+        return new RoleEntity(AuthConstants.RootUser.ENV_RootRoleName, "ROOT User Role", currentDate, currentDate);
+    }
+
+    //create root permission
+    PermissionEntity createRootPermission() {
+        var date = new Date();
+        return new PermissionEntity(dotenv.get(AuthConstants.RootUser.ENV_RootUserPermission), "Root permission", date, date);
+    }
+
+    //create root operation
+    OperationEntity createRootOperation() {
+        var date = new Date();
+        return new OperationEntity(dotenv.get(AuthConstants.RootUser.ENV_RootUserOperation), "Root operation", date, date);
     }
 }

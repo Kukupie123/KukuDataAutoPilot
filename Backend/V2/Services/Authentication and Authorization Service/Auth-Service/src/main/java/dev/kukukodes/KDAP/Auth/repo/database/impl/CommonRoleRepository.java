@@ -21,7 +21,6 @@ public class CommonRoleRepository implements IRoleRepository {
 
     @Override
     public Mono<Integer> addRole(RoleEntity role) {
-        role.setId(null);
         log.info("Adding new role {}", role);
         return template.insert(role).map(RoleEntity::getId);
     }
