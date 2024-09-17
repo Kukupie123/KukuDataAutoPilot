@@ -61,7 +61,8 @@ public class PublicEndpoint {
      * 2. Creates the OAuth2AuthorizedClient object
      * 3. Stores it for future use
      *
-     * @param authorizedClient (Auto injected) Once the end-user (aka the Resource Owner) grants permissions to the client to access its resources, an OAuth2AuthorizedClient entity is created. It'll be responsible for associating access tokens to client registrations and resource owners (represented by Principal objects).
+     * @param authorizedClient (Auto injected) Once the end-user (aka the Resource Owner) grants permissions to the client to access its resources, an OAuth2AuthorizedClient entity is created.
+     *                         It'll be responsible for associating access tokens to client registrations and resource owners (represented by Principal objects).
      *                         <p>
      * @param oidcUser         (Auto Injected) Represents authenticated OID user. This is set automatically upon successful granting of permission.
      *                         <p>
