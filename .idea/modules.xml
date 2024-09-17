@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Backend/AuthenticationService/AuthenticationService.iml" filepath="$PROJECT_DIR$/Backend/AuthenticationService/AuthenticationService.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/KukuDataAutoPilot.iml" filepath="$PROJECT_DIR$/.idea/KukuDataAutoPilot.iml" />
     </modules>
   </component>
