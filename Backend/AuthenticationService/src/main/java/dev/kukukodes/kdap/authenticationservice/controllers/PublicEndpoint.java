@@ -41,7 +41,8 @@ public class PublicEndpoint {
     }
 
     /**
-     *
+     * Redirect URL that needs to be hit by the provider.
+     * This functions Authorizes the user, store the user info in database and generates JWT Token
      * @return JWT Token whose subject is userID, and user info as claims.
      */
     @GetMapping("/redirect/google")

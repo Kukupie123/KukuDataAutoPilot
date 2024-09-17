@@ -106,7 +106,7 @@ public abstract class OAuthService {
         Mono<OAuth2AuthorizationExchange> authorizationExchangeMono = Mono.zip(authorizationRequestMono, authorizationResponseMono)
                 .map(objects -> new OAuth2AuthorizationExchange(objects.getT1(), objects.getT2()));
         //Create AuthorizationCodeTokenResponseClient which "exchanges" an authorization code credential for an access token credential at the Authorization Server's Token Endpoint.
-        ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> exchanger = new WebClientReactiveAuthorizationCodeTokenResponseClient();
+        WebClientReactiveAuthorizationCodeTokenResponseClient exchanger = new WebClientReactiveAuthorizationCodeTokenResponseClient();
         //Create AuthorizationCodeGrantRequest which holds an Authorization Code credential and client registration data.
         Mono<OAuth2AuthorizationCodeGrantRequest> codeGrantRequestMono = Mono.zip(oAuthClientRepo.findByRegistrationId(clientID), authorizationExchangeMono)
                 .map(objects -> new OAuth2AuthorizationCodeGrantRequest(objects.getT1(), objects.getT2()));
