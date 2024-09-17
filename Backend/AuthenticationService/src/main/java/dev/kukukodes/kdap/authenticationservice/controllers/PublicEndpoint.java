@@ -15,9 +15,17 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/public")
 public class PublicEndpoint {
 
-    @Autowired
+    final
     GoogleAuthService googleAuthService;
 
+    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService) {
+        this.googleAuthService = googleAuthService;
+    }
+
+    /**
+     *
+     * @return URI to login to google.
+     */
     @GetMapping("/login/google")
     public Mono<ResponseEntity<String>> getGoogleLoginURL() {
         log.info("Getting URL Login");
@@ -33,29 +41,15 @@ public class PublicEndpoint {
     }
 
     /**
-     * This endpoint should be hit by Google's server. Make sure it's configured as redirect URL in config.
-     * <p>
-     * <p>
-     * Spring will automatically create AuthorizedClient upon successful redirect callback after granting permission to resources
-     * <p>
-     * <p>
-     * Explanation:
-     * - Spring Security handles the OAuth2 flow behind the scenes.
-     * - When Google redirects back with the authorization code, Spring:
-     * 1. Exchanges the code for access and refresh tokens
-     * 2. Creates the OAuth2AuthorizedClient object
-     * 3. Stores it for future use
-     * <p>
      *
-     * @return Generated JWT Token with user info as claims and ID as subject
-     **/
+     * @return JWT Token whose subject is userID, and user info as claims.
+     */
     @GetMapping("/redirect/google")
     public Mono<ResponseEntity<String>> handleGoogleRedirect(ServerWebExchange exchange) {
         String code = exchange.getRequest().getQueryParams().getFirst("code");
         String state = exchange.getRequest().getQueryParams().getFirst("state");
         return googleAuthService.getTokenResponse(code, state)
                 .map(accessTokenResponse -> ResponseEntity.ok(accessTokenResponse.getAccessToken().getTokenValue()));
-
     }
 
 
