@@ -74,16 +74,27 @@ public class PublicEndpoint {
                         .defaultIfEmpty(Optional.empty()))
                 // Add update the user to database
                 .flatMap(objects -> {
+                    var auth = objects.getT1();
                     if (objects.getT2().isEmpty()) {
                         log.info("Found no existing user. Creating a new record");
                         return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(objects.getT1()));
                     }
-                    log.info("Found existing user. Updating fields");
-                    return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(objects.getT1(), objects.getT2().get()));
+                    log.info("Found existing user.");
+                    UserEntity user = objects.getT2().get();
+                    if (user.getId().equals(auth.getSub()) &&
+                            user.getName().equals(auth.getName()) &&
+                            user.getEmail().equals(auth.getEmailID()) &&
+                            user.getPicture().equals(auth.getPictureURL())
+                    ) {
+                        log.info("All fields are still the same. Skipping update");
+                        return Mono.just(user);
+                    }
+                    log.info("Fields are outdated. Updating user");
+                    return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user));
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> ResponseEntity.ok(jwtService.generateUserJwtToken(userEntity)))
-                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage()+"\n"+ Arrays.toString(throwable.getStackTrace()))))
+                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
                 ;
     }
 

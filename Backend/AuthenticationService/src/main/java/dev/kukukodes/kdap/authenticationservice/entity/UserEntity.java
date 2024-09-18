@@ -28,8 +28,6 @@ public class UserEntity {
     LocalDate created;
     @Column(DbConstants.ColumnNames.UPDATED)
     LocalDate updated;
-    @Column(DbConstants.ColumnNames.ACTIVITY)
-    LocalDate activity;
     @Column(DbConstants.ColumnNames.EMAIL)
     String email;
     @Column(DbConstants.ColumnNames.PICTURE)
@@ -43,7 +41,6 @@ public class UserEntity {
                 "",
                 LocalDate.now(),
                 LocalDate.now(),
-                LocalDate.now(),
                 oAuth2UserInfoGoogle.getEmailID(),
                 oAuth2UserInfoGoogle.getPictureURL()
         );
@@ -51,7 +48,6 @@ public class UserEntity {
 
     @Transient
     public static UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
-        userEntity.setActivity(LocalDate.now());
         userEntity.setName(oAuth2UserInfoGoogle.getName());
         userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
         userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());

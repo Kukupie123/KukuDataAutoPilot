@@ -11,7 +11,6 @@ public class DbConstants {
         public static final String PASSWORD = "password";
         public static final String CREATED = "created";
         public static final String UPDATED = "updated";
-        public static final String ACTIVITY = "activity";
         public static final String EMAIL = "email";
         public static final String PICTURE = "picture";
     }

@@ -24,6 +24,7 @@ public class UserService implements IUserService {
 
     @Override
     public Mono<UserEntity> updateUser(UserEntity user) {
+        //TODO: Broadcast a message queue
         return userRepo.updateUser(user);
     }
 
