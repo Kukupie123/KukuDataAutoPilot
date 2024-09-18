@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Slf4j
@@ -75,13 +75,15 @@ public class PublicEndpoint {
                 // Add update the user to database
                 .flatMap(objects -> {
                     if (objects.getT2().isEmpty()) {
+                        log.info("Found no existing user. Creating a new record");
                         return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(objects.getT1()));
                     }
+                    log.info("Found existing user. Updating fields");
                     return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(objects.getT1(), objects.getT2().get()));
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> ResponseEntity.ok(jwtService.generateUserJwtToken(userEntity)))
-                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage())))
+                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage()+"\n"+ Arrays.toString(throwable.getStackTrace()))))
                 ;
     }
 

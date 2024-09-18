@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Table(DbConstants.TableNames.USER_TABLE)
 @Data
@@ -25,11 +25,11 @@ public class UserEntity {
     @Column(DbConstants.ColumnNames.PASSWORD)
     String password;
     @Column(DbConstants.ColumnNames.CREATED)
-    Date created;
+    LocalDate created;
     @Column(DbConstants.ColumnNames.UPDATED)
-    Date updated;
+    LocalDate updated;
     @Column(DbConstants.ColumnNames.ACTIVITY)
-    Date activity;
+    LocalDate activity;
     @Column(DbConstants.ColumnNames.EMAIL)
     String email;
     @Column(DbConstants.ColumnNames.PICTURE)
@@ -41,9 +41,9 @@ public class UserEntity {
                 oAuth2UserInfoGoogle.getSub(),
                 oAuth2UserInfoGoogle.getName(),
                 "",
-                new Date(),
-                new Date(),
-                new Date(),
+                LocalDate.now(),
+                LocalDate.now(),
+                LocalDate.now(),
                 oAuth2UserInfoGoogle.getEmailID(),
                 oAuth2UserInfoGoogle.getPictureURL()
         );
@@ -51,7 +51,7 @@ public class UserEntity {
 
     @Transient
     public static UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
-        userEntity.setActivity(new Date());
+        userEntity.setActivity(LocalDate.now());
         userEntity.setName(oAuth2UserInfoGoogle.getName());
         userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
         userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());

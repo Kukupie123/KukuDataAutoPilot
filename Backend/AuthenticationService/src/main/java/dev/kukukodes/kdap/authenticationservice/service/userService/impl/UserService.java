@@ -2,7 +2,6 @@ package dev.kukukodes.kdap.authenticationservice.service.userService.impl;
 
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
-import dev.kukukodes.kdap.authenticationservice.repo.UserRepo;
 import dev.kukukodes.kdap.authenticationservice.service.userService.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
