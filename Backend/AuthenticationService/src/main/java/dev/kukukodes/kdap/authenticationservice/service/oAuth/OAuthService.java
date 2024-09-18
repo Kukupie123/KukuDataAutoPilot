@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service.oAuth;
 
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -17,8 +18,11 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public abstract class OAuthService {
+    //Required to get clientRegistration object by name
     private final String clientID;
+    //Holds all the registered OAuth providers
     private final ReactiveClientRegistrationRepository oAuthClientRepo;
+    //Provides function to get user using access token
     private final DefaultOAuth2UserService oIcdUserService;
 
     protected OAuthService(String clientID, ReactiveClientRegistrationRepository oAuthClientRepo, DefaultOAuth2UserService oidcUserService) {
@@ -43,7 +47,24 @@ public abstract class OAuthService {
     }
 
     /**
+     * Build OAuth2AuthorizationResponse object. Represents the response of OAuth2 resource granted redirect.
+     * All the parameters should normally be present in the redirect query parameter
+     * @param authorizationCode auth code received after redirect
+     * @param redirectUri the uri where client was redirected to
+     * @param state state id that was used when making the request.
+     * @return
+     */
+    public OAuth2AuthorizationResponse createOAuth2AuthResp(String authorizationCode, String redirectUri, String state) {
+        return OAuth2AuthorizationResponse
+                .success(authorizationCode)
+                .redirectUri(redirectUri)
+                .state(state)
+                .build();
+    }
+
+    /**
      * Uses code and state obtained by OAuth2 providers after granting resource access to retrieve access token from resource owner.
+     *
      * @return Access token
      */
     public Mono<OAuth2AccessTokenResponse> getTokenResponse(String code, String state) {
@@ -108,11 +129,7 @@ public abstract class OAuthService {
         //Build OAuth2AuthorizationRequest which represents the request
         Mono<OAuth2AuthorizationRequest> authorizationRequestMono = createOAuth2AuthReq();
         //Build OAuth2AuthorizationResponse which represents the response we got.
-        Mono<OAuth2AuthorizationResponse> authorizationResponseMono = redirectUri.map(redirectURI -> OAuth2AuthorizationResponse
-                .success(code)
-                .redirectUri(redirectURI)
-                .state(state)
-                .build());
+        Mono<OAuth2AuthorizationResponse> authorizationResponseMono = redirectUri.map(redirectURI -> createOAuth2AuthResp(code, redirectURI, state));
         //Create AuthorizationExchange which represents the exchange between the authorization request and response. It doesn't actually do any exchanges, it's just a representation.
         Mono<OAuth2AuthorizationExchange> authorizationExchangeMono = Mono.zip(authorizationRequestMono, authorizationResponseMono)
                 .map(objects -> new OAuth2AuthorizationExchange(objects.getT1(), objects.getT2()));
@@ -129,6 +146,7 @@ public abstract class OAuthService {
 
     /**
      * Uses access token object to get user info from the resource server.
+     *
      * @return OAuth2User
      */
     public Mono<OAuth2User> getUserFromToken(OAuth2AccessToken accessToken) {
