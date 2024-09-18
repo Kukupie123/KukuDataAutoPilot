@@ -15,6 +15,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -66,33 +67,18 @@ public class PublicEndpoint {
                 .flatMap(oAuth2AccessTokenResponse -> googleAuthService.getUserFromToken(oAuth2AccessTokenResponse.getAccessToken()))
                 // convert it into user info
                 .map(OAuth2UserInfoGoogle::parse)
-                // check if the user is in db already
-                .flatMap(oAuth2UserInfoGoogle -> userService.getUserById(oAuth2UserInfoGoogle.getSub())
-                        //If found then update the user
-                        .flatMap(userEntity -> {
-                            log.info("Existing user found, updating info");
-                            userEntity.setActivity(new Date());
-                            userEntity.setName(userEntity.getName());
-                            userEntity.setPicture(userEntity.getPicture());
-                            userEntity.setEmail(userEntity.getEmail());
-                            return userService.updateUser(userEntity);
-                        })
-                        //If not found then create a new record
-                        .switchIfEmpty(Mono.defer(() -> {
-                            log.info("No existing user found, creating new one");
-                            var newUser = new UserEntity(
-                                    oAuth2UserInfoGoogle.getSub(),
-                                    oAuth2UserInfoGoogle.getName(),
-                                    "",
-                                    new Date(),
-                                    new Date(),
-                                    new Date(),
-                                    oAuth2UserInfoGoogle.getEmailID(),
-                                    oAuth2UserInfoGoogle.getPictureURL()
-                            );
-                            return userService.addUser(newUser);
-                        }))
-                )
+                // check if the user is in db already. We use optional to define a 'null' value. No nulls allowed in reactive, optional allows us to know if its empty
+                .zipWhen(oAuth2UserInfoGoogle -> userService.getUserById(oAuth2UserInfoGoogle.getSub())
+                        .map(Optional::of)
+                        //If no user was found we use empty optional to signify 'null'
+                        .defaultIfEmpty(Optional.empty()))
+                // Add update the user to database
+                .flatMap(objects -> {
+                    if (objects.getT2().isEmpty()) {
+                        return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(objects.getT1()));
+                    }
+                    return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(objects.getT1(), objects.getT2().get()));
+                })
                 //Generate token based on user updated/added
                 .map(userEntity -> ResponseEntity.ok(jwtService.generateUserJwtToken(userEntity)))
                 .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage())))

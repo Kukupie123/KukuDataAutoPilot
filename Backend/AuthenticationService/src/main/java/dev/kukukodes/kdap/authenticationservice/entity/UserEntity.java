@@ -1,10 +1,12 @@
 package dev.kukukodes.kdap.authenticationservice.entity;
 
 import dev.kukukodes.kdap.authenticationservice.constants.DbConstants;
+import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -32,4 +34,27 @@ public class UserEntity {
     String email;
     @Column(DbConstants.ColumnNames.PICTURE)
     String picture;
+
+    @Transient
+    public static UserEntity createUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle) {
+        return new UserEntity(
+                oAuth2UserInfoGoogle.getSub(),
+                oAuth2UserInfoGoogle.getName(),
+                "",
+                new Date(),
+                new Date(),
+                new Date(),
+                oAuth2UserInfoGoogle.getEmailID(),
+                oAuth2UserInfoGoogle.getPictureURL()
+        );
+    }
+
+    @Transient
+    public static UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
+        userEntity.setActivity(new Date());
+        userEntity.setName(oAuth2UserInfoGoogle.getName());
+        userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
+        userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
+        return userEntity;
+    }
 }
