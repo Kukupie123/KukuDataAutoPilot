@@ -1,7 +1,10 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
+import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
+import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -20,9 +24,13 @@ public class PublicEndpoint {
 
     final
     GoogleAuthService googleAuthService;
+    private final UserService userService;
+    private final JwtService jwtService;
 
-    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService) {
+    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService) {
         this.googleAuthService = googleAuthService;
+        this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     /**
@@ -52,10 +60,41 @@ public class PublicEndpoint {
     public Mono<ResponseEntity<String>> handleGoogleRedirect(ServerWebExchange exchange) {
         String code = exchange.getRequest().getQueryParams().getFirst("code");
         String state = exchange.getRequest().getQueryParams().getFirst("state");
+
+        //Get token response
         return googleAuthService.getTokenResponse(code, state)
-                .flatMap(accessTokenResponse -> googleAuthService.getUserFromToken(accessTokenResponse.getAccessToken()))
+                //get user from token response
+                .flatMap(oAuth2AccessTokenResponse -> googleAuthService.getUserFromToken(oAuth2AccessTokenResponse.getAccessToken()))
+                // convert it into user info
                 .map(OAuth2UserInfoGoogle::parse)
-                .map(oAuth2User -> ResponseEntity.ok(oAuth2User.toString()))
+                // check if the user is in db already. We use optional to define a 'null' value. No nulls allowed in reactive, optional allows us to know if its empty
+                .zipWhen(oAuth2UserInfoGoogle -> userService.getUserById(oAuth2UserInfoGoogle.getSub())
+                        .map(Optional::of)
+                        //If no user was found we use empty optional to signify 'null'
+                        .defaultIfEmpty(Optional.empty()))
+                // Add update the user to database
+                .flatMap(objects -> {
+                    var auth = objects.getT1();
+                    if (objects.getT2().isEmpty()) {
+                        log.info("Found no existing user. Creating a new record");
+                        return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(objects.getT1()));
+                    }
+                    log.info("Found existing user.");
+                    UserEntity user = objects.getT2().get();
+                    if (user.getId().equals(auth.getSub()) &&
+                            user.getName().equals(auth.getName()) &&
+                            user.getEmail().equals(auth.getEmailID()) &&
+                            user.getPicture().equals(auth.getPictureURL())
+                    ) {
+                        log.info("All fields are still the same. Skipping update");
+                        return Mono.just(user);
+                    }
+                    log.info("Fields are outdated. Updating user");
+                    return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user));
+                })
+                //Generate token based on user updated/added
+                .map(userEntity -> ResponseEntity.ok(jwtService.generateUserJwtToken(userEntity)))
+                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
                 ;
     }
 

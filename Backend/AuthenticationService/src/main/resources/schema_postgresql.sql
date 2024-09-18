@@ -4,5 +4,6 @@ CREATE TABLE  IF NOT EXISTS users(
     password VARCHAR(255),
     created DATE,
     updated DATE,
-    activity DATE
+    email TEXT,
+    picture TEXT
 );
