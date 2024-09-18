@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/public")
@@ -23,7 +25,6 @@ public class PublicEndpoint {
     }
 
     /**
-     *
      * @return URI to login to google.
      */
     @GetMapping("/login/google")
@@ -43,6 +44,7 @@ public class PublicEndpoint {
     /**
      * Redirect URL that needs to be hit by the provider.
      * This functions Authorizes the user, store the user info in database and generates JWT Token
+     *
      * @return JWT Token whose subject is userID, and user info as claims.
      */
     @GetMapping("/redirect/google")
@@ -50,7 +52,9 @@ public class PublicEndpoint {
         String code = exchange.getRequest().getQueryParams().getFirst("code");
         String state = exchange.getRequest().getQueryParams().getFirst("state");
         return googleAuthService.getTokenResponse(code, state)
-                .map(accessTokenResponse -> ResponseEntity.ok(accessTokenResponse.getAccessToken().getTokenValue()));
+                .flatMap(accessTokenResponse -> googleAuthService.getUserFromToken(accessTokenResponse.getAccessToken()))
+                .map(oAuth2User -> ResponseEntity.ok(oAuth2User.getAttributes().toString()))
+                ;
     }
 
 

@@ -1,14 +1,17 @@
 package dev.kukukodes.kdap.authenticationservice.service.oAuth;
 
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -16,13 +19,17 @@ import java.util.UUID;
 public abstract class OAuthService {
     private final String clientID;
     private final ReactiveClientRegistrationRepository oAuthClientRepo;
+    private final DefaultOAuth2UserService oIcdUserService;
 
-    protected OAuthService(String clientID, ReactiveClientRegistrationRepository oAuthClientRepo) {
+    protected OAuthService(String clientID, ReactiveClientRegistrationRepository oAuthClientRepo, DefaultOAuth2UserService oidcUserService) {
         this.clientID = clientID;
         this.oAuthClientRepo = oAuthClientRepo;
+        this.oIcdUserService = oidcUserService;
     }
 
-
+    /**
+     * Build OAuth2AuthorizationRequest object
+     */
     public Mono<OAuth2AuthorizationRequest> createOAuth2AuthReq() {
         return oAuthClientRepo.findByRegistrationId(clientID)
                 .map(clientRegistration -> OAuth2AuthorizationRequest.authorizationCode()
@@ -35,6 +42,10 @@ public abstract class OAuthService {
 
     }
 
+    /**
+     * Uses code and state obtained by OAuth2 providers after granting resource access to retrieve access token from resource owner.
+     * @return Access token
+     */
     public Mono<OAuth2AccessTokenResponse> getTokenResponse(String code, String state) {
         //IMPORTANT: How to do Get Access Token Response the right way.
 
@@ -111,6 +122,18 @@ public abstract class OAuthService {
         Mono<OAuth2AuthorizationCodeGrantRequest> codeGrantRequestMono = Mono.zip(oAuthClientRepo.findByRegistrationId(clientID), authorizationExchangeMono)
                 .map(objects -> new OAuth2AuthorizationCodeGrantRequest(objects.getT1(), objects.getT2()));
         //Use the authorizationCodeTokenResponse object to get a token by passing AuthorizationCodeGrantRequest object.
-        return codeGrantRequestMono.flatMap(exchanger::getTokenResponse);
+        return codeGrantRequestMono
+                .flatMap(exchanger::getTokenResponse)
+                ;
+    }
+
+    /**
+     * Uses access token object to get user info from the resource server.
+     * @return OAuth2User
+     */
+    public Mono<OAuth2User> getUserFromToken(OAuth2AccessToken accessToken) {
+        Mono<ClientRegistration> clientRegistrationMono = this.oAuthClientRepo.findByRegistrationId(clientID);
+        Mono<OAuth2UserRequest> userRequestMono = clientRegistrationMono.map(clientRegistration -> new OAuth2UserRequest(clientRegistration, accessToken));
+        return userRequestMono.map(this.oIcdUserService::loadUser);
     }
 }
