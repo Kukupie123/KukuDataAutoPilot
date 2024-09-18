@@ -62,31 +62,40 @@ public class PublicEndpoint {
         String code = exchange.getRequest().getQueryParams().getFirst("code");
         String state = exchange.getRequest().getQueryParams().getFirst("state");
 
-        //1. Get access token
+        // 1. Get access token
         Mono<OAuth2AccessTokenResponse> accessTokenResponseMono = googleAuthService.getTokenResponse(code, state);
-        //2. Use access token to get OAuth2 User
-        Mono<OAuth2User> oAuth2UserMono = accessTokenResponseMono.flatMap(oAuth2AccessTokenResponse -> googleAuthService.getUserFromToken(oAuth2AccessTokenResponse.getAccessToken()));
-        //3. Parse OAuth2UserMono into OAuth2UserInfoGoogle by using OAuth2userInfoGoogle.parse()
-        Mono<OAuth2UserInfoGoogle> userInfoGoogleMono = oAuth2UserMono.map(OAuth2UserInfoGoogle::parse);
-        //4. Attempt to get the user using sub as its ID. If none found we create a new one
-        Mono<UserEntity> foundUser = userInfoGoogleMono.flatMap(oAuth2UserInfoGoogle -> userService
-                .getUserById(oAuth2UserInfoGoogle.getSub())
-                .defaultIfEmpty(new UserEntity(
-                        oAuth2UserInfoGoogle.getSub(),
-                        oAuth2UserInfoGoogle.getName(),
-                        "",
-                        new Date(),
-                        new Date(),
-                        new Date(),
-                        oAuth2UserInfoGoogle.getEmailID(),
-                        oAuth2UserInfoGoogle.getPictureURL()
-                )));
-        //5. Add the updated userEntity to database
-        var addedUser = foundUser.flatMap(userService::AddUpdateUser);
-        //6. Generate JWT token based on it and return it
-        return addedUser.doOnError(throwable -> ResponseEntity.internalServerError().body(throwable.getMessage()))
-                .map(userEntity -> ResponseEntity.ok(jwtService.generateUserJwtToken(userEntity)));
 
+        // 2. Use access token to get OAuth2 User
+        Mono<OAuth2User> oAuth2UserMono = accessTokenResponseMono.flatMap(oAuth2AccessTokenResponse ->
+                googleAuthService.getUserFromToken(oAuth2AccessTokenResponse.getAccessToken()));
+
+        // 3. Parse OAuth2User into OAuth2UserInfoGoogle
+        Mono<OAuth2UserInfoGoogle> userInfoGoogleMono = oAuth2UserMono.map(OAuth2UserInfoGoogle::parse);
+
+        // 4. Find user by sub or create new if not found
+        Mono<UserEntity> foundUser = userInfoGoogleMono.flatMap(oAuth2UserInfoGoogle ->
+                userService.getUserById(oAuth2UserInfoGoogle.getSub())
+                        .switchIfEmpty(Mono.just(new UserEntity(
+                                oAuth2UserInfoGoogle.getSub(),
+                                oAuth2UserInfoGoogle.getName(),
+                                "",
+                                new Date(),
+                                new Date(),
+                                new Date(),
+                                oAuth2UserInfoGoogle.getEmailID(),
+                                oAuth2UserInfoGoogle.getPictureURL()
+                        )))
+        );
+
+        // 5. Add or update the user in the database
+        Mono<UserEntity> addedUser = foundUser.flatMap(userService::AddUpdateUser);
+
+        // 6. Generate JWT token and return it
+        Mono<String> jwtToken = addedUser.map(jwtService::generateUserJwtToken);
+
+        // Return the JWT token in the response, with error handling
+        return jwtToken.map(ResponseEntity::ok)
+                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage())));
     }
 
 
