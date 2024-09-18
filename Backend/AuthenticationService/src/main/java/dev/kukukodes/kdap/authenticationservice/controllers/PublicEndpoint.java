@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
+import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,8 @@ public class PublicEndpoint {
         String state = exchange.getRequest().getQueryParams().getFirst("state");
         return googleAuthService.getTokenResponse(code, state)
                 .flatMap(accessTokenResponse -> googleAuthService.getUserFromToken(accessTokenResponse.getAccessToken()))
-                .map(oAuth2User -> ResponseEntity.ok(oAuth2User.getAttributes().toString()))
+                .map(OAuth2UserInfoGoogle::parse)
+                .map(oAuth2User -> ResponseEntity.ok(oAuth2User.toString()))
                 ;
     }
 
