@@ -1,16 +1,15 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.models.eventTypes.UserEntityUpdated;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
 import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,11 +31,13 @@ public class PublicEndpoint {
     GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService) {
+    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -96,8 +97,11 @@ public class PublicEndpoint {
                         return Mono.just(user);
                     }
                     log.info("Fields are outdated. Updating user");
-                    //TODO: When fields are updated fire a broadcast in app as well as service level. This will let cache know that it needs to update itself, and help validation claims to update it's information if it's outdated.
-                    return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user));
+                    //TODO: When fields are updated fire a broadcast in service level using message brokers.
+                    var updatedUser = UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user);
+                    //Fire event that user entity has been updated.
+                    eventPublisher.publishEvent(new UserEntityUpdated(updatedUser));
+                    return userService.updateUser(updatedUser);
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> ResponseEntity.ok(jwtService.generateJwtToken(userEntity.generateClaimsForJwtToken())))
