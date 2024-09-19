@@ -20,6 +20,8 @@ public class SecurityConfig {
                 )
                 .oauth2Login(Customizer.withDefaults())
                 .oauth2Client(Customizer.withDefaults())
+                //CSRF needs to be disabled for non browser client to work such as REST Client
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
         ;
         return http.build();
     }

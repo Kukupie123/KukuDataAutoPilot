@@ -1,5 +1,9 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
@@ -15,6 +19,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -90,12 +96,42 @@ public class PublicEndpoint {
                         return Mono.just(user);
                     }
                     log.info("Fields are outdated. Updating user");
+                    //TODO: When fields are updated fire a broadcast in app as well as service level. This will let cache know that it needs to update itself, and help validation claims to update it's information if it's outdated.
                     return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user));
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> ResponseEntity.ok(jwtService.generateJwtToken(userEntity.generateClaimsForJwtToken())))
                 .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
                 ;
+    }
+
+    /**
+     * Extracts jwt token from Authorization header and uses it to extract claims
+     *
+     * @return Map of claims as string, optionally may return new a boolean field to know that it's time to generate a new token since this one contains outdated claims.
+     */
+    @GetMapping("/validate")
+    public Mono<ResponseEntity<String>> validateToken(ServerWebExchange exchange) {
+        String headerAuth = exchange.getRequest().getHeaders().getFirst("Authorization");
+        if (headerAuth == null || !headerAuth.startsWith("Bearer ")) {
+            return Mono.just(ResponseEntity.badRequest().body("Invalid/Missing Authorization Token. It needs to be in the form 'Bearer .........'"));
+        }
+        try {
+            //TODO: If user is outdated make sure to get latest information about user and send optional attribute to let client know that its token has outdated claims
+            String token = headerAuth.substring(7);
+            var claims = jwtService.extractClaimsFromJwtToken(token);
+            Map<String, String> claimsMap = new HashMap<>();
+            claims.forEach((claim, value) -> claimsMap.put(claim, String.valueOf(value)));
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(claimsMap);
+            return Mono.just(ResponseEntity.ok(jsonString));
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            log.error(Arrays.toString(e.getStackTrace()));
+            return Mono.just(ResponseEntity.internalServerError().body(e.getMessage()));
+        }
+
     }
 
 
