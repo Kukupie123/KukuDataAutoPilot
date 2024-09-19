@@ -3,7 +3,7 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
-import dev.kukukodes.kdap.authenticationservice.models.eventTypes.UserEntityUpdated;
+import dev.kukukodes.kdap.authenticationservice.events.eventTypes.UserEntityUpdated;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
 import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
@@ -100,7 +100,7 @@ public class PublicEndpoint {
                     //TODO: When fields are updated fire a broadcast in service level using message brokers.
                     var updatedUser = UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user);
                     //Fire event that user entity has been updated.
-                    eventPublisher.publishEvent(new UserEntityUpdated(updatedUser));
+                    eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser));
                     return userService.updateUser(updatedUser);
                 })
                 //Generate token based on user updated/added

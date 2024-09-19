@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.constants.EnvNamesConst;
+import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.wrapper.JwtClaimsAndSubjectWrapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -19,6 +20,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Service
 public class JwtService {
+
+    public UserEntity updatedUserEntity;
 
     private final String key = System.getenv(EnvNamesConst.JWT_KEY);
 
