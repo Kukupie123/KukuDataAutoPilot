@@ -93,7 +93,7 @@ public class PublicEndpoint {
                     return userService.updateUser(UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user));
                 })
                 //Generate token based on user updated/added
-                .map(userEntity -> ResponseEntity.ok(jwtService.generateUserJwtToken(userEntity)))
+                .map(userEntity -> ResponseEntity.ok(jwtService.generateJwtToken(userEntity.generateClaimsForJwtToken())))
                 .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
                 ;
     }

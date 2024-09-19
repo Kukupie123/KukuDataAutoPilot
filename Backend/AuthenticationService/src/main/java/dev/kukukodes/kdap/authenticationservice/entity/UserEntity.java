@@ -2,6 +2,10 @@ package dev.kukukodes.kdap.authenticationservice.entity;
 
 import dev.kukukodes.kdap.authenticationservice.constants.DbConstants;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.wrapper.JwtClaimsAndSubjectWrapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ClaimsBuilder;
+import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +15,8 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Table(DbConstants.TableNames.USER_TABLE)
 @Data
@@ -53,4 +59,14 @@ public class UserEntity {
         userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
         return userEntity;
     }
+
+    @Transient
+    public JwtClaimsAndSubjectWrapper generateClaimsForJwtToken() {
+        Map<String, String> claims = new HashMap<>();
+        claims.put("email", this.getEmail());
+        claims.put("name", this.getName());
+        claims.put("pic", this.getPicture());
+        return new JwtClaimsAndSubjectWrapper(Jwts.claims().add(claims).build(), this.id);
+    }
+
 }

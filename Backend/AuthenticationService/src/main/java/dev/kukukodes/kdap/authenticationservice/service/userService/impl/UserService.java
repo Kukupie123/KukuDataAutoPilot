@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service.userService.impl;
 
+import dev.kukukodes.kdap.authenticationservice.dto.user.UserJwtClaimsDTO;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import dev.kukukodes.kdap.authenticationservice.service.userService.IUserService;
@@ -45,5 +46,10 @@ public class UserService implements IUserService {
     @Override
     public Mono<UserEntity> getUserById(String id) {
         return userRepo.getUserByID(id);
+    }
+
+    @Override
+    public Mono<UserEntity> getUserByJwtClaimsDTO(UserJwtClaimsDTO userJwtClaimsDTO) {
+        return userRepo.getUserByID(userJwtClaimsDTO.getId());
     }
 }

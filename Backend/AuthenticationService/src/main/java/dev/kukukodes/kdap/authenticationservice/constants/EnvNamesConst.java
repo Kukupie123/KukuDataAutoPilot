@@ -8,4 +8,5 @@ public  class   EnvNamesConst {
     public final static String GOOGLE_CLIENT_ID = "GOOGLE_CLIENT_ID";
     public final static String GOOGLE_CLIENT_SECRET = "GOOGLE_CLIENT_SECRET";
     public final static String GOOGLE_REDIRECT_URI = "GOOGLE_REDIRECT_URL";
+    public static final String JWT_KEY = "JWT_KEY";
 }
