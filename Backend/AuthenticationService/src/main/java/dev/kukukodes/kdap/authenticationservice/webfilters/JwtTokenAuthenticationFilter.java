@@ -12,6 +12,9 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+/**
+ * Filter that extracts bearer jwt token, creates authentication obj, and then authenticates it using authentication manager.
+ */
 @Slf4j
 @Component
 public class JwtTokenAuthenticationFilter implements WebFilter {
