@@ -100,6 +100,7 @@ public class PublicEndpoint {
                     //TODO: When fields are updated fire a broadcast in service level using message brokers.
                     var updatedUser = UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user);
                     //Fire event that user entity has been updated.
+                    //TODO: Replace with message queue even if it's within the same app. If we don't use message broker the message will not persist. SO in case, the server shuts down before it can update. The info that it needs to be updated is lost
                     eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser));
                     return userService.updateUser(updatedUser);
                 })
@@ -122,9 +123,13 @@ public class PublicEndpoint {
         }
         try {
             //TODO: If user is outdated make sure to get latest information about user and send optional attribute to let client know that its token has outdated claims
+
             String token = headerAuth.substring(7);
             var claims = jwtService.extractClaimsFromJwtToken(token);
             Map<String, String> claimsMap = new HashMap<>();
+            if(jwtService.updatedUserEntity != null){
+
+            }
             claims.forEach((claim, value) -> claimsMap.put(claim, String.valueOf(value)));
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(claimsMap);

@@ -21,8 +21,6 @@ import javax.crypto.spec.SecretKeySpec;
 @Service
 public class JwtService {
 
-    public UserEntity updatedUserEntity;
-
     private final String key = System.getenv(EnvNamesConst.JWT_KEY);
 
     public String generateJwtToken(JwtClaimsAndSubjectWrapper jwtClaimsAndSubject) {
