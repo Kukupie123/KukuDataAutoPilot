@@ -13,10 +13,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserEventListener {
 
+    private final ObjectMapper objectMapper;
+
+    public UserEventListener(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @RabbitListener(queues = "user.updated")
     public void onUserUpdated(String updatedUserJSON) throws JsonProcessingException {
-        var mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
-        var user = mapper.readValue(updatedUserJSON, UserEntity.class);
+        var user = objectMapper.readValue(updatedUserJSON, UserEntity.class);
         log.info("Updated user : {}", user);
     }
 

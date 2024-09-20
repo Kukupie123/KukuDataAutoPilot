@@ -11,8 +11,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class RabbitMQHelper {
 
+    private final ObjectMapper objectMapper;
     @Value("${spring.application.name}")
     private String applicationName;
+
+    public RabbitMQHelper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public String createExchangeName(String exchangeName) {
         return applicationName + "." + exchangeName;
@@ -27,10 +32,6 @@ public class RabbitMQHelper {
     }
 
     public String convertObjectsToJSON(Object object) throws JsonProcessingException {
-        ObjectMapper objectMapper = JsonMapper.builder()
-                .addModule(new JavaTimeModule())
-                .build();
-
         return objectMapper.writeValueAsString(object);
     }
 }
