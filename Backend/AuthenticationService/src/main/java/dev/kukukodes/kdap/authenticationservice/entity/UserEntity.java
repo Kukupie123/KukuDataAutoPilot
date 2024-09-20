@@ -2,8 +2,6 @@ package dev.kukukodes.kdap.authenticationservice.entity;
 
 import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
-import dev.kukukodes.kdap.authenticationservice.wrapper.JwtClaimsAndSubjectWrapper;
-import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +10,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 @Table(DbConst.TableNames.USER_TABLE)
 @Data

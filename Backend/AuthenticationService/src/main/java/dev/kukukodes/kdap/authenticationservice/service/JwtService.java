@@ -1,7 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.constants.EnvNamesConst;
-import dev.kukukodes.kdap.authenticationservice.wrapper.JwtClaimsAndSubjectWrapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dev.kukukodes.kdap.authenticationservice.constants.RabbitMQConst;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.RabbitMQHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class UserEventPublisher {
     }
 
     public void publishUserUpdateMsg(UserEntity updatedUser) throws JsonProcessingException {
-        String routingKey = "user.updated";
+        String routingKey = RabbitMQConst.Routes.getUserUpdatedRoute();
         ObjectMapper objectMapper = JsonMapper.builder()
                 .addModule(new JavaTimeModule())
                 .build();
