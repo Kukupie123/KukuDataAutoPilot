@@ -123,13 +123,9 @@ public class PublicEndpoint {
         }
         try {
             //TODO: If user is outdated make sure to get latest information about user and send optional attribute to let client know that its token has outdated claims
-
             String token = headerAuth.substring(7);
             var claims = jwtService.extractClaimsFromJwtToken(token);
             Map<String, String> claimsMap = new HashMap<>();
-            if(jwtService.updatedUserEntity != null){
-
-            }
             claims.forEach((claim, value) -> claimsMap.put(claim, String.valueOf(value)));
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(claimsMap);
