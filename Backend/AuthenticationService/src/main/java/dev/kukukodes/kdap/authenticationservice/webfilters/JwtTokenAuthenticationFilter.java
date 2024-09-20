@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.webfilters;
 
+import dev.kukukodes.kdap.authenticationservice.authenticationManagers.JwtTokenAuthenticationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -17,6 +18,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtTokenAuthenticationFilter implements WebFilter {
 
+    private final JwtTokenAuthenticationManager authenticationManager;
+
+    public JwtTokenAuthenticationFilter(JwtTokenAuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         log.info("Attempting to extract token from Authorization header");
@@ -33,6 +40,7 @@ public class JwtTokenAuthenticationFilter implements WebFilter {
         Authentication auth = new PreAuthenticatedAuthenticationToken(token, token);
 
         // Delegate authentication to AuthenticationManager
-        return chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
+        return authenticationManager.authenticate(auth)
+                .flatMap(authentication -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)));
     }
 }

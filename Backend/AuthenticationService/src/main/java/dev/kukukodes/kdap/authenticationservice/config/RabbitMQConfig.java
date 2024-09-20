@@ -13,7 +13,7 @@ public class RabbitMQConfig {
      */
     @Bean
     public DirectExchange userEventsExchange() {
-        return new DirectExchange(RabbitMQConst.Exchanges.getUserExchange());
+        return new DirectExchange(RabbitMQConst.Exchanges.USER_EVENT);
     }
 
     /**
@@ -23,7 +23,7 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue userUpdatedQueue() {
-        return QueueBuilder.durable(RabbitMQConst.Queues.getUserUpdatedQueue())
+        return QueueBuilder.durable(RabbitMQConst.Queues.USER_UPDATED)
                 .maxLength(1L)
                 .build();
     }
@@ -33,6 +33,6 @@ public class RabbitMQConfig {
         return BindingBuilder
                 .bind(userUpdatedQueue())
                 .to(userEventsExchange())
-                .with(RabbitMQConst.Routes.getUserUpdatedRoute());
+                .with(RabbitMQConst.Routes.USER_UPDATED);
     }
 }

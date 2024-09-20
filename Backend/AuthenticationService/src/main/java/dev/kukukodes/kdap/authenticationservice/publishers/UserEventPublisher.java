@@ -32,7 +32,7 @@ public class UserEventPublisher {
     }
 
     public void publishUserUpdateMsg(UserEntity updatedUser) throws JsonProcessingException {
-        String routingKey = RabbitMQConst.Routes.getUserUpdatedRoute();
+        String routingKey = RabbitMQConst.Routes.USER_UPDATED;
         ObjectMapper objectMapper = JsonMapper.builder()
                 .addModule(new JavaTimeModule())
                 .build();

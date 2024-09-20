@@ -21,24 +21,7 @@ public class UserEventListener {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Listens for user update events on a RabbitMQ queue.
-     * <p>
-     * The @RabbitListener annotation uses a Spring Expression Language (SpEL) expression
-     * to dynamically resolve the queue name:
-     * - #{...} denotes a SpEL expression
-     * - @rabbitMQConst refers to the RabbitMQConst bean in the Spring context
-     * - .queues accesses the Queues inner class of RabbitMQConst
-     * - .getUserUpdatedQueue() calls the method to get the dynamic queue name
-     * <p>
-     * This approach allows for runtime resolution of the queue name, enabling
-     * dynamic queue naming strategies while still satisfying the @RabbitListener's
-     * requirement for a constant expression.
-     *
-     * @param updatedUserJSON The JSON string representation of the updated user
-     * @throws JsonProcessingException if there's an error parsing the JSON
-     */
-    @RabbitListener(queues = "#{@rabbitMQConst.queues.userUpdatedQueue}")
+    //@RabbitListener(queues = RabbitMQConst.Queues.USER_UPDATED)
     public void onUserUpdated(String updatedUserJSON) throws JsonProcessingException {
         var user = objectMapper.readValue(updatedUserJSON, UserEntity.class);
         log.info("Updated user : {}. We don't really do anything tho lol.", user);
