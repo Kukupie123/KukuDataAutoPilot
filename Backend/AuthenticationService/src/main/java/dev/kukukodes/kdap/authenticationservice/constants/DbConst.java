@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.constants;
 
-public class DbConstants {
+public class DbConst {
     public static class TableNames {
         public static final String USER_TABLE = "users";
     }

@@ -1,10 +1,12 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.events.eventTypes.UserEntityUpdated;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
+import dev.kukukodes.kdap.authenticationservice.service.messageBroker.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
 import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +34,14 @@ public class PublicEndpoint {
     private final UserService userService;
     private final JwtService jwtService;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserEventPublisher userEventPublisher;
 
-    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher) {
+    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
         this.eventPublisher = eventPublisher;
+        this.userEventPublisher = userEventPublisher;
     }
 
     /**
@@ -97,11 +101,13 @@ public class PublicEndpoint {
                         return Mono.just(user);
                     }
                     log.info("Fields are outdated. Updating user");
-                    //TODO: When fields are updated fire a broadcast in service level using message brokers.
                     var updatedUser = UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user);
-                    //Fire event that user entity has been updated.
-                    //TODO: Replace with message queue even if it's within the same app. If we don't use message broker the message will not persist. SO in case, the server shuts down before it can update. The info that it needs to be updated is lost
-                    eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser));
+                    try {
+                        userEventPublisher.publishUserUpdateMsg(updatedUser); //Server level broadcasting
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
+                    eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser)); //in app publish
                     return userService.updateUser(updatedUser);
                 })
                 //Generate token based on user updated/added

@@ -1,23 +1,23 @@
 package dev.kukukodes.kdap.authenticationservice.config;
 
-import dev.kukukodes.kdap.authenticationservice.constants.RabbitConst;
+import dev.kukukodes.kdap.authenticationservice.constants.RabbitMQConst;
+import dev.kukukodes.kdap.authenticationservice.helpers.RabbitMQHelper;
 import org.springframework.amqp.core.*;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableRabbit
 public class RabbitMQConfig {
-    //Exchange should represent a category of events
-    //Queues should represent the type of event they are processing
-    //Routing key should represent the type of event that its binding to
 
-    @Value("${spring.application.name}")
-    private String appName;
+    @Autowired
+    RabbitMQHelper rabbitMQHelper;
 
-    @Bean(RabbitConst.Exchanges.UserEvent.EXCHANGE)
+    @Bean()
     public TopicExchange userEventsExchange() {
-        return new TopicExchange(appName + "." + RabbitConst.Exchanges.UserEvent.EXCHANGE); //serviceName.user_event
+        return new TopicExchange("user");
     }
 
     /**
@@ -26,10 +26,10 @@ public class RabbitMQConfig {
      * Ensures that only 1 message is in the queue. If we get a second message the existing one is deleted.
      * We only need one queue because we store only the latest updated user as message
      */
-    @Bean(RabbitConst.Exchanges.UserEvent.queueTypes.userUpdated)
+    @Bean()
     public Queue userUpdatedQueue() {
-        return QueueBuilder.durable(appName + "." + RabbitConst.Exchanges.UserEvent.queueTypes.userUpdated) //Durable = message persists even when broker is down.
-                .maxLength((long) 1)
+        return QueueBuilder.durable("user.updated") //Durable = message persists even when broker is down.
+                .maxLength(1L)
                 .build();
     }
 
@@ -38,7 +38,7 @@ public class RabbitMQConfig {
         return BindingBuilder
                 .bind(userUpdatedQueue())
                 .to(userEventsExchange())
-                .with(appName + "." + RabbitConst.Exchanges.UserEvent.queueTypes.userUpdated);
+                .with("user.updated");
     }
 
 }

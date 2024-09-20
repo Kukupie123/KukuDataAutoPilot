@@ -1,10 +1,8 @@
 package dev.kukukodes.kdap.authenticationservice.entity;
 
-import dev.kukukodes.kdap.authenticationservice.constants.DbConstants;
+import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.wrapper.JwtClaimsAndSubjectWrapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ClaimsBuilder;
 import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,29 +12,30 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-@Table(DbConstants.TableNames.USER_TABLE)
+@Table(DbConst.TableNames.USER_TABLE)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserEntity {
     @Id
-    @Column(DbConstants.ColumnNames.ID)
+    @Column(DbConst.ColumnNames.ID)
     String id;
-    @Column(DbConstants.ColumnNames.NAME)
+    @Column(DbConst.ColumnNames.NAME)
     String name;
-    @Column(DbConstants.ColumnNames.PASSWORD)
+    @Column(DbConst.ColumnNames.PASSWORD)
     String password;
-    @Column(DbConstants.ColumnNames.CREATED)
+    @Column(DbConst.ColumnNames.CREATED)
     LocalDate created;
-    @Column(DbConstants.ColumnNames.UPDATED)
+    @Column(DbConst.ColumnNames.UPDATED)
     LocalDate updated;
-    @Column(DbConstants.ColumnNames.EMAIL)
+    @Column(DbConst.ColumnNames.EMAIL)
     String email;
-    @Column(DbConstants.ColumnNames.PICTURE)
+    @Column(DbConst.ColumnNames.PICTURE)
     String picture;
 
     @Transient
