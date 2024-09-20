@@ -34,12 +34,14 @@ public class PublicEndpoint {
     private final UserService userService;
     private final JwtService jwtService;
     private final UserEventPublisher userEventPublisher;
+    private final ObjectMapper objectMapper;
 
-    public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher, ObjectMapper objectMapper) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
         this.userEventPublisher = userEventPublisher;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -120,8 +122,6 @@ public class PublicEndpoint {
 
     /**
      * Extracts jwt token from Authorization header and uses it to extract claims
-     *
-     * @return Map of claims as string, optionally may return new a boolean field to know that it's time to generate a new token since this one contains outdated claims.
      */
     @GetMapping("/validate")
     public Mono<ResponseEntity<String>> validateToken(ServerWebExchange exchange) {
@@ -130,15 +130,18 @@ public class PublicEndpoint {
             return Mono.just(ResponseEntity.badRequest().body("Invalid/Missing Authorization Token. It needs to be in the form 'Bearer .........'"));
         }
         try {
-            //TODO: If user is outdated make sure to get latest information about user and send optional attribute to let client know that its token has outdated claims
+            //TODO: Take user data from cache
+            //TODO: Update cache when user is updated.
             String token = headerAuth.substring(7);
-            var claims = jwtService.extractClaimsFromJwtToken(token);
-            Map<String, String> claimsMap = new HashMap<>();
-            claims.forEach((claim, value) -> claimsMap.put(claim, String.valueOf(value)));
-            ObjectMapper objectMapper = new ObjectMapper();
-            String jsonString = objectMapper.writeValueAsString(claimsMap);
-            return Mono.just(ResponseEntity.ok(jsonString));
-
+            Claims claims = jwtService.extractClaimsFromJwtToken(token);
+            String userID = claims.getSubject();
+            return userService.getUserById(userID).flatMap(user -> {
+                try {
+                    return Mono.just(ResponseEntity.ok(objectMapper.writeValueAsString(user)));
+                } catch (JsonProcessingException e) {
+                    return Mono.error(e);
+                }
+            });
         } catch (Exception e) {
             log.error(e.getMessage());
             log.error(Arrays.toString(e.getStackTrace()));
