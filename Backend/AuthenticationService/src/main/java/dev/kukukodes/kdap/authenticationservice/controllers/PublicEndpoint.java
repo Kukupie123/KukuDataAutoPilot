@@ -102,13 +102,17 @@ public class PublicEndpoint {
                     }
                     log.info("Fields are outdated. Updating user");
                     UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(auth, user);
-                    try {
-                        userEventPublisher.publishUserUpdateMsg(updatedUser); //Publish user updated message
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(e);
-                    }
+
                     //eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser)); //in app publish
-                    return userService.updateUser(updatedUser);
+                    return userService.updateUser(updatedUser)
+                            //Publish event on updating user.
+                            .doOnSuccess(updatedUserDB -> {
+                        try {
+                            userEventPublisher.publishUserUpdateMsg(updatedUserDB); //Publish user updated message
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> {

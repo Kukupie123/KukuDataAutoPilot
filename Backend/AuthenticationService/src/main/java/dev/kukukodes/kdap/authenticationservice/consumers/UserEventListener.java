@@ -41,7 +41,7 @@ public class UserEventListener {
     @RabbitListener(queues = "#{@rabbitMQConst.queues.userUpdatedQueue}")
     public void onUserUpdated(String updatedUserJSON) throws JsonProcessingException {
         var user = objectMapper.readValue(updatedUserJSON, UserEntity.class);
-        log.info("Updated user : {}", user);
+        log.info("Updated user : {}. We don't really do anything tho lol.", user);
     }
 
 }

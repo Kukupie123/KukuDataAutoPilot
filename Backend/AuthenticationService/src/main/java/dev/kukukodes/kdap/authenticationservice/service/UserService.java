@@ -11,6 +11,8 @@ import io.jsonwebtoken.ClaimsBuilder;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -30,6 +32,7 @@ public class UserService {
         return userRepo.addUser(user);
     }
 
+    @CacheEvict(value = "user", key = "#user.id")
     public Mono<UserEntity> updateUser(UserEntity user) {
         return userRepo.updateUser(user).doOnSuccess(updatedUser -> {
             try {
@@ -40,8 +43,9 @@ public class UserService {
         });
     }
 
+    @CacheEvict(value = "user", key = "#user.id")
     public Mono<UserEntity> AddUpdateUser(UserEntity user) {
-        return getUserById(user.getId())
+        return userRepo.getUserByID(user.getId())
                 .switchIfEmpty(Mono.defer(() -> {
                     log.info("No existing user found. Adding new one");
                     return userRepo.addUser(user);
@@ -53,7 +57,9 @@ public class UserService {
                 ;
     }
 
+    @Cacheable(value = "user", key = "#id")
     public Mono<UserEntity> getUserById(String id) {
+        log.info("Getting user {} from database", id);
         return userRepo.getUserByID(id);
     }
 
