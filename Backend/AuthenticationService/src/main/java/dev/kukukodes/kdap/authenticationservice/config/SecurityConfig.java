@@ -1,11 +1,10 @@
 package dev.kukukodes.kdap.authenticationservice.config;
 
-import dev.kukukodes.kdap.authenticationservice.authenticationManager.JwtTokenAuthenticationManager;
+import dev.kukukodes.kdap.authenticationservice.authenticationManagers.JwtTokenAuthenticationManager;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
-import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
+import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import dev.kukukodes.kdap.authenticationservice.webfilters.JwtTokenAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -23,13 +22,13 @@ public class SecurityConfig {
 
     @Bean()
     @Primary
-    ReactiveAuthenticationManager authenticationManager(@Autowired JwtService jwtService, @Autowired UserService userService) {
+    ReactiveAuthenticationManager authenticationManager(JwtService jwtService, UserService userService) {
         return new DelegatingReactiveAuthenticationManager(new JwtTokenAuthenticationManager(jwtService, userService));
     }
 
     @Bean
-    public SecurityWebFilterChain webFilterChain(@Autowired ServerHttpSecurity http,
-                                                 @Autowired JwtTokenAuthenticationManager authenticationManager) {
+    public SecurityWebFilterChain webFilterChain(ServerHttpSecurity http, JwtService jwtService, UserService userService) {
+        var authenticationManager = authenticationManager(jwtService, userService);
         http
                 .authenticationManager(authenticationManager)
                 .authorizeExchange(exchange -> exchange
@@ -39,7 +38,7 @@ public class SecurityConfig {
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2Client(Customizer.withDefaults())
-                .addFilterBefore(new JwtTokenAuthenticationFilter(authenticationManager), SecurityWebFiltersOrder.AUTHENTICATION);
+                .addFilterBefore(new JwtTokenAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
 
         return http.build();
     }

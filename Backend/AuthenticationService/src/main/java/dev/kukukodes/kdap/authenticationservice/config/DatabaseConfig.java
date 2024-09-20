@@ -15,7 +15,7 @@ public class DatabaseConfig {
      * Runs commands defined in the file during initialization of database
      */
     @Bean
-    public ConnectionFactoryInitializer connectionFactoryInitializer(@Autowired ConnectionFactory connectionFactory) {
+    public ConnectionFactoryInitializer connectionFactoryInitializer( ConnectionFactory connectionFactory) {
         var cfi = new ConnectionFactoryInitializer();
         cfi.setConnectionFactory(connectionFactory);
         var script = new ClassPathResource("schema_postgresql.sql");

@@ -1,7 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.constants.EnvNamesConst;
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.wrapper.JwtClaimsAndSubjectWrapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -23,10 +22,10 @@ public class JwtService {
 
     private final String key = System.getenv(EnvNamesConst.JWT_KEY);
 
-    public String generateJwtToken(JwtClaimsAndSubjectWrapper jwtClaimsAndSubject) {
+    public String generateJwtToken(Claims claims) {
         return Jwts.builder()
-                .claims(jwtClaimsAndSubject.getClaims())
-                .subject(jwtClaimsAndSubject.getSubject())
+                .claims(claims)
+                .subject(claims.getSubject())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(5))))
                 .signWith(generateKey())
@@ -35,8 +34,8 @@ public class JwtService {
     }
 
     public String generateJwtToken(Map<String, String> claims, String subject) {
-        var claimsObj = Jwts.claims().add(claims).build();
-        return generateJwtToken(new JwtClaimsAndSubjectWrapper(claimsObj, subject));
+        var claimsObj = Jwts.claims().add(claims).subject(subject).build();
+        return generateJwtToken(claimsObj);
     }
 
     public Claims extractClaimsFromJwtToken(String token) throws JwtException {

@@ -4,11 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
-import dev.kukukodes.kdap.authenticationservice.events.eventTypes.UserEntityUpdated;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
-import dev.kukukodes.kdap.authenticationservice.service.messageBroker.UserEventPublisher;
+import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
-import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
+import dev.kukukodes.kdap.authenticationservice.service.UserService;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,14 +33,12 @@ public class PublicEndpoint {
     GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
-    private final ApplicationEventPublisher eventPublisher;
     private final UserEventPublisher userEventPublisher;
 
     public PublicEndpoint(@Autowired GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
-        this.eventPublisher = eventPublisher;
         this.userEventPublisher = userEventPublisher;
     }
 
@@ -101,17 +99,21 @@ public class PublicEndpoint {
                         return Mono.just(user);
                     }
                     log.info("Fields are outdated. Updating user");
-                    var updatedUser = UserEntity.updateUserFromOAuthUserInfoGoogle(auth, user);
+                    UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(auth, user);
                     try {
-                        userEventPublisher.publishUserUpdateMsg(updatedUser); //Server level broadcasting
+                        userEventPublisher.publishUserUpdateMsg(updatedUser); //Publish user updated message
                     } catch (JsonProcessingException e) {
                         return Mono.error(e);
                     }
-                    eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser)); //in app publish
+                    //eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser)); //in app publish
                     return userService.updateUser(updatedUser);
                 })
                 //Generate token based on user updated/added
-                .map(userEntity -> ResponseEntity.ok(jwtService.generateJwtToken(userEntity.generateClaimsForJwtToken())))
+                .map(userEntity -> {
+                    Claims claims = userService.createClaimsForUser(userEntity);
+                    String token = jwtService.generateJwtToken(claims);
+                    return ResponseEntity.ok(token);
+                })
                 .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
                 ;
     }

@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class GeneralConfig {
 
+    /**
+     * Object mapper used to convert objects to json and vice versa
+     */
     @Bean
     ObjectMapper objectMapper() {
         return JsonMapper.builder().addModule(new JavaTimeModule()).build();

@@ -1,8 +1,8 @@
-package dev.kukukodes.kdap.authenticationservice.authenticationManager;
+package dev.kukukodes.kdap.authenticationservice.authenticationManagers;
 
 import dev.kukukodes.kdap.authenticationservice.dto.user.UserJwtClaimsDTO;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
-import dev.kukukodes.kdap.authenticationservice.service.userService.impl.UserService;
+import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -27,7 +27,7 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
     private final JwtService jwtService;
     private final UserService userService;
 
-    public JwtTokenAuthenticationManager(@Autowired JwtService jwtService, @Autowired UserService userService) {
+    public JwtTokenAuthenticationManager(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
     }

@@ -51,21 +51,4 @@ public class UserEntity {
         );
     }
 
-    @Transient
-    public static UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
-        userEntity.setName(oAuth2UserInfoGoogle.getName());
-        userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
-        userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
-        return userEntity;
-    }
-
-    @Transient
-    public JwtClaimsAndSubjectWrapper generateClaimsForJwtToken() {
-        Map<String, String> claims = new HashMap<>();
-        claims.put("email", this.getEmail());
-        claims.put("name", this.getName());
-        claims.put("pic", this.getPicture());
-        return new JwtClaimsAndSubjectWrapper(Jwts.claims().add(claims).build(), this.id);
-    }
-
 }

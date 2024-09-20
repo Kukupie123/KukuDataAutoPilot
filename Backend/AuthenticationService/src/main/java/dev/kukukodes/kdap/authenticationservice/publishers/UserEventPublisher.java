@@ -1,4 +1,4 @@
-package dev.kukukodes.kdap.authenticationservice.service.messageBroker;
+package dev.kukukodes.kdap.authenticationservice.publishers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Publishes message to exchange
+ * Publishes user event
  */
 @Slf4j
 @Service
