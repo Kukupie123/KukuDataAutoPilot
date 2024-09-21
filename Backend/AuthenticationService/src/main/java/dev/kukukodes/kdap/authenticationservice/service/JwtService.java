@@ -5,22 +5,28 @@ import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
-import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
 @Service
 public class JwtService {
 
-    private final String key = System.getenv(EnvNamesConst.JWT_KEY);
+    private final String key;
+
+    public JwtService(String jwtKey) {
+        this.key = jwtKey;
+    }
+
+    public JwtService() {
+        key = System.getenv(EnvNamesConst.JWT_KEY);
+    }
 
     public String generateJwtToken(Claims claims) {
         return Jwts.builder()
