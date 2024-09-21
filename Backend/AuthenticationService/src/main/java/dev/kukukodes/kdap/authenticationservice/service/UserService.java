@@ -14,6 +14,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+
 @Slf4j
 @Service
 public class UserService {
@@ -68,11 +70,14 @@ public class UserService {
 
     @Cacheable(value = "user", key = "#id")
     public Mono<UserEntity> getUserById(String id) {
-        log.info("Getting user {} from database", id);
-        return userRepo.getUserByID(id);
+        log.info("Getting user {}", id);
+        return userRepo.getUserByID(id).switchIfEmpty(Mono.defer(() -> {
+            log.info("User not found {}", id);
+            return Mono.empty();
+        }));
     }
 
-   
+
     public Mono<UserEntity> getUserByJwtClaimsDTO(UserJwtClaimsDTO userJwtClaimsDTO) {
         return userRepo.getUserByID(userJwtClaimsDTO.getId());
     }
@@ -81,6 +86,7 @@ public class UserService {
      * Updates the property of user passed based on googleUserInfo
      */
     public UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
+        userEntity.setUpdated(LocalDate.now());
         userEntity.setName(oAuth2UserInfoGoogle.getName());
         userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
         userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
