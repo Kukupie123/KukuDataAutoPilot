@@ -131,8 +131,6 @@ public class PublicEndpoint {
             return Mono.just(ResponseEntity.badRequest().body("Invalid/Missing Authorization Token. It needs to be in the form 'Bearer .........'"));
         }
         try {
-            //TODO: Take user data from cache
-            //TODO: Update cache when user is updated.
             String token = headerAuth.substring(7);
             Claims claims = jwtService.extractClaimsFromJwtToken(token);
             String userID = claims.getSubject();
