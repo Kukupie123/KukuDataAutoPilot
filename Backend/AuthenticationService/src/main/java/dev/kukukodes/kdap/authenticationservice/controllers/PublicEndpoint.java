@@ -113,7 +113,7 @@ public class PublicEndpoint {
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> {
-                    Claims claims = userService.createClaimsForUser(userEntity);
+                    Claims claims = jwtService.createClaimsForUser(userEntity);
                     String token = jwtService.generateJwtToken(claims);
                     return ResponseEntity.ok(token);
                 })
