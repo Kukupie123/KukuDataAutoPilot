@@ -2,9 +2,9 @@ package dev.kukukodes.kdap.authenticationservice.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class JsonHelper {
     private final ObjectMapper objectMapper;
 

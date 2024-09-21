@@ -1,8 +1,8 @@
 package dev.kukukodes.kdap.authenticationservice.helpers;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class RequestHelper
 
 {
