@@ -1,13 +1,10 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dev.kukukodes.kdap.authenticationservice.dto.user.UserJwtClaimsDTO;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -75,11 +72,6 @@ public class UserService {
             log.info("User not found {}", id);
             return Mono.empty();
         }));
-    }
-
-
-    public Mono<UserEntity> getUserByJwtClaimsDTO(UserJwtClaimsDTO userJwtClaimsDTO) {
-        return userRepo.getUserByID(userJwtClaimsDTO.getId());
     }
 
     /**

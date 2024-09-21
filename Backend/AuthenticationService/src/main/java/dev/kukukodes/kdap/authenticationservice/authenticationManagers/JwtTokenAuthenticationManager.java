@@ -1,10 +1,8 @@
 package dev.kukukodes.kdap.authenticationservice.authenticationManagers;
 
-import dev.kukukodes.kdap.authenticationservice.dto.user.UserJwtClaimsDTO;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,9 +36,8 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
             log.info("Authenticating JWT Token");
             PreAuthenticatedAuthenticationToken auth = (PreAuthenticatedAuthenticationToken) authentication;
             String token = (String) auth.getCredentials();
-            var claims = jwtService.extractClaimsFromJwtToken(token);
-            var userClaimsDTO = new UserJwtClaimsDTO(claims);
-            return userService.getUserByJwtClaimsDTO(userClaimsDTO)
+            String userID = jwtService.extractClaimsFromJwtToken(token).getSubject();
+            return userService.getUserById(userID)
                     .map(user -> {
                         log.info("Successfully authenticated JWT Token request");
                         return new Authentication() {
