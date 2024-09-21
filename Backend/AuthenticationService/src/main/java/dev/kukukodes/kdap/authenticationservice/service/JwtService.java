@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.constants.EnvNamesConst;
+import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -46,7 +47,15 @@ public class JwtService {
                 ;
     }
 
-    public SecretKey generateKey() {
+    /**
+     * Create claim with id as subject
+     */
+    public Claims createClaimsForUser(UserEntity user) {
+        return Jwts.claims().subject(user.getId()).build();
+    }
+
+
+    private SecretKey generateKey() {
         return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
     }
 }

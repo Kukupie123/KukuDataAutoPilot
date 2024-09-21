@@ -13,5 +13,4 @@ public class EnvNamesConst {
     public static final String RABBIT_PORT = "RABBIT_PORT";
     public static final String RABBIT_USER = "RABBIT_USER";
     public static final String RABBIT_PASS = "RABBIT_PASS";
-    public static final String NAME = "NAME";
 }

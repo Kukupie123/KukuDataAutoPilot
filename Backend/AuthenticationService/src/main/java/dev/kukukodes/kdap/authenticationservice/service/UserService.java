@@ -7,10 +7,8 @@ import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ClaimsBuilder;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -28,21 +26,32 @@ public class UserService {
         this.userEventPublisher = userEventPublisher;
     }
 
+    /**
+     * Adds a new user to database
+     */
     public Mono<UserEntity> addUser(UserEntity user) {
         return userRepo.addUser(user);
     }
 
+    /**
+     * Update existing user
+     */
     @CacheEvict(value = "user", key = "#user.id")
     public Mono<UserEntity> updateUser(UserEntity user) {
-        return userRepo.updateUser(user).doOnSuccess(updatedUser -> {
-            try {
-                userEventPublisher.publishUserUpdateMsg(updatedUser);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return userRepo.updateUser(user)
+                .doOnSuccess(updatedUser -> {
+                    try {
+                        userEventPublisher.publishUserUpdateMsg(updatedUser);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
+    /**
+     * Adds or Updates user if it exists.
+     * Clears cache.
+     */
     @CacheEvict(value = "user", key = "#user.id")
     public Mono<UserEntity> AddUpdateUser(UserEntity user) {
         return userRepo.getUserByID(user.getId())
@@ -63,13 +72,7 @@ public class UserService {
         return userRepo.getUserByID(id);
     }
 
-    /**
-     * Create claim with id as subject
-     */
-    public Claims createClaimsForUser(UserEntity user) {
-        return Jwts.claims().subject(user.getId()).build();
-    }
-
+   
     public Mono<UserEntity> getUserByJwtClaimsDTO(UserJwtClaimsDTO userJwtClaimsDTO) {
         return userRepo.getUserByID(userJwtClaimsDTO.getId());
     }

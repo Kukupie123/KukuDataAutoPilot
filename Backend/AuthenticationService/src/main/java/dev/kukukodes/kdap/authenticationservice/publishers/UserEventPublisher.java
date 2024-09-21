@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.kukukodes.kdap.authenticationservice.constants.RabbitMQConst;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.helpers.JsonHelper;
 import dev.kukukodes.kdap.authenticationservice.helpers.RabbitMQHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -21,14 +22,14 @@ import org.springframework.stereotype.Service;
 public class UserEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
-    private final RabbitMQHelper rabbitMQHelper;
+    private final JsonHelper jsonHelper;
 
     @Value("${spring.application.name}")
     private String applicationName;
 
-    public UserEventPublisher(@Autowired RabbitTemplate rabbitTemplate, RabbitMQHelper rabbitMQHelper) {
+    public UserEventPublisher(@Autowired RabbitTemplate rabbitTemplate, JsonHelper jsonHelper) {
         this.rabbitTemplate = rabbitTemplate;
-        this.rabbitMQHelper = rabbitMQHelper;
+        this.jsonHelper = jsonHelper;
     }
 
     public void publishUserUpdateMsg(UserEntity updatedUser) throws JsonProcessingException {
@@ -37,7 +38,7 @@ public class UserEventPublisher {
                 .addModule(new JavaTimeModule())
                 .build();
 
-        String userJSON = rabbitMQHelper.convertObjectsToJSON(updatedUser);
+        String userJSON = jsonHelper.convertObjectsToJSON(updatedUser);
         log.info("Sending message to routing key : {}", userJSON);
         rabbitTemplate.convertAndSend(routingKey, userJSON);
     }

@@ -1,8 +1,8 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.helpers.JsonHelper;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -10,7 +10,6 @@ import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +19,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -33,15 +30,15 @@ public class PublicEndpoint {
     GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
+    private final JsonHelper jsonHelper;
     private final UserEventPublisher userEventPublisher;
-    private final ObjectMapper objectMapper;
 
-    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher, ObjectMapper objectMapper) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, JsonHelper jsonHelper, UserEventPublisher userEventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
+        this.jsonHelper = jsonHelper;
         this.userEventPublisher = userEventPublisher;
-        this.objectMapper = objectMapper;
     }
 
     /**
@@ -107,12 +104,12 @@ public class PublicEndpoint {
                     return userService.updateUser(updatedUser)
                             //Publish event on updating user.
                             .doOnSuccess(updatedUserDB -> {
-                        try {
-                            userEventPublisher.publishUserUpdateMsg(updatedUserDB); //Publish user updated message
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                                try {
+                                    userEventPublisher.publishUserUpdateMsg(updatedUserDB); //Publish user updated message
+                                } catch (JsonProcessingException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
                 })
                 //Generate token based on user updated/added
                 .map(userEntity -> {
@@ -141,7 +138,7 @@ public class PublicEndpoint {
             String userID = claims.getSubject();
             return userService.getUserById(userID).flatMap(user -> {
                 try {
-                    return Mono.just(ResponseEntity.ok(objectMapper.writeValueAsString(user)));
+                    return Mono.just(ResponseEntity.ok(jsonHelper.convertObjectsToJSON(user)));
                 } catch (JsonProcessingException e) {
                     return Mono.error(e);
                 }
