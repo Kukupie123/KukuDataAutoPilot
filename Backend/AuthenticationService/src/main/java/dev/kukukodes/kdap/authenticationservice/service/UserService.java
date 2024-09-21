@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.InputMismatchException;
 
 @Slf4j
 @Service
@@ -78,6 +80,9 @@ public class UserService {
      * Updates the property of user passed based on googleUserInfo
      */
     public UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
+        if (oAuth2UserInfoGoogle.getSub() != userEntity.getId()) {
+            throw new InputMismatchException("OAuth2UserInfo has sub " + oAuth2UserInfoGoogle.getSub() + " but userEntity has id " + userEntity.getId());
+        }
         userEntity.setUpdated(LocalDate.now());
         userEntity.setName(oAuth2UserInfoGoogle.getName());
         userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
