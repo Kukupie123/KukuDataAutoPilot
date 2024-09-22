@@ -6,6 +6,8 @@
       <list>
         <option value="$PROJECT_DIR$/Backend/AuthenticationService/pom.xml" />
         <option value="$PROJECT_DIR$/Backend/configServer/pom.xml" />
+        <option value="$PROJECT_DIR$/DataStore/pom.xml" />
+        <option value="$PROJECT_DIR$/DataStoreService/pom.xml" />
       </list>
     </option>
   </component>
