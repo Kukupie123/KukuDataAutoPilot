@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.datastoreService.repo.impl;
 
-import dev.kukukodes.kdap.datastoreService.entity.dataStore.DataStore;
-import dev.kukukodes.kdap.datastoreService.entity.dataStore.DataStoreField;
+import dev.kukukodes.kdap.datastoreService.entity.dataStore.DataBox;
+import dev.kukukodes.kdap.datastoreService.entity.dataStore.DataBoxField;
 import dev.kukukodes.kdap.datastoreService.enums.DataStoreFieldType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,28 +19,28 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 
 @DataMongoTest
-class DataStoreRepoMongoTest {
+class DataBoxRepoMongoTest {
 
-    private DataStoreRepoMongo repo;
-    private DataStore testDs;
-    private List<DataStoreField> testFields;
+    private DataBoxRepoMongo repo;
+    private DataBox testDs;
+    private List<DataBoxField> testFields;
     @Autowired
     private MongoTemplate mongoTemplate;
 
     @BeforeEach
     void setUp() {
-        repo = new DataStoreRepoMongo(mongoTemplate);
+        repo = new DataBoxRepoMongo(mongoTemplate);
         testFields = new ArrayList<>();
-        testFields.add(new DataStoreField("name", DataStoreFieldType.TEXT, true));
-        testFields.add(new DataStoreField("age", DataStoreFieldType.INTEGER_NUMBER, true));
-        testDs = new DataStore("randomID", "testUser", "testName", "desc", LocalDate.now(), LocalDate.now(), testFields);
+        testFields.add(new DataBoxField("name", DataStoreFieldType.TEXT, true));
+        testFields.add(new DataBoxField("age", DataStoreFieldType.INTEGER_NUMBER, true));
+        testDs = new DataBox("randomID", "testUser", "testName", "desc", LocalDate.now(), LocalDate.now(), testFields);
     }
 
     @AfterEach
     void tearDown() {
         testFields.clear();
         testDs = null;
-        mongoTemplate.remove(new Query(), DataStore.class); // Removes all records
+        mongoTemplate.remove(new Query(), DataBox.class); // Removes all records
     }
 
     @Test

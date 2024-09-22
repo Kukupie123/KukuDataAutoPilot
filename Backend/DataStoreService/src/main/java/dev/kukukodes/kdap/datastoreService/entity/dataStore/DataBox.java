@@ -16,8 +16,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(DbConst.Collections.DATA_STORE)
-public class DataStore {
+@Document(DbConst.Collections.DATA_BOX)
+public class DataBox {
     @MongoId(FieldType.STRING)
     private String id;
     @Field(DbConst.DocumentFields.DataStore.USER_ID)
@@ -32,5 +32,5 @@ public class DataStore {
 
     private LocalDate modified;
     @Field(DbConst.DocumentFields.DataStore.FIELDS)
-    List<DataStoreField> fields;
+    List<DataBoxField> fields;
 }

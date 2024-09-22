@@ -2,7 +2,7 @@ package dev.kukukodes.kdap.datastoreService.constants;
 
 public class DbConst {
     public static class Collections {
-        public static final String DATA_STORE = "dataStores";
+        public static final String DATA_BOX = "dataBox";
         public static final String DATA_ENTRIES = "dataEntries";
     }
 

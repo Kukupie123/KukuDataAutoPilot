@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DataStoreField {
+public class DataBoxField {
     @MongoId(FieldType.STRING)
     private String fieldName;
     private DataStoreFieldType fieldType;
