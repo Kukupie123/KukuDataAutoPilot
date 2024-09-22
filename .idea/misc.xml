@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/DataStore/pom.xml" />
         <option value="$PROJECT_DIR$/DataStoreService/pom.xml" />
         <option value="$PROJECT_DIR$/Backend/DataStoreService/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/DataBoxService/pom.xml" />
       </list>
     </option>
   </component>
