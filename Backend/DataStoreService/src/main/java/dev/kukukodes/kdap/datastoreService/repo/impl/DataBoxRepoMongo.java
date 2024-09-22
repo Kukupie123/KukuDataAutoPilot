@@ -24,40 +24,40 @@ public class DataBoxRepoMongo implements IDataBoxRepo {
     }
 
     @Override
-    public DataBox addDataStore(DataBox dataStore) {
-        log.info("Adding datastore to database : {}", dataStore);
-        DataBox addedDs = template.insert(dataStore);
+    public DataBox addDataStore(DataBox dataBox) {
+        log.info("Adding datastore to database : {}", dataBox);
+        DataBox addedDs = template.insert(dataBox);
         log.info("Added datastore to database : {}", addedDs);
         return addedDs;
 
     }
 
     @Override
-    public boolean updateDataStore(DataBox dataStore) {
-        Query query = Query.query(Criteria.where("_id").is(dataStore.getId()));
+    public boolean updateDataStore(DataBox dataBox) {
+        Query query = Query.query(Criteria.where("_id").is(dataBox.getId()));
         Update update = new Update();
 
-        if (dataStore.getName() != null) {
-            update.set(DbConst.DocumentFields.CommonFields.NAME, dataStore.getName());
+        if (dataBox.getName() != null) {
+            update.set(DbConst.DocumentFields.CommonFields.NAME, dataBox.getName());
         }
 
-        if (dataStore.getDescription() != null) {
-            update.set(DbConst.DocumentFields.CommonFields.DESCRIPTION, dataStore.getDescription());
+        if (dataBox.getDescription() != null) {
+            update.set(DbConst.DocumentFields.CommonFields.DESCRIPTION, dataBox.getDescription());
         }
 
-        if (dataStore.getFields() != null) {
-            update.set(DbConst.DocumentFields.DataStore.FIELDS, dataStore.getFields());
+        if (dataBox.getFields() != null) {
+            update.set(DbConst.DocumentFields.DataBox.FIELDS, dataBox.getFields());
         }
 
         var modifiedTime = LocalDate.now();
         update.set(DbConst.DocumentFields.CommonFields.MODIFIED, modifiedTime);
 
-        if (dataStore.getUserID() != null) {
-            update.set(DbConst.DocumentFields.DataStore.USER_ID, dataStore.getUserID());
+        if (dataBox.getUserID() != null) {
+            update.set(DbConst.DocumentFields.DataBox.USER_ID, dataBox.getUserID());
         }
 
         log.info("Updating name {}, description {}, fields {}, modified {}, userID {}",
-                dataStore.getName(), dataStore.getDescription(), dataStore.getFields(), modifiedTime, dataStore.getUserID());
+                dataBox.getName(), dataBox.getDescription(), dataBox.getFields(), modifiedTime, dataBox.getUserID());
 
         var updated = template.updateFirst(query, update, DataBox.class);
         return updated.wasAcknowledged();
@@ -75,7 +75,7 @@ public class DataBoxRepoMongo implements IDataBoxRepo {
     @Override
     public List<DataBox> getDataStoresByUserID(String userID) {
         log.info("Getting all data stores of user : {}", userID);
-        var foundDs = template.find(Query.query(Criteria.where(DbConst.DocumentFields.DataStore.USER_ID).is(userID)), DataBox.class);
+        var foundDs = template.find(Query.query(Criteria.where(DbConst.DocumentFields.DataBox.USER_ID).is(userID)), DataBox.class);
         log.info("found dataStore : {}", foundDs);
         return foundDs;
     }
