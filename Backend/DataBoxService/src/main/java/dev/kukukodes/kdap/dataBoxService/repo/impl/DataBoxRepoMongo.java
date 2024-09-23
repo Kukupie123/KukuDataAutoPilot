@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.repo.impl;
 
+import com.mongodb.client.result.DeleteResult;
 import dev.kukukodes.kdap.dataBoxService.constants.DbConst;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
@@ -78,5 +79,12 @@ public class DataBoxRepoMongo implements IDataBoxRepo {
         var foundDs = template.find(Query.query(Criteria.where(DbConst.DocumentFields.DataBox.USER_ID).is(userID)), DataBox.class);
         log.info("found dataBox : {}", foundDs);
         return foundDs;
+    }
+
+    @Override
+    public boolean deleteDataBox(String id) {
+        log.info("Deleting DataBox : {}", id);
+        DeleteResult deleteResult = template.remove(Query.query(Criteria.where(DbConst.DocumentFields.CommonFields.ID).is(id)), DataBox.class);
+        return deleteResult.getDeletedCount() > 0;
     }
 }

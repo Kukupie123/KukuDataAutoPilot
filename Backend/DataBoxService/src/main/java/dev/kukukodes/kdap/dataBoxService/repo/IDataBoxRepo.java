@@ -23,8 +23,8 @@ public interface IDataBoxRepo {
 
     /**
      * Get Data stores
-     * @param userID
-     * @return
      */
     List<DataBox> getDataStoresByUserID(String userID);
+
+    boolean deleteDataBox(String id);
 }
