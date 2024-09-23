@@ -15,5 +15,7 @@ public class AuthenticationServiceApplication {
         SpringApplication.run(AuthenticationServiceApplication.class, args);
     }
 
-    //TODO:
+    //TODO: Create super user and only allow super operations for super user such as deleting, getting all users
+    //TODO: Store user authentication once authenticated (if not done yet). Use this for user specific operation in user service. currently everyone has super access so its bad.
+
 }
