@@ -2,11 +2,9 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.dto.user.UserRequestDTO;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
-import dev.kukukodes.kdap.authenticationservice.helpers.RequestHelper;
-import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
-import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
@@ -32,14 +30,14 @@ public class AuthenticatedEndpoint {
      * @return {@link UserRequestDTO}
      */
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<UserRequestDTO>> getUser(@PathVariable String id) {
+    public Mono<ResponseEntity<UserRequestDTO>> getUser(@PathVariable String id, @Value("${superemail}") String superEmail) {
         if (id == null) {
             return Mono.error(new IllegalArgumentException("id is null"));
         }
         log.info("Getting user from id parameter : {}", id);
         return userService.getUserById(id)
                 //Do not send password
-                .map(user -> UserRequestDTO.fromUserEntity(user, false))
+                .map(user -> UserRequestDTO.fromUserEntity(user, false, superEmail))
                 .flatMap(userRequestDTO -> Mono.just(ResponseEntity.ok(userRequestDTO)))
                 ;
     }
@@ -51,12 +49,12 @@ public class AuthenticatedEndpoint {
      * @return updated user {@link  UserRequestDTO}
      */
     @PutMapping("/")
-    public Mono<ResponseEntity<UserRequestDTO>> updateUser(@RequestBody UserRequestDTO payload, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<UserRequestDTO>> updateUser(@RequestBody UserRequestDTO payload, ServerWebExchange exchange, @Value("${superemail}") String superEmail) {
         log.info("Updating user : {}", payload);
         return userService.getUserById(payload.getId())
                 //Get user from database to create new userEntity object with fields that are not present in payload
                 .flatMap(dbUser -> userService.updateUser(new UserEntity(dbUser.getId(), payload.getName(), payload.getPassword(), dbUser.getCreated(), dbUser.getUpdated(), payload.getEmail(), dbUser.getPicture())))
-                .map(user -> UserRequestDTO.fromUserEntity(user, true))
+                .map(user -> UserRequestDTO.fromUserEntity(user, true, superEmail))
                 .map(ResponseEntity::ok)
                 ;
     }

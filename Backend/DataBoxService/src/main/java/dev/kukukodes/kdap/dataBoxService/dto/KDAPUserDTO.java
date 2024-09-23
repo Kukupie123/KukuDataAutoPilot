@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.dto;
 
+import dev.kukukodes.kdap.dataBoxService.enums.KDAPUserAuthority;
 import dev.kukukodes.kdap.dataBoxService.model.KDAPAuthenticatedUser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class KDAPUserDTO {
     private LocalDate created;
     private LocalDate updated;
     private String picture;
+    private KDAPUserAuthority authority; //ADMIN, USER
 
     public KDAPAuthenticatedUser getKDAPUser(){
         return new KDAPAuthenticatedUser(this);
