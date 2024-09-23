@@ -7,6 +7,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -38,9 +39,9 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
             String token = (String) auth.getCredentials();
             String userID = jwtService.extractClaimsFromJwtToken(token).getSubject();
             return userService.getUserById(userID)
-                    .map(user -> {
+                    .flatMap(user -> {
                         log.info("Successfully authenticated JWT Token request");
-                        return new Authentication() {
+                        var authenticatedUser =  new Authentication() {
                             @Override
                             public Collection<? extends GrantedAuthority> getAuthorities() {
                                 return List.of(new SimpleGrantedAuthority(user.getId()));
@@ -76,6 +77,10 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
                                 return user.getName();
                             }
                         };
+                        return ReactiveSecurityContextHolder.getContext()
+                                .doOnNext(context -> {
+                                    context.setAuthentication(authenticatedUser);
+                                }).then(Mono.just(authenticatedUser));
                     });
 
         } catch (Exception e) {

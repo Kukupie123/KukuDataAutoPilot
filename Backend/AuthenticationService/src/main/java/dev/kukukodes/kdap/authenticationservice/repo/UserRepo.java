@@ -31,4 +31,10 @@ public class UserRepo implements IUserRepo {
     public Mono<UserEntity> getUserByID(String id) {
         return template.selectOne(Query.query(Criteria.where("id").is(id)), UserEntity.class);
     }
+
+    @Override
+    public Mono<Boolean> deleteUserByID(String id) {
+        return template.delete(Query.query(Criteria.where("id").is(id)), UserEntity.class)
+                .map(deleted -> deleted > 0);
+    }
 }

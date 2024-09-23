@@ -67,4 +67,16 @@ public class AuthenticatedEndpoint {
                 .defaultIfEmpty(ResponseEntity.notFound().build())
                 ;
     }
+
+    @DeleteMapping("/")
+    public Mono<ResponseEntity<String>> deleteUser(ServerWebExchange exchange) {
+        String token = requestHelper.extractToken(exchange.getRequest().getHeaders().getFirst("Authorization"));
+        Claims claims = jwtService.extractClaimsFromJwtToken(token);
+        String userID = claims.getSubject();
+        return userService.deleteUser(userID).map(deleted -> {
+            if (deleted)
+                return ResponseEntity.ok("Deleted user");
+            return ResponseEntity.notFound().build();
+        });
+    }
 }

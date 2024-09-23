@@ -1,19 +1,29 @@
 package dev.kukukodes.kdap.authenticationservice.config;
 
-import dev.kukukodes.kdap.authenticationservice.constants.RabbitMQConst;
 import org.springframework.amqp.core.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMQConfig {
 
+    private final String userUpdatedQueueName;
+    private final String userExchangeName;
+    private final String routeKeyName;
+
+    public RabbitMQConfig(@Value("${rabbitmq.queue.user.updated}") String userQueueName, @Value("${rabbitmq.exchange.user}") String userExchangeName, @Value("${rabbitmq.route.user.updated}") String routeKeyName) {
+        this.userUpdatedQueueName = userQueueName;
+        this.userExchangeName = userExchangeName;
+        this.routeKeyName = routeKeyName;
+    }
+
     /**
      * Direct Exchange sends message to all queues routed to the bound routing key
      */
     @Bean
     public DirectExchange userEventsExchange() {
-        return new DirectExchange(RabbitMQConst.Exchanges.USER_EVENT);
+        return new DirectExchange(userExchangeName);
     }
 
     /**
@@ -23,7 +33,7 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue userUpdatedQueue() {
-        return QueueBuilder.durable(RabbitMQConst.Queues.USER_UPDATED)
+        return QueueBuilder.durable(userUpdatedQueueName)
                 .maxLength(1L)
                 .build();
     }
@@ -33,6 +43,6 @@ public class RabbitMQConfig {
         return BindingBuilder
                 .bind(userUpdatedQueue())
                 .to(userEventsExchange())
-                .with(RabbitMQConst.Routes.USER_UPDATED);
+                .with(routeKeyName);
     }
 }

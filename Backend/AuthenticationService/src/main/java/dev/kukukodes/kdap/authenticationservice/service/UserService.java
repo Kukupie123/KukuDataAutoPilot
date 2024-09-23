@@ -1,30 +1,29 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.InputMismatchException;
-import java.util.Objects;
 
 @Slf4j
 @Service
 public class UserService {
     private final IUserRepo userRepo;
+    private final CacheService cacheService;
+
 
     private final UserEventPublisher userEventPublisher;
 
-    UserService(IUserRepo userRepo, UserEventPublisher userEventPublisher) {
+    UserService(IUserRepo userRepo, CacheService cacheService, UserEventPublisher userEventPublisher) {
         this.userRepo = userRepo;
+        this.cacheService = cacheService;
         this.userEventPublisher = userEventPublisher;
     }
 
@@ -38,11 +37,11 @@ public class UserService {
     /**
      * Update existing user
      */
-    @CacheEvict(value = "user", key = "#user.id")
     public Mono<UserEntity> updateUser(UserEntity user) {
         return userRepo.updateUser(user)
                 .doOnSuccess(updatedUser -> {
                     try {
+                        cacheService.removeUser(user.getId());
                         userEventPublisher.publishUserUpdateMsg(updatedUser);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
@@ -52,29 +51,42 @@ public class UserService {
 
     /**
      * Adds or Updates user if it exists.
-     * Clears cache.
      */
-    @CacheEvict(value = "user", key = "#user.id")
     public Mono<UserEntity> AddUpdateUser(UserEntity user) {
         return userRepo.getUserByID(user.getId())
                 .switchIfEmpty(Mono.defer(() -> {
                     log.info("No existing user found. Adding new one");
-                    return userRepo.addUser(user);
+                    return addUser(user);
                 }))
                 .flatMap(userEntity -> {
                     log.info("Existing user found. Updating user");
+                    cacheService.removeUser(user.getId());
                     return userRepo.updateUser(userEntity);
                 })
                 ;
     }
 
-    @Cacheable(value = "user", key = "#id")
     public Mono<UserEntity> getUserById(String id) {
         log.info("Getting user {}", id);
-        return userRepo.getUserByID(id).switchIfEmpty(Mono.defer(() -> {
-            log.info("User not found {}", id);
-            return Mono.empty();
-        }));
+
+        UserEntity cachedUser = cacheService.getUser(id);
+
+        if (cachedUser != null) {
+            log.info("User {} found in cache", id);
+            return Mono.just(cachedUser);
+        }
+
+        return userRepo.getUserByID(id)
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.info("User not found {}", id);
+                    return Mono.empty();
+                }))
+                .doOnSuccess(user -> {
+                    if (user != null) {
+                        log.info("Caching user {}", id);
+                        cacheService.cacheUser(user);
+                    }
+                });
     }
 
     /**
@@ -89,5 +101,11 @@ public class UserService {
         userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
         userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
         return userEntity;
+    }
+
+    public Mono<Boolean> deleteUser(String userID) {
+        log.info("Deleting user {}", userID);
+        cacheService.removeUser(userID);
+        return userRepo.deleteUserByID(userID);
     }
 }

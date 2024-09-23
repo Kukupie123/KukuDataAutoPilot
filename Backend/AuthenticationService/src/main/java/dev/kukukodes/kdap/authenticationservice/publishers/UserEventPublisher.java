@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import dev.kukukodes.kdap.authenticationservice.constants.RabbitMQConst;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.JsonHelper;
-import dev.kukukodes.kdap.authenticationservice.helpers.RabbitMQHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +22,8 @@ public class UserEventPublisher {
     private final RabbitTemplate rabbitTemplate;
     private final JsonHelper jsonHelper;
 
-    @Value("${spring.application.name}")
-    private String applicationName;
+    @Value("${rabbitmq.route.user.updated}")
+    private String routingKey;
 
     public UserEventPublisher(@Autowired RabbitTemplate rabbitTemplate, JsonHelper jsonHelper) {
         this.rabbitTemplate = rabbitTemplate;
@@ -33,7 +31,6 @@ public class UserEventPublisher {
     }
 
     public void publishUserUpdateMsg(UserEntity updatedUser) throws JsonProcessingException {
-        String routingKey = RabbitMQConst.Routes.USER_UPDATED;
         ObjectMapper objectMapper = JsonMapper.builder()
                 .addModule(new JavaTimeModule())
                 .build();
