@@ -2,8 +2,6 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
-import dev.kukukodes.kdap.authenticationservice.helpers.JsonHelper;
-import dev.kukukodes.kdap.authenticationservice.helpers.RequestHelper;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -20,7 +18,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -31,17 +28,13 @@ public class PublicEndpoint {
     GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
-    private final JsonHelper jsonHelper;
     private final UserEventPublisher userEventPublisher;
-    private final RequestHelper requestHelper;
 
-    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, JsonHelper jsonHelper, UserEventPublisher userEventPublisher, RequestHelper requestHelper) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
-        this.jsonHelper = jsonHelper;
         this.userEventPublisher = userEventPublisher;
-        this.requestHelper = requestHelper;
     }
 
     /**
@@ -50,12 +43,6 @@ public class PublicEndpoint {
     @GetMapping("/login/google")
     public Mono<ResponseEntity<String>> getGoogleLoginURL() {
         log.info("Getting URL Login");
-        /*
-        Client repository holds all the registered OAuth clients.
-        We get google from it and use its data to create a AuthorizationRequest object.
-        We then get the requestURL from this AuthReq object and return it as response
-         */
-
         return googleAuthService.createOAuth2AuthReq()
                 .map(oAuth2AuthorizationRequest -> ResponseEntity.ok(oAuth2AuthorizationRequest.getAuthorizationRequestUri()))
                 .defaultIfEmpty(ResponseEntity.status(404).body("Google Provider not registered."));
@@ -89,15 +76,6 @@ public class PublicEndpoint {
                             }))
                             .flatMap(userEntity -> {
                                 log.info("Found existing user");
-                                if (userEntity.getId().equals(authUser.getSub()) &&
-                                        userEntity.getName().equals(authUser.getName()) &&
-                                        userEntity.getEmail().equals(authUser.getEmailID()) &&
-                                        userEntity.getPicture().equals(authUser.getPictureURL())
-                                ) {
-                                    log.info("All fields are still the same. Skipping update");
-                                    return Mono.just(userEntity);
-                                }
-                                log.info("Fields are outdated. Updating user");
                                 UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, userEntity);
                                 return userService.updateUser(updatedUser)
                                         //Publish event on updating user.
@@ -109,7 +87,6 @@ public class PublicEndpoint {
                                             }
                                         });
                             })
-
                             //Generate token based on user updated/added
                             .map(userEntity -> {
                                 Claims claims = jwtService.createClaimsForUser(userEntity);
