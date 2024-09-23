@@ -18,7 +18,7 @@ public class OAuth2UserInfoGoogle {
     private String sub; //Use sub as ID as it's constant.
     // Note that sub will be consistent but different for every project in GCP.
 
-    public static OAuth2UserInfoGoogle parse(OAuth2User googleUser) {
+    public static OAuth2UserInfoGoogle fromOAuth2User(OAuth2User googleUser) {
         var attributes = googleUser.getAttributes();
         return new OAuth2UserInfoGoogle(attributes.get("email").toString(), attributes.get("name").toString(), attributes.get("picture").toString(), attributes.get("sub").toString());
     }

@@ -3,6 +3,7 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.JsonHelper;
+import dev.kukukodes.kdap.authenticationservice.helpers.RequestHelper;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -32,13 +33,15 @@ public class PublicEndpoint {
     private final JwtService jwtService;
     private final JsonHelper jsonHelper;
     private final UserEventPublisher userEventPublisher;
+    private final RequestHelper requestHelper;
 
-    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, JsonHelper jsonHelper, UserEventPublisher userEventPublisher) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, JsonHelper jsonHelper, UserEventPublisher userEventPublisher, RequestHelper requestHelper) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
         this.jsonHelper = jsonHelper;
         this.userEventPublisher = userEventPublisher;
+        this.requestHelper = requestHelper;
     }
 
     /**
@@ -74,80 +77,47 @@ public class PublicEndpoint {
                 //get user from token response
                 .flatMap(oAuth2AccessTokenResponse -> googleAuthService.getUserFromToken(oAuth2AccessTokenResponse.getAccessToken()))
                 // convert it into user info
-                .map(OAuth2UserInfoGoogle::parse)
-                // check if the user is in db already. We use optional to define a 'null' value. No nulls allowed in reactive, optional allows us to know if its empty
-                .zipWhen(oAuth2UserInfoGoogle -> userService.getUserById(oAuth2UserInfoGoogle.getSub())
-                        .map(Optional::of)
-                        //If no user was found we use empty optional to signify 'null'
-                        .defaultIfEmpty(Optional.empty()))
-                // Add update the user to database
-                .flatMap(objects -> {
-                    var auth = objects.getT1();
-                    if (objects.getT2().isEmpty()) {
-                        log.info("Found no existing user. Creating a new record");
-                        return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(objects.getT1()));
-                    }
-                    log.info("Found existing user.");
-                    UserEntity user = objects.getT2().get();
-                    if (user.getId().equals(auth.getSub()) &&
-                            user.getName().equals(auth.getName()) &&
-                            user.getEmail().equals(auth.getEmailID()) &&
-                            user.getPicture().equals(auth.getPictureURL())
-                    ) {
-                        log.info("All fields are still the same. Skipping update");
-                        return Mono.just(user);
-                    }
-                    log.info("Fields are outdated. Updating user");
-                    UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(auth, user);
-
-                    //eventPublisher.publishEvent(new UserEntityUpdated(this, updatedUser)); //in app publish
-                    return userService.updateUser(updatedUser)
-                            //Publish event on updating user.
-                            .doOnSuccess(updatedUserDB -> {
-                                try {
-                                    userEventPublisher.publishUserUpdateMsg(updatedUserDB); //Publish user updated message
-                                } catch (JsonProcessingException e) {
-                                    throw new RuntimeException(e);
+                .flatMap(oAuth2User -> {
+                    var authUser = OAuth2UserInfoGoogle.fromOAuth2User(oAuth2User);
+                    //Check if the user is already in database
+                    return userService.getUserById(authUser.getSub())
+                            .map(Optional::of)
+                            .defaultIfEmpty(Optional.empty())
+                            .flatMap(userEntity -> {
+                                if (userEntity.isEmpty()) {
+                                    log.info("Found no existing user. Creating a new record");
+                                    return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(authUser));
                                 }
-                            });
-                })
-                //Generate token based on user updated/added
-                .map(userEntity -> {
-                    Claims claims = jwtService.createClaimsForUser(userEntity);
-                    String token = jwtService.generateJwtToken(claims);
-                    return ResponseEntity.ok(token);
-                })
-                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
-                ;
+                                log.info("Found existing user");
+                                UserEntity user = userEntity.get();
+                                if (user.getId().equals(authUser.getSub()) &&
+                                        user.getName().equals(authUser.getName()) &&
+                                        user.getEmail().equals(authUser.getEmailID()) &&
+                                        user.getPicture().equals(authUser.getPictureURL())
+                                ) {
+                                    log.info("All fields are still the same. Skipping update");
+                                    return Mono.just(user);
+                                }
+                                log.info("Fields are outdated. Updating user");
+                                UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, user);
+                                return userService.updateUser(updatedUser)
+                                        //Publish event on updating user.
+                                        .doOnSuccess(updatedUserDB -> {
+                                            try {
+                                                userEventPublisher.publishUserUpdateMsg(updatedUserDB); //Publish user updated message
+                                            } catch (JsonProcessingException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        });
+                            })
+                            //Generate token based on user updated/added
+                            .map(userEntity -> {
+                                Claims claims = jwtService.createClaimsForUser(userEntity);
+                                String token = jwtService.generateJwtToken(claims);
+                                return ResponseEntity.ok(token);
+                            })
+                            .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
+                            ;
+                });
     }
-
-    /**
-     * Extracts jwt token from Authorization header and uses it to extract claims
-     */
-    @GetMapping("/validate")
-    public Mono<ResponseEntity<String>> validateToken(ServerWebExchange exchange) {
-        String headerAuth = exchange.getRequest().getHeaders().getFirst("Authorization");
-        if (headerAuth == null || !headerAuth.startsWith("Bearer ")) {
-            return Mono.just(ResponseEntity.badRequest().body("Invalid/Missing Authorization Token. It needs to be in the form 'Bearer .........'"));
-        }
-        try {
-            String token = headerAuth.substring(7);
-            Claims claims = jwtService.extractClaimsFromJwtToken(token);
-            String userID = claims.getSubject();
-            return userService.getUserById(userID).flatMap(user -> {
-                try {
-                    return Mono.just(ResponseEntity.ok(jsonHelper.convertObjectsToJSON(user)));
-                } catch (JsonProcessingException e) {
-                    return Mono.error(e);
-                }
-            });
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            log.error(Arrays.toString(e.getStackTrace()));
-            return Mono.just(ResponseEntity.internalServerError().body(e.getMessage()));
-        }
-
-    }
-
-
 }

@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.InputMismatchException;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -80,7 +81,7 @@ public class UserService {
      * Updates the property of user passed based on googleUserInfo
      */
     public UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
-        if (oAuth2UserInfoGoogle.getSub() != userEntity.getId()) {
+        if (!oAuth2UserInfoGoogle.getSub().equals(userEntity.getId())) {
             throw new InputMismatchException("OAuth2UserInfo has sub " + oAuth2UserInfoGoogle.getSub() + " but userEntity has id " + userEntity.getId());
         }
         userEntity.setUpdated(LocalDate.now());

@@ -8,10 +8,9 @@ import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
+@Data
 public class UserRequestDTO {
+    private String id;
     private String email;
     private String name;
     private LocalDate created;
@@ -22,6 +21,6 @@ public class UserRequestDTO {
         if (userEntity.getCreated().isAfter(userEntity.getUpdated())) {
             throw new DateTimeException("Created date is greater than updated date");
         }
-        return new UserRequestDTO(userEntity.getEmail(), userEntity.getName(), userEntity.getCreated(), userEntity.getUpdated(), userEntity.getPicture());
+        return new UserRequestDTO(userEntity.getId(), userEntity.getEmail(), userEntity.getName(), userEntity.getCreated(), userEntity.getUpdated(), userEntity.getPicture());
     }
 }

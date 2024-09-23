@@ -33,7 +33,7 @@ public class JwtService {
                 .claims(claims)
                 .subject(claims.getSubject())
                 .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(5))))
+                .expiration(Date.from(Instant.now().plus(Duration.ofDays(5))))
                 .signWith(generateKey())
                 .compact()
                 ;
