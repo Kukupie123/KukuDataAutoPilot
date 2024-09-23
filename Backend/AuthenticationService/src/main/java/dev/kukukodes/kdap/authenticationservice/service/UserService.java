@@ -72,7 +72,6 @@ public class UserService {
         UserEntity cachedUser = cacheService.getUser(id);
 
         if (cachedUser != null) {
-            log.info("User {} found in cache", id);
             return Mono.just(cachedUser);
         }
 
