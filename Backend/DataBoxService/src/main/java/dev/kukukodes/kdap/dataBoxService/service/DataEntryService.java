@@ -16,6 +16,8 @@ public class DataEntryService {
     private final IDataEntryRepo dataEntryRepo;
     private final DataBoxService dataBoxService;
 
+    //TODO: Verify that it belongs to the same user
+    //TODO: Cache
     public DataEntryService(DataEntryHelper dataEntryHelper, IDataEntryRepo dataEntryRepo, DataBoxService dataBoxService) {
         this.dataEntryHelper = dataEntryHelper;
         this.dataEntryRepo = dataEntryRepo;
@@ -49,7 +51,7 @@ public class DataEntryService {
         return dataEntryRepo.deleteDateEntry(dataEntry);
     }
 
-    public DataEntry getDataEntryForBox(String id) {
+    public DataEntry getDataEntry(String id) {
         log.info("Getting data entry {}", id);
         return dataEntryRepo.getDataEntry(id);
     }

@@ -5,6 +5,7 @@ import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -43,7 +44,6 @@ public class JwtService {
         var claimsObj = Jwts.claims().add(claims).subject(subject).build();
         return generateJwtToken(claimsObj);
     }
-
     public Claims extractClaimsFromJwtToken(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(generateKey())
@@ -59,7 +59,6 @@ public class JwtService {
     public Claims createClaimsForUser(UserEntity user) {
         return Jwts.claims().subject(user.getId()).build();
     }
-
 
     private SecretKey generateKey() {
         return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
