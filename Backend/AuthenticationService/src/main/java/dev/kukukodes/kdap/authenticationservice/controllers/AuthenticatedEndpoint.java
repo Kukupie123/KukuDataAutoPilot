@@ -1,8 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.kukukodes.kdap.authenticationservice.dto.user.UserRequestDTO;
-import dev.kukukodes.kdap.authenticationservice.helpers.JsonHelper;
 import dev.kukukodes.kdap.authenticationservice.helpers.RequestHelper;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
@@ -21,33 +19,24 @@ public class AuthenticatedEndpoint {
     private final UserService userService;
     private final RequestHelper requestHelper;
     private final JwtService jwtService;
-    private final JsonHelper jsonHelper;
 
-    public AuthenticatedEndpoint(UserService userService, RequestHelper requestHelper, JwtService jwtService, JsonHelper jsonHelper) {
+    public AuthenticatedEndpoint(UserService userService, RequestHelper requestHelper, JwtService jwtService) {
         this.userService = userService;
         this.requestHelper = requestHelper;
         this.jwtService = jwtService;
-        this.jsonHelper = jsonHelper;
     }
 
     /**
-     * Get user id based on token
+     * Get user data based on token
      */
     @GetMapping("/")
-    public Mono<ResponseEntity<String>> index(ServerWebExchange exchange) {
+    public Mono<ResponseEntity<UserRequestDTO>> index(ServerWebExchange exchange) {
         String token = requestHelper.extractToken(exchange.getRequest().getHeaders().getFirst("Authorization"));
         Claims claims = jwtService.extractClaimsFromJwtToken(token);
         String userID = claims.getSubject();
         return userService.getUserById(userID)
                 .map(UserRequestDTO::fromUserEntity)
-                .flatMap(userRequestDTO -> {
-                    try {
-                        return Mono.just(ResponseEntity.ok(jsonHelper.convertObjectsToJSON(userRequestDTO)));
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(e);
-                    }
-                })
-                .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage())))
+                .flatMap(userRequestDTO -> Mono.just(ResponseEntity.ok(userRequestDTO)))
                 ;
     }
 

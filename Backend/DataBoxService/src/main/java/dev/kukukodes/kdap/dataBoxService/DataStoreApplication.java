@@ -12,9 +12,6 @@ public class DataStoreApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DataStoreApplication.class, args);
-        //TODO: Make authentication return objects not strings.
-        //TODO: Refactor codes and logic
-        //TODO: Write tests
     }
 
 }

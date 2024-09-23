@@ -1,7 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.helper;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
-import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxField;
 import dev.kukukodes.kdap.dataBoxService.enums.DataBoxFieldType;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -19,17 +19,17 @@ public class DataEntryHelper {
      *
      * @return true if it's valid.
      */
-    public boolean validateEntryForDataBox(DataBox dataBox, DataEntry dataEntry) {
+    public boolean validateEntryForDataBox(List<DataBoxField> boxFields, DataEntry dataEntry) {
 
-        if (dataEntry.getValues().size() > dataBox.getFields().size()) {
-            log.error("required fields count : {} but got entries : {}", dataBox.getFields().size(), dataEntry.getValues().size());
+        if (dataEntry.getValues().size() > boxFields.size()) {
+            log.error("required fields count : {} but got entries : {}", boxFields.size(), dataEntry.getValues().size());
             return false;
         }
         //Create map of fast access
 
         Map<String, DataBoxField> fieldsMap = new HashMap<>();
 
-        dataBox.getFields().forEach(dataBoxField -> fieldsMap.put(dataBoxField.getFieldName(), dataBoxField));
+        boxFields.forEach(dataBoxField -> fieldsMap.put(dataBoxField.getFieldName(), dataBoxField));
         Map<String, String> entryValuesMap = new HashMap<>(dataEntry.getValues());
 
         //Loop fieldsMap

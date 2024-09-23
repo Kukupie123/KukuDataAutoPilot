@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.dto;
 
-import dev.kukukodes.kdap.dataBoxService.model.KDAPUser;
+import dev.kukukodes.kdap.dataBoxService.model.KDAPAuthenticatedUser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
-public class UserDataDTO {
+public class KDAPUserDTO {
     private String id;
     private String email;
     private String name;
@@ -20,7 +20,7 @@ public class UserDataDTO {
     private LocalDate updated;
     private String picture;
 
-    public KDAPUser getKDAPUser(){
-        return new KDAPUser(this);
+    public KDAPAuthenticatedUser getKDAPUser(){
+        return new KDAPAuthenticatedUser(this);
     }
 }

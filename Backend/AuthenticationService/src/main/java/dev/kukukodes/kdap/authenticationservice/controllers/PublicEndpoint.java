@@ -79,27 +79,26 @@ public class PublicEndpoint {
                 // convert it into user info
                 .flatMap(oAuth2User -> {
                     var authUser = OAuth2UserInfoGoogle.fromOAuth2User(oAuth2User);
-                    //Check if the user is already in database
-                    return userService.getUserById(authUser.getSub())
-                            .map(Optional::of)
-                            .defaultIfEmpty(Optional.empty())
+                    //Check if the user is already stored in database
+                    return userService
+                            .getUserById(authUser.getSub())
+                            //User not found in database
+                            .switchIfEmpty(Mono.defer(() -> {
+                                log.info("User not found in database. Adding user to database");
+                                return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(authUser));
+                            }))
                             .flatMap(userEntity -> {
-                                if (userEntity.isEmpty()) {
-                                    log.info("Found no existing user. Creating a new record");
-                                    return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(authUser));
-                                }
                                 log.info("Found existing user");
-                                UserEntity user = userEntity.get();
-                                if (user.getId().equals(authUser.getSub()) &&
-                                        user.getName().equals(authUser.getName()) &&
-                                        user.getEmail().equals(authUser.getEmailID()) &&
-                                        user.getPicture().equals(authUser.getPictureURL())
+                                if (userEntity.getId().equals(authUser.getSub()) &&
+                                        userEntity.getName().equals(authUser.getName()) &&
+                                        userEntity.getEmail().equals(authUser.getEmailID()) &&
+                                        userEntity.getPicture().equals(authUser.getPictureURL())
                                 ) {
                                     log.info("All fields are still the same. Skipping update");
-                                    return Mono.just(user);
+                                    return Mono.just(userEntity);
                                 }
                                 log.info("Fields are outdated. Updating user");
-                                UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, user);
+                                UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, userEntity);
                                 return userService.updateUser(updatedUser)
                                         //Publish event on updating user.
                                         .doOnSuccess(updatedUserDB -> {
@@ -110,6 +109,7 @@ public class PublicEndpoint {
                                             }
                                         });
                             })
+
                             //Generate token based on user updated/added
                             .map(userEntity -> {
                                 Claims claims = jwtService.createClaimsForUser(userEntity);
