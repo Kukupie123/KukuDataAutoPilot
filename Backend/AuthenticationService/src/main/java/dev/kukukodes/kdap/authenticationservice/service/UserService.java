@@ -1,11 +1,9 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthentication;
-import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthority;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
@@ -72,14 +70,17 @@ public class UserService {
                             user.getId().equals(dbUser.getId()) &&
                                     user.getEmail().equals(dbUser.getEmail()) &&
                                     user.getPassword().equals(dbUser.getPassword()) &&
-                                    user.getCreated() == dbUser.getCreated() &&
                                     user.getPicture().equals(dbUser.getPicture())
                     ) {
                         log.warn("Nothing to update");
                         return Mono.just(dbUser);
                     }
                     log.info("Updating user info from {} to {}", dbUser, user);
-
+                    dbUser.setUpdated(LocalDate.now());
+                    dbUser.setPassword(dbUser.getPassword());
+                    dbUser.setPicture(dbUser.getPicture());
+                    dbUser.setEmail(dbUser.getEmail());
+                    dbUser.setName(dbUser.getName());
                     return userRepo.updateUser(dbUser)
                             .doOnSuccess(user1 -> cacheService.removeUser(user1.getId()));
                 })
@@ -89,7 +90,6 @@ public class UserService {
 
     public Mono<UserEntity> getUserById(String id) {
 
-        //TODO: cache user
         return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                 .flatMap(kdapUserAuthentication -> {
                     if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {

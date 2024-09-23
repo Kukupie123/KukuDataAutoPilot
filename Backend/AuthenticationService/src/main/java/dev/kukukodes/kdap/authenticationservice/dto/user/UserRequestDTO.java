@@ -13,14 +13,21 @@ public class UserRequestDTO {
     private String id;
     private String email;
     private String name;
+    private String password;
     private LocalDate created;
     private LocalDate updated;
     private String picture;
 
-    public static UserRequestDTO fromUserEntity(UserEntity userEntity) {
+    public static UserRequestDTO fromUserEntity(UserEntity userEntity, boolean includePassword) {
         if (userEntity.getCreated().isAfter(userEntity.getUpdated())) {
             throw new DateTimeException("Created date is greater than updated date");
         }
-        return new UserRequestDTO(userEntity.getId(), userEntity.getEmail(), userEntity.getName(), userEntity.getCreated(), userEntity.getUpdated(), userEntity.getPicture());
+        return new UserRequestDTO(userEntity.getId(),
+                userEntity.getEmail(),
+                userEntity.getName(),
+                includePassword ? userEntity.getPassword() : "",
+                userEntity.getCreated(),
+                userEntity.getUpdated(),
+                userEntity.getPicture());
     }
 }

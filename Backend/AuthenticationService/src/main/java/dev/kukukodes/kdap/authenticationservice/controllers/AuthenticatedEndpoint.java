@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.dto.user.UserRequestDTO;
+import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.RequestHelper;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
@@ -17,66 +18,60 @@ import reactor.core.publisher.Mono;
 public class AuthenticatedEndpoint {
 
     private final UserService userService;
-    private final RequestHelper requestHelper;
-    private final JwtService jwtService;
 
-    public AuthenticatedEndpoint(UserService userService, RequestHelper requestHelper, JwtService jwtService) {
+    public AuthenticatedEndpoint(UserService userService) {
         this.userService = userService;
-        this.requestHelper = requestHelper;
-        this.jwtService = jwtService;
     }
 
     /**
-     * Get user data based on token
+     * Get user data. Access will be denied if attempting to get user Data of someone else without having admin role
+     * <p>
+     * Eg :- '/userID'
+     * <p>
+     *
+     * @return {@link UserRequestDTO}
      */
-    @GetMapping("/")
-    public Mono<ResponseEntity<UserRequestDTO>> index(ServerWebExchange exchange) {
-        String token = requestHelper.extractToken(exchange.getRequest().getHeaders().getFirst("Authorization"));
-        Claims claims = jwtService.extractClaimsFromJwtToken(token);
-        String userID = claims.getSubject();
-        return userService.getUserById(userID)
-                .map(UserRequestDTO::fromUserEntity)
+    @GetMapping("/{id}")
+    public Mono<ResponseEntity<UserRequestDTO>> getUser(@PathVariable String id) {
+        if (id == null) {
+            return Mono.error(new IllegalArgumentException("id is null"));
+        }
+        log.info("Getting user from id parameter : {}", id);
+        return userService.getUserById(id)
+                //Do not send password
+                .map(user -> UserRequestDTO.fromUserEntity(user, false))
                 .flatMap(userRequestDTO -> Mono.just(ResponseEntity.ok(userRequestDTO)))
                 ;
     }
 
+    /**
+     * Update user. Access will be denied if attempting to update another user without admin role.
+     *
+     * @param payload {@link UserRequestDTO}
+     * @return updated user {@link  UserRequestDTO}
+     */
     @PutMapping("/")
-    public Mono<ResponseEntity<String>> updateUser(@RequestBody UserRequestDTO payload, ServerWebExchange exchange) {
-        String token = requestHelper.extractToken(exchange.getRequest().getHeaders().getFirst("Authorization"));
-        Claims claims = jwtService.extractClaimsFromJwtToken(token);
-        String userID = claims.getSubject();
-        return userService.getUserById(userID)
-                .flatMap(userEntity -> {
-                    boolean needsUpdate = false;
-                    if (payload.getName() != null && !payload.getName().isEmpty() && !userEntity.getName().equals(payload.getName())) {
-                        needsUpdate = true;
-                        userEntity.setName(payload.getName());
-                    }
-                    if (payload.getEmail() != null && !payload.getEmail().isEmpty() && !userEntity.getEmail().equals(payload.getEmail())) {
-                        needsUpdate = true;
-                        userEntity.setEmail(payload.getEmail());
-                    }
-
-                    if (needsUpdate) {
-                        return userService.updateUser(userEntity).map(user -> "Updated user")
-                                .map(ResponseEntity::ok);
-
-                    }
-                    return Mono.just(ResponseEntity.ok("User doesn't need to be updated"));
-                })
-                .defaultIfEmpty(ResponseEntity.notFound().build())
+    public Mono<ResponseEntity<UserRequestDTO>> updateUser(@RequestBody UserRequestDTO payload, ServerWebExchange exchange) {
+        log.info("Updating user : {}", payload);
+        return userService.getUserById(payload.getId())
+                //Get user from database to create new userEntity object with fields that are not present in payload
+                .flatMap(dbUser -> userService.updateUser(new UserEntity(dbUser.getId(), payload.getName(), payload.getPassword(), dbUser.getCreated(), dbUser.getUpdated(), payload.getEmail(), dbUser.getPicture())))
+                .map(user -> UserRequestDTO.fromUserEntity(user, true))
+                .map(ResponseEntity::ok)
                 ;
     }
 
-    @DeleteMapping("/")
-    public Mono<ResponseEntity<String>> deleteUser(ServerWebExchange exchange) {
-        String token = requestHelper.extractToken(exchange.getRequest().getHeaders().getFirst("Authorization"));
-        Claims claims = jwtService.extractClaimsFromJwtToken(token);
-        String userID = claims.getSubject();
-        return userService.deleteUser(userID).map(deleted -> {
-            if (deleted)
-                return ResponseEntity.ok("Deleted user");
-            return ResponseEntity.notFound().build();
-        });
+    /**
+     * Delete user. Access will be denied if attempting to delete another user without admin role
+     *
+     * @param id id of the user to delete
+     * @return 200 status if deleted or else internal server error
+     */
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<String>> deleteUser(@PathVariable String id) {
+        log.info("Deleting user : {}", id);
+        return userService.deleteUser(id)
+                .map(deleted -> deleted ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build())
+                ;
     }
 }
