@@ -39,7 +39,7 @@ public class JwtTokenAuthenticationFilter implements WebFilter {
 
         Authentication auth = new PreAuthenticatedAuthenticationToken(token, token);
 
-        // Delegate authentication to AuthenticationManager
+        // Delegate authentication to AuthenticationManager and once authenticated pass it to next chain.
         return authenticationManager.authenticate(auth)
                 .flatMap(authentication -> chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)));
     }

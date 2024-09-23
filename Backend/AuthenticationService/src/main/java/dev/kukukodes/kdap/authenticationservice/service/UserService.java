@@ -15,13 +15,15 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDate;
 import java.util.InputMismatchException;
 
+/**
+ * Requires Authenticated access for most operations to function.
+ */
 @Slf4j
 @Service
 public class UserService {
     private final IUserRepo userRepo;
     private final CacheService cacheService;
     private final SecurityHelper securityHelper;
-
     private final UserEventPublisher userEventPublisher;
 
     UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
@@ -68,21 +70,35 @@ public class UserService {
                 .flatMap(dbUser -> {
                     if (
                             user.getId().equals(dbUser.getId()) &&
-                                    user.getEmail().equals(dbUser.getEmail()) &&
-                                    user.getPassword().equals(dbUser.getPassword()) &&
-                                    user.getPicture().equals(dbUser.getPicture())
+                                    (user.getEmail() == null || user.getEmail().equals(dbUser.getEmail())) &&
+                                    (user.getPassword() == null || user.getPassword().equals(dbUser.getPassword())) &&
+                                    (user.getPicture() == null || user.getPicture().equals(dbUser.getPicture())) &&
+                                    (user.getName() == null || user.getName().equals(dbUser.getName()))
                     ) {
                         log.warn("Nothing to update");
                         return Mono.just(dbUser);
                     }
+
                     log.info("Updating user info from {} to {}", dbUser, user);
                     dbUser.setUpdated(LocalDate.now());
-                    dbUser.setPassword(dbUser.getPassword());
-                    dbUser.setPicture(dbUser.getPicture());
-                    dbUser.setEmail(dbUser.getEmail());
-                    dbUser.setName(dbUser.getName());
+
+                    // Only update fields that are non-null in the incoming user object
+                    if (user.getPassword() != null) {
+                        dbUser.setPassword(user.getPassword());
+                    }
+                    if (user.getPicture() != null) {
+                        dbUser.setPicture(user.getPicture());
+                    }
+                    if (user.getEmail() != null) {
+                        dbUser.setEmail(user.getEmail());
+                    }
+                    if (user.getName() != null) {
+                        dbUser.setName(user.getName());
+                    }
+
                     return userRepo.updateUser(dbUser)
-                            .doOnSuccess(user1 -> cacheService.removeUser(user1.getId()));
+                            .doOnSuccess(updatedUser -> cacheService.removeUser(updatedUser.getId()));
+
                 })
                 ;
         //TODO: Publish event

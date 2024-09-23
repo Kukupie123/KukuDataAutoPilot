@@ -3,6 +3,8 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
+import dev.kukukodes.kdap.authenticationservice.service.CacheService;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
@@ -24,17 +26,20 @@ import java.util.Arrays;
 @RequestMapping("/api/public")
 public class PublicEndpoint {
 
-    final
-    GoogleAuthService googleAuthService;
+    final GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
     private final UserEventPublisher userEventPublisher;
+    private final IUserRepo userRepo;
+    private final CacheService cacheService;
 
-    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher, IUserRepo userRepo, CacheService cacheService) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
         this.userEventPublisher = userEventPublisher;
+        this.userRepo = userRepo;
+        this.cacheService = cacheService;
     }
 
     /**
@@ -43,9 +48,7 @@ public class PublicEndpoint {
     @GetMapping("/login/google")
     public Mono<ResponseEntity<String>> getGoogleLoginURL() {
         log.info("Getting URL Login");
-        return googleAuthService.createOAuth2AuthReq()
-                .map(oAuth2AuthorizationRequest -> ResponseEntity.ok(oAuth2AuthorizationRequest.getAuthorizationRequestUri()))
-                .defaultIfEmpty(ResponseEntity.status(404).body("Google Provider not registered."));
+        return googleAuthService.createOAuth2AuthReq().map(oAuth2AuthorizationRequest -> ResponseEntity.ok(oAuth2AuthorizationRequest.getAuthorizationRequestUri())).defaultIfEmpty(ResponseEntity.status(404).body("Google Provider not registered."));
     }
 
     /**
@@ -65,22 +68,27 @@ public class PublicEndpoint {
                 .flatMap(oAuth2AccessTokenResponse -> googleAuthService.getUserFromToken(oAuth2AccessTokenResponse.getAccessToken()))
                 // convert it into user info
                 .flatMap(oAuth2User -> {
-                    var authUser = OAuth2UserInfoGoogle.fromOAuth2User(oAuth2User);
                     //Check if the user is already stored in database
-                    return userService
-                            .getUserById(authUser.getSub())
-                            //User not found in database
-                            .switchIfEmpty(Mono.defer(() -> {
-                                log.info("User not found in database. Adding user to database");
-                                return userService.addUser(UserEntity.createUserFromOAuthUserInfoGoogle(authUser));
-                            }))
-                            .flatMap(userEntity -> {
+                    var authUser = OAuth2UserInfoGoogle.fromOAuth2User(oAuth2User);
+                    //Check cache. If present then it must be already in db.
+                    var user = (cacheService.getUser(authUser.getSub()));
+                    Mono<UserEntity> userMono;
+                    if (user != null) {
+                        userMono = Mono.just(user);
+                    } else {
+                        userMono = userRepo.getUserByID(authUser.getSub());
+                    }
+                    //Using UserRepo and not userService because userService requires authentication.
+                    userMono = userMono.switchIfEmpty(userRepo.getUserByID(authUser.getSub()));
+                    return userMono.flatMap(userEntity -> {
                                 log.info("Found existing user");
                                 UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, userEntity);
-                                return userService.updateUser(updatedUser)
+                                return userRepo.updateUser(updatedUser)
                                         //Publish event on updating user.
                                         .doOnSuccess(updatedUserDB -> {
                                             try {
+                                                //Important. Invalidate existing cache.
+                                                cacheService.removeUser(updatedUserDB.getId());
                                                 userEventPublisher.publishUserUpdateMsg(updatedUserDB); //Publish user updated message
                                             } catch (JsonProcessingException e) {
                                                 throw new RuntimeException(e);
@@ -92,9 +100,7 @@ public class PublicEndpoint {
                                 Claims claims = jwtService.createClaimsForUser(userEntity);
                                 String token = jwtService.generateJwtToken(claims);
                                 return ResponseEntity.ok(token);
-                            })
-                            .onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))))
-                            ;
+                            }).onErrorResume(throwable -> Mono.just(ResponseEntity.internalServerError().body(throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()))));
                 });
     }
 }

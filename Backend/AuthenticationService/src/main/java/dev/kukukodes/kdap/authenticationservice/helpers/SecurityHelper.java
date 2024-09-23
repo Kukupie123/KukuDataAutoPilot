@@ -2,15 +2,12 @@ package dev.kukukodes.kdap.authenticationservice.helpers;
 
 import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthentication;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@RequestScope
 @Component
 public class SecurityHelper {
     public Mono<KDAPUserAuthentication> getKDAPUserAuthentication() {
