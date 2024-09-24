@@ -7,6 +7,8 @@ import dev.kukukodes.kdap.dataBoxService.repo.IDataEntryRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Slf4j
@@ -24,7 +26,7 @@ public class DataEntryService {
         this.dataBoxService = dataBoxService;
     }
 
-    public DataEntry addDataEntryForBox(DataEntry dataEntry) {
+    public DataEntry addDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException {
         log.info("Adding  entry {} to box {}", dataEntry, dataEntry.getBoxID());
         DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
         boolean canAdd = dataEntryHelper.validateEntryForDataBox(dataBox.getFields(), dataEntry);
@@ -35,7 +37,7 @@ public class DataEntryService {
         return dataEntryRepo.addDateEntry(dataEntry);
     }
 
-    public boolean updateDataEntryForBox(DataEntry dataEntry) {
+    public boolean updateDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException {
         log.info("Updating  entry {} to box {}", dataEntry, dataEntry.getBoxID());
         DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
         boolean canUpdate = dataEntryHelper.validateEntryForDataBox(dataBox.getFields(), dataEntry);

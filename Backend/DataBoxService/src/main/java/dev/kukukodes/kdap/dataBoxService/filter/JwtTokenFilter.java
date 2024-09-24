@@ -42,7 +42,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
         KDAPUserDTO userData = userService.getUserFromToken(token);
         log.info("got user data from authentication service : {}", userData);
-        var authenticationUser = Objects.requireNonNull(userData).getKDAPUser();
+        if(userData == null){
+            log.warn("Failed to authenticate user");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        var authenticationUser = userData.getKDAPUser();
         SecurityContextHolder.setContext(new SecurityContextImpl(authenticationUser));
         filterChain.doFilter(request, response);
     }

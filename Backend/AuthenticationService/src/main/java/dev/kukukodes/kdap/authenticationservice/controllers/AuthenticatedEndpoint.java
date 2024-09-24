@@ -2,13 +2,43 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.dto.user.UserRequestDTO;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.InvalidPropertiesFormatException;
+
+/**
+ * Endpoints:
+ * <p>
+ * GET '/'
+ *      - Returns {@link UserRequestDTO} info based on the JWT token in the Bearer Authorization header.
+ * <p>
+ * GET '/{id}'
+ *      - Returns {@link UserRequestDTO} for the specified user.
+ *      - Access is denied if attempting to retrieve info of another user without Admin role.
+ * <p>
+ * PUT '/{id}'
+ *      - Update the specified user.
+ *      - Access is denied if attempting to update another user without Admin role.
+ * <p>
+ * PUT '/'
+ *      - Update user info based on the user ID extracted from the JWT token in the Bearer Authorization header.
+ * <p>
+ * DELETE '/'
+ *      - Delete the user account based on the user ID extracted from the JWT token in the Bearer Authorization header.
+ * <p>
+ * DELETE '/{id}'
+ *      - Delete the specified user.
+ *      - Access is denied unless the requester has Admin role.
+ */
 
 @Slf4j
 @RestController
@@ -21,13 +51,27 @@ public class AuthenticatedEndpoint {
         this.userService = userService;
     }
 
+
+    @GetMapping("/")
+    public Mono<ResponseEntity<UserRequestDTO>> getUserFromToken(@RequestHeader("Authorization") String authToken, @Value("${superemail}") String superEmail) {
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            return Mono.error(new InvalidPropertiesFormatException("Bearer token is invalid"));
+        }
+        log.info("Getting user from token");
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .cast(KDAPUserAuthentication.class)
+                .flatMap(kdapUserAuthentication -> userService.getUserById(kdapUserAuthentication.getId()))
+                .map(user -> ResponseEntity.ok(UserRequestDTO.fromUserEntity(user, true, superEmail)));
+    }
+
     /**
      * Get user data. Access will be denied if attempting to get user Data of someone else without having admin role
      * <p>
      * Eg :- '/userID'
      * <p>
      *
-     * @return {@link UserRequestDTO}
+     * @return  {@link UserRequestDTO}
      */
     @GetMapping("/{id}")
     public Mono<ResponseEntity<UserRequestDTO>> getUser(@PathVariable String id, @Value("${superemail}") String superEmail) {

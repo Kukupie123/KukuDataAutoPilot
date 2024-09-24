@@ -6,9 +6,14 @@ import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.model.KDAPAuthenticatedUser;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
 import dev.kukukodes.kdap.dataBoxService.publisher.DataBoxPublisher;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.FileNotFoundException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Slf4j
@@ -80,20 +85,20 @@ public class DataBoxService {
         return deleted;
     }
 
-    public DataBox getDatabox(String id) {
+    public DataBox getDatabox(String id) throws AccessDeniedException, FileNotFoundException {
+        var currentUser = securityHelper.getCurrentUser();
         DataBox db = cacheService.getDataBoxCache().getDataBox(id);
         if (db == null) {
             db = dataBoxRepo.getDataBoxByID(id);
             cacheService.getDataBoxCache().cacheDataBox(db);
         }
         if (db == null) {
-            log.info("DataBox with id {} not found", id);
-            return null;
+            throw new FileNotFoundException("Databox not found in database");
         }
-        if (!db.getUserID().equals(securityHelper.getCurrentUser().getUser().getId())) {
+        if (!db.getUserID().equals(currentUser.getUser().getId())) {
             if (securityHelper.getCurrentUser().getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
                 log.info("Access denied. Can't get databox with id {} as it belongs to user {} but logged in as {}", id, db.getUserID(), securityHelper.getCurrentUser().getUser().getId());
-                return null;
+                throw new AccessDeniedException(String.format("Logged in as %s but attempted to access databox of user %s without admin role", currentUser.getUser().getId(), db.getUserID()));
             }
         }
         log.info("Getting databox {} from collection", id);
@@ -102,9 +107,9 @@ public class DataBoxService {
 
     public List<DataBox> getDataboxOfUser(String userId) {
         KDAPAuthenticatedUser currentUser = securityHelper.getCurrentUser();
-        if(currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
-            if(!userId.equals(currentUser.getUser().getId())) {
-                log.info("Access denied. Can't get data boxes of user {} because logged in as {}", userId,currentUser.getUser().getId());
+        if (currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
+            if (!userId.equals(currentUser.getUser().getId())) {
+                log.info("Access denied. Can't get data boxes of user {} because logged in as {}", userId, currentUser.getUser().getId());
                 return List.of();
             }
         }

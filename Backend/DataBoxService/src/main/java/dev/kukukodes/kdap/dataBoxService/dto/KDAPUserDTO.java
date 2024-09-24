@@ -12,16 +12,15 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 public class KDAPUserDTO {
     private String id;
     private String email;
     private String name;
+    private String password;
     private LocalDate created;
     private LocalDate updated;
     private String picture;
-    private KDAPUserAuthority authority; //ADMIN, USER
-
+    private KDAPUserAuthority authority;
     public KDAPAuthenticatedUser getKDAPUser(){
         return new KDAPAuthenticatedUser(this);
     }

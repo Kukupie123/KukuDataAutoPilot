@@ -21,6 +21,10 @@ public class CacheService {
 
     class DataBoxCache {
         public void cacheDataBox(DataBox dataBox) {
+            if(dataBox == null) {
+                log.warn("DataBox is null skipping caching");
+                return;
+            }
             log.info("Caching databox {}", dataBox);
             cacheManager.getCache(dataBoxCacheName).put(dataBox.getId(), dataBox);
         }

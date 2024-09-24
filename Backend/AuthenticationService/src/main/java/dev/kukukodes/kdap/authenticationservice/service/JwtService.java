@@ -1,11 +1,10 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import dev.kukukodes.kdap.authenticationservice.constants.EnvNamesConst;
 import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -18,17 +17,11 @@ import java.util.Map;
 
 @Service
 public class JwtService {
-
     private final String key;
 
-    public JwtService(String jwtKey) {
+    public JwtService(@Value("${jwtkey}") String jwtKey) {
         this.key = jwtKey;
     }
-
-    public JwtService() {
-        key = System.getenv(EnvNamesConst.JWT_KEY);
-    }
-
     public String generateJwtToken(Claims claims) {
         return Jwts.builder()
                 .claims(claims)

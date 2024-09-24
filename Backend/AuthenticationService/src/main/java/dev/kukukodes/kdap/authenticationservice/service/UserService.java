@@ -127,7 +127,7 @@ public class UserService {
                             }
                         }
                         //Attempt to return cached value. If not found return from database and cache the result
-                        UserEntity user = cacheService.getUser(kdapUserAuthentication.getId());
+                        UserEntity user = cacheService.getUser(id);
                         if (user != null) {
                             return Mono.just(user);
                         }
