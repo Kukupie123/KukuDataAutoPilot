@@ -2,6 +2,7 @@ package dev.kukukodes.kdap.authenticationservice.models;
 
 import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,11 +13,12 @@ import java.util.List;
 
 @Slf4j
 @Getter
+@Setter
 public class KDAPUserAuthentication implements Authentication {
     //The token that was used to extract user data
     private final String jwtToken;
     private final String id;
-    private final UserRole userRole;
+    private UserRole userRole;
     private final boolean authenticated;
 
     List<GrantedAuthority> authorities;

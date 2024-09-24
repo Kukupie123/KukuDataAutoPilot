@@ -20,21 +20,21 @@ public class UserService {
     private final CacheService cacheService;
     private final SecurityHelper securityHelper;
     private final UserEventPublisher userEventPublisher;
-    private final boolean allowSuper;
+    private final boolean fullAccess; //If true, will ignore current user's role
 
-    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean allowSuper) {
+    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean fullAccess) {
         this.userRepo = userRepo;
         this.cacheService = cacheService;
         this.securityHelper = securityHelper;
         this.userEventPublisher = userEventPublisher;
-        this.allowSuper = allowSuper;
+        this.fullAccess = fullAccess;
     }
 
     /**
      * Adds a new user to database. ONLY ADMIN can do it
      */
     public Mono<UserEntity> addUser(UserEntity userToAdd) {
-        if (!allowSuper)
+        if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
                         if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
@@ -53,7 +53,7 @@ public class UserService {
      */
     public Mono<UserEntity> updateUser(UserEntity user) {
         Mono<String> idMono;
-        if (!allowSuper) {
+        if (!fullAccess) {
             log.info("No super access. Checking security user");
             idMono = isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     // Needs to be admin or else only allowed to update self info
@@ -113,7 +113,7 @@ public class UserService {
     }
 
     public Mono<UserEntity> getUserById(String id) {
-        if (!allowSuper)
+        if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
                         if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
@@ -142,7 +142,7 @@ public class UserService {
     }
 
     public Mono<Boolean> deleteUser(String userID) {
-        if (!allowSuper)
+        if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
                         if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
