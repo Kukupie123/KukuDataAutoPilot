@@ -15,10 +15,8 @@ import java.util.List;
  */
 @Getter
 @RequestScope
-@Component
 public class KDAPAuthenticatedUser implements Authentication {
     private final KDAPUser user;
-
     public KDAPAuthenticatedUser(KDAPUser userData) {
         this.user = userData;
     }

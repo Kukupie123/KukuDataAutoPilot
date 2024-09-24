@@ -8,6 +8,7 @@ import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -38,10 +39,12 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
                 .map(PreAuthenticatedAuthenticationToken::getCredentials)
                 .cast(String.class)
                 .flatMap(this::authenticateToken)
-                .doOnError(e -> log.error("JWT Authentication Failed: {}", e.getMessage()))
-                .onErrorResume(e -> Mono.empty());
+                .onErrorResume(e -> {
+                    log.error("JWT Authentication Failed: {}", e.getMessage());
+                    //Important to not return empty mono.
+                    return Mono.just(authentication);
+                });
     }
-
     private Mono<Authentication> authenticateToken(String token) {
         return Mono.fromCallable(() -> jwtService.extractClaimsFromJwtToken(token))
                 .map(Claims::getSubject)

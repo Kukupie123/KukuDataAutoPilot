@@ -14,12 +14,7 @@ public class KDAPUser {
     private String id;
     private String email;
     private String name;
-    private String password;
     private LocalDate created;
-    private LocalDate updated;
     private String picture;
     private KDAPUserAuthority authority;
-    public KDAPAuthenticatedUser getKDAPUser(){
-        return new KDAPAuthenticatedUser(this);
-    }
 }

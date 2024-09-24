@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.filter;
 
+import dev.kukukodes.kdap.dataBoxService.model.user.KDAPAuthenticatedUser;
 import dev.kukukodes.kdap.dataBoxService.model.user.KDAPUser;
 import dev.kukukodes.kdap.dataBoxService.helper.RequestHelper;
 import dev.kukukodes.kdap.dataBoxService.service.KDAPUserService;
@@ -39,15 +40,21 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        KDAPUser userData = userService.getUserFromToken(token);
-        log.info("got user data from authentication service : {}", userData);
-        if(userData == null){
-            log.warn("Failed to authenticate user");
+        KDAPUser userData = null;
+        try {
+            userData = userService.getUserFromToken(token);
+        } catch (Exception e) {
+            log.error("Failed to get user info from authentication service because {}", e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
-        var authenticationUser = userData.getKDAPUser();
-        SecurityContextHolder.setContext(new SecurityContextImpl(authenticationUser));
+        log.info("got user data from authentication service : {}", userData);
+        if (userData == null) {
+            log.error("Failed to authenticate user");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        SecurityContextHolder.getContext().setAuthentication(new KDAPAuthenticatedUser(userData));
         filterChain.doFilter(request, response);
     }
 }

@@ -14,8 +14,13 @@ public class KDAPUserService {
         this.authenticationServiceComs = authenticationServiceComs;
     }
 
-    public KDAPUser getUserFromToken(String jwtToken){
+    public KDAPUser getUserFromToken(String jwtToken) throws Exception {
         log.info("Attempting to get user from token {}", jwtToken);
-        return authenticationServiceComs.getUserData("Bearer " + jwtToken);
+
+        var resp = authenticationServiceComs.getUserData("Bearer " + jwtToken);
+        if (!resp.getStatusCode().is2xxSuccessful()) {
+            throw new Exception(resp.getBody().getMessage());
+        }
+        return resp.getBody().getData();
     }
 }
