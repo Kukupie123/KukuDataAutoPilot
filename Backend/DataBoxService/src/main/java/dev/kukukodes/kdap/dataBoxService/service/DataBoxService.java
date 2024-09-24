@@ -5,9 +5,8 @@ import dev.kukukodes.kdap.dataBoxService.enums.KDAPUserAuthority;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.model.KDAPAuthenticatedUser;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
+import dev.kukukodes.kdap.dataBoxService.publisher.DataBoxPublisher;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,16 +17,15 @@ public class DataBoxService {
     private final IDataBoxRepo dataBoxRepo;
     private final SecurityHelper securityHelper;
     private final CacheService cacheService;
+    private final DataBoxPublisher dataBoxPublisher;
 
-    public DataBoxService(IDataBoxRepo dataBoxRepo, SecurityHelper securityHelper, CacheService cacheService) {
+    public DataBoxService(IDataBoxRepo dataBoxRepo, SecurityHelper securityHelper, CacheService cacheService, DataBoxPublisher dataBoxPublisher) {
         this.dataBoxRepo = dataBoxRepo;
         this.securityHelper = securityHelper;
         this.cacheService = cacheService;
+        this.dataBoxPublisher = dataBoxPublisher;
     }
 
-    /**
-     * Add the databox for user. Checks current user's authority
-     */
     public DataBox addDatabox(DataBox dataBox) {
         KDAPUserAuthority authority = securityHelper.getCurrentUser().getUser().getAuthority();
         if (authority != KDAPUserAuthority.ADMIN) {
@@ -37,8 +35,11 @@ public class DataBoxService {
             }
         }
         log.info("Adding databox {} to collection", dataBox.getName());
-        return dataBoxRepo.addDataStore(dataBox);
-        //TODO: Publish event
+        DataBox addedDataBox = dataBoxRepo.addDataStore(dataBox);
+        if (addedDataBox != null) {
+            dataBoxPublisher.publishDataBoxAddedEvent(addedDataBox);
+        }
+        return addedDataBox;
     }
 
     public boolean updateDatabox(DataBox dataBox) {
@@ -50,15 +51,16 @@ public class DataBoxService {
             }
         }
         log.info("Updating databox {} to collection", dataBox.getName());
-        var updated = dataBoxRepo.updateDataStore(dataBox);
-        cacheService.clearDataBox(dataBox.getId());
+        boolean updated = dataBoxRepo.updateDataStore(dataBox);
+        if (updated) {
+            cacheService.getDataBoxCache().clearDataBox(dataBox.getId());
+            dataBoxPublisher.publishDataBoxUpdatedEvent(dataBox);
+        }
         return updated;
-        //TODO: Publish event
     }
 
     public boolean deleteDatabox(String id) {
-        //Get databox and verify its user
-        var db = dataBoxRepo.getDataBoxByID(id);
+        DataBox db = dataBoxRepo.getDataBoxByID(id);
         if (db == null) {
             log.info("DataBox with id {} not found", id);
             return false;
@@ -70,19 +72,19 @@ public class DataBoxService {
             }
         }
         log.info("Deleting databox {} from collection", id);
-        var deleted = dataBoxRepo.deleteDataBox(id);
+        boolean deleted = dataBoxRepo.deleteDataBox(id);
         if (deleted) {
-            cacheService.clearDataBox(id);
-            //TODO Publish event
+            cacheService.getDataBoxCache().clearDataBox(id);
+            dataBoxPublisher.publishDataBoxDeletedEvent(db);
         }
         return deleted;
     }
 
     public DataBox getDatabox(String id) {
-        var db = cacheService.getDataBox(id);
+        DataBox db = cacheService.getDataBoxCache().getDataBox(id);
         if (db == null) {
             db = dataBoxRepo.getDataBoxByID(id);
-            cacheService.cacheDataBox(db);
+            cacheService.getDataBoxCache().cacheDataBox(db);
         }
         if (db == null) {
             log.info("DataBox with id {} not found", id);
@@ -98,7 +100,6 @@ public class DataBoxService {
         return db;
     }
 
-    //Not caching list. You never know how big they might be
     public List<DataBox> getDataboxOfUser(String userId) {
         KDAPAuthenticatedUser currentUser = securityHelper.getCurrentUser();
         if(currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
@@ -110,5 +111,4 @@ public class DataBoxService {
         log.info("Getting databox of user {} from collection", userId);
         return dataBoxRepo.getDataStoresByUserID(userId);
     }
-
 }

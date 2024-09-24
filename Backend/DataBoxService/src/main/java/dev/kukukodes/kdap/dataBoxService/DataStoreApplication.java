@@ -14,9 +14,5 @@ public class DataStoreApplication {
         SpringApplication.run(DataStoreApplication.class, args);
     }
 
-    //TODO: Verification for userID for data box and data entry
-    //TODO: caching for services
     //TODO: Service tests once complete
-    //TODO: message broker
-    //TODO: Super role check again.
 }
