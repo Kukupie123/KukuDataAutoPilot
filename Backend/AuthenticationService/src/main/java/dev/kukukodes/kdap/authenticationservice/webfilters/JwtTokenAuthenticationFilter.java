@@ -26,16 +26,16 @@ public class JwtTokenAuthenticationFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        log.info("Attempting to extract token from Authorization header");
+        log.debug("Attempting to extract token from Authorization header");
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.info("No Authorization header found");
+            log.debug("No Authorization header found");
             return chain.filter(exchange);
         }
 
         String token = authHeader.substring(7);
-        log.info("Extracted token from header. Authenticating...");
+        log.debug("Extracted token from header. Authenticating...");
 
         Authentication auth = new PreAuthenticatedAuthenticationToken(token, token);
 
