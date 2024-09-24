@@ -85,9 +85,12 @@ public class UserService {
                         log.warn("Nothing to update");
                         return Mono.just(dbUser);
                     }
-
+                    user.setUpdated(LocalDate.now());
+                    user.setCreated(dbUser.getCreated());
                     log.info("Updating user info from {} to {}", dbUser, user);
                     dbUser.setUpdated(LocalDate.now());
+                    //Preventing updating created time by others
+                    dbUser.setCreated(dbUser.getCreated());
 
                     // Only update fields that are non-null in the incoming user object
                     if (user.getPassword() != null) {

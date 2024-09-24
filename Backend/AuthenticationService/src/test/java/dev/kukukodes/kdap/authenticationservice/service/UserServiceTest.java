@@ -6,169 +6,181 @@ import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.access.AccessDeniedException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.LocalDate;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class UserServiceTest {
+
     @Mock
-    IUserRepo userRepo;
+    private IUserRepo userRepo;
+
     @Mock
-    CacheService cacheService;
+    private CacheService cacheService;
+
     @Mock
-    UserEventPublisher userEventPublisher;
+    private SecurityHelper securityHelper;
+
     @Mock
-    SecurityHelper securityHelper;
-    UserService userService;
-    private helper helper;
+    private UserEventPublisher userEventPublisher;
+
+    private UserService userService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        helper = new helper(userRepo, cacheService, userEventPublisher, securityHelper);
+        userService = new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
     }
 
-    @AfterEach
-    void tearDown() {
-        userService = null;
-    }
-
-    /**
-     * Expected to be able to create user as we have full access. UserRole is ignored
-     */
     @Test
-    void addUser_FullAccess_Admin() {
-        var testUser = helper.createTestUser();
-        helper.getSecurityHelper_helper().when_getKDAPUserAuthentication(securityHelper, UserRole.ADMIN);
-        helper.getUserRepo_helper().when_userRepo_addUser(userRepo, testUser, testUser);
-        userService = helper.createUserService(true);
+    void addUser_AdminRole_Success() {
+        // Arrange
+        UserEntity userToAdd = new UserEntity();
+        userToAdd.setId("user1");
 
-        StepVerifier.create(userService.addUser(testUser))
-                .assertNext(user -> {
-                    Assertions.assertThat(user).isNotNull();
-                    Assertions.assertThat(user.getId()).isNotNull();
-                    Assertions.assertThat(user.getId()).isEqualTo(testUser.getId());
-                    Assertions.assertThat(user.getName()).isEqualTo(testUser.getName());
-                    Assertions.assertThat(user.getEmail()).isEqualTo(testUser.getEmail());
-                    Assertions.assertThat(user.getPassword()).isEqualTo(testUser.getPassword());
-                    Assertions.assertThat(user.getPicture()).isEqualTo(testUser.getPicture());
-                }).verifyComplete();
+        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","user1", UserRole.ADMIN, true);
 
+        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(adminAuth));
+        when(userRepo.addUser(userToAdd)).thenReturn(Mono.just(userToAdd));
+
+        // Act
+        Mono<UserEntity> result = userService.addUser(userToAdd);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(userToAdd)
+                .verifyComplete();
+
+        verify(userRepo, times(1)).addUser(userToAdd);
+        verify(userEventPublisher, times(1)).publishUserAddedEvent(userToAdd);
     }
 
-    /**
-     * Expected to be able to create user as we have full access. UserRole is ignored
-     */
     @Test
-    void addUser_FullAccess_User() {
-        var testUser = helper.createTestUser();
-        helper.getSecurityHelper_helper().when_getKDAPUserAuthentication(securityHelper, UserRole.USER);
-        helper.getUserRepo_helper().when_userRepo_addUser(userRepo, testUser, testUser);
-        userService = helper.createUserService(true);
-        StepVerifier.create(userService.addUser(testUser))
-                .assertNext(user -> {
-                    Assertions.assertThat(user).isNotNull();
-                    Assertions.assertThat(user.getId()).isNotNull();
-                    Assertions.assertThat(user.getId()).isEqualTo(testUser.getId());
-                    Assertions.assertThat(user.getName()).isEqualTo(testUser.getName());
-                    Assertions.assertThat(user.getEmail()).isEqualTo(testUser.getEmail());
-                    Assertions.assertThat(user.getPassword()).isEqualTo(testUser.getPassword());
-                    Assertions.assertThat(user.getPicture()).isEqualTo(testUser.getPicture());
-                }).verifyComplete();
+    void addUser_NonAdminRole_AccessDenied() {
+        // Arrange
+        UserEntity userToAdd = new UserEntity();
+        KDAPUserAuthentication nonAdminAuth = new KDAPUserAuthentication("token","user2", UserRole.USER, true);
+
+        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(nonAdminAuth));
+
+        // Act
+        Mono<UserEntity> result = userService.addUser(userToAdd);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectError(AccessDeniedException.class)
+                .verify();
+
+        verify(userRepo, never()).addUser(any(UserEntity.class));
+        verify(userEventPublisher, never()).publishUserAddedEvent(any());
     }
 
-    /**
-     * Expected to be able to add users because role is Admin
-     */
     @Test
-    void addUser_NotFullAccess_Admin() {
-        var testUser = helper.createTestUser();
-        helper.getSecurityHelper_helper().when_getKDAPUserAuthentication(securityHelper, UserRole.ADMIN);
-        helper.getUserRepo_helper().when_userRepo_addUser(userRepo, testUser, testUser);
-        userService = helper.createUserService(false);
+    void updateUser_SameUser_Success() {
+        // Arrange
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId("user1");
+        existingUser.setEmail("oldEmail");
 
-        StepVerifier.create(userService.addUser(testUser))
-                .assertNext(user -> {
-                    Assertions.assertThat(user).isNotNull();
-                    Assertions.assertThat(user.getId()).isNotNull();
-                    Assertions.assertThat(user.getId()).isEqualTo(testUser.getId());
-                    Assertions.assertThat(user.getName()).isEqualTo(testUser.getName());
-                    Assertions.assertThat(user.getEmail()).isEqualTo(testUser.getEmail());
-                    Assertions.assertThat(user.getPassword()).isEqualTo(testUser.getPassword());
-                    Assertions.assertThat(user.getPicture()).isEqualTo(testUser.getPicture());
-                }).verifyComplete();
+        UserEntity updatedUser = new UserEntity();
+        updatedUser.setId("user1");
+        updatedUser.setEmail("newEmail");
+
+        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", UserRole.USER, true);
+
+        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
+        when(userRepo.getUserByID("user1")).thenReturn(Mono.just(existingUser));
+        when(userRepo.updateUser(any(UserEntity.class))).thenReturn(Mono.just(updatedUser));
+
+        // Act
+        Mono<UserEntity> result = userService.updateUser(updatedUser);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(updatedUser)
+                .verifyComplete();
+
+        verify(userRepo, times(1)).updateUser(updatedUser);
+        verify(cacheService, times(1)).removeUser("user1");
+        verify(userEventPublisher, times(1)).publishUserUpdatedEvent(updatedUser);
     }
 
-    /**
-     * Expected to not be able to add users as not admin and no full access
-     */
     @Test
-    void addUser_NotFullAccess_User() {
-        var testUser = helper.createTestUser();
-        helper.getSecurityHelper_helper().when_getKDAPUserAuthentication(securityHelper, UserRole.USER);
-        helper.getUserRepo_helper().when_userRepo_addUser(userRepo, testUser, testUser);
-        userService = helper.createUserService(false);
+    void updateUser_OtherUser_AccessDenied() {
+        // Arrange
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId("user2");
 
-        StepVerifier.create(userService.addUser(testUser))
-                .expectError(AccessDeniedException.class).verify();
-    }
-}
+        UserEntity updatedUser = new UserEntity();
+        updatedUser.setId("user1");
 
+        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user2", UserRole.USER, true);
 
-@RequiredArgsConstructor
-class helper {
-    final IUserRepo userRepo;
-    final CacheService cacheService;
-    final UserEventPublisher userEventPublisher;
-    final SecurityHelper securityHelper;
-    @Getter
-    private final securityHelper_helper securityHelper_helper = new securityHelper_helper();
-    @Getter
-    private final userRepo_helper userRepo_helper = new userRepo_helper();
-    @Getter
-    private final userEventPublisher_helper userEventPublisher_helper = new userEventPublisher_helper();
+        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
 
-    public UserService createUserService(boolean fullAccess) {
-        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, fullAccess);
+        // Act
+        Mono<UserEntity> result = userService.updateUser(updatedUser);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectError(AccessDeniedException.class)
+                .verify();
+
+        verify(userRepo, never()).updateUser(any(UserEntity.class));
+        verify(cacheService, never()).removeUser(anyString());
+        verify(userEventPublisher, never()).publishUserUpdatedEvent(any());
     }
 
-    public UserEntity createTestUser() {
-        return new UserEntity("1", "testName", "", LocalDate.now(), LocalDate.now(), "testMail", "pic");
+    @Test
+    void getUserById_SuccessFromCache() {
+        // Arrange
+        UserEntity cachedUser = new UserEntity();
+        cachedUser.setId("user1");
+
+        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", UserRole.USER, true);
+
+        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
+        when(cacheService.getUser("user1")).thenReturn(cachedUser);
+
+        // Act
+        Mono<UserEntity> result = userService.getUserById("user1");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(cachedUser)
+                .verifyComplete();
+
+        verify(userRepo, never()).getUserByID(anyString());
+        verify(cacheService, never()).cacheUser(any());
     }
 
+    @Test
+    void deleteUser_AdminRole_Success() {
+        // Arrange
+        String userId = "user1";
+        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","admin", UserRole.ADMIN, true);
 
-    class securityHelper_helper {
-        public void when_getKDAPUserAuthentication(SecurityHelper securityHelper, UserRole role) {
-            Mockito.when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(new KDAPUserAuthentication("token", "1", role, true)));
-        }
-    }
+        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(adminAuth));
+        when(userRepo.deleteUserByID(userId)).thenReturn(Mono.just(true));
 
-    class userRepo_helper {
-        public void when_userRepo_addUser(IUserRepo userRepo, UserEntity userParam, UserEntity userToReturn) {
-            Mockito.when(userRepo.addUser(userParam)).thenReturn(Mono.just(userToReturn));
-        }
-    }
+        // Act
+        Mono<Boolean> result = userService.deleteUser(userId);
 
-    class userEventPublisher_helper {
-        public void when_userAdded(UserEventPublisher userEventPublisher, UserEntity userAdded) {
-            Mockito.doAnswer(invocation -> {
-                // Print something when the method is invoked
-                System.out.println("publishUserUpdatedEvent called with: " + userAdded);
-                return null; // Void method, so return null
-            }).when(userEventPublisher).publishUserUpdatedEvent(userAdded);
-        }
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(true)
+                .verifyComplete();
 
-
+        verify(userRepo, times(1)).deleteUserByID(userId);
+        verify(cacheService, times(1)).removeUser(userId);
+        verify(userEventPublisher, times(1)).publishUserDeletedEvent(userId);
     }
 }
