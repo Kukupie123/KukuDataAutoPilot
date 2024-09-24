@@ -7,8 +7,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 
 @SpringBootApplication
-@EnableCaching
-@EnableRabbit
 public class AuthenticationServiceApplication {
 
     public static void main(String[] args) {
