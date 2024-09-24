@@ -58,8 +58,4 @@ public class KDAPAuthenticatedUser implements Authentication {
     public String getName() {
         return user.getName();
     }
-
-    public static KDAPAuthenticatedUser GetSecurityUser(){
-        return (KDAPAuthenticatedUser) SecurityContextHolder.getContext().getAuthentication();
-    }
 }

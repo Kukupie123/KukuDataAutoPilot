@@ -19,7 +19,6 @@ import java.util.List;
 public class DataBoxRepoMongo implements IDataBoxRepo {
 
     private final MongoTemplate template;
-
     public DataBoxRepoMongo(MongoTemplate template) {
         this.template = template;
     }
