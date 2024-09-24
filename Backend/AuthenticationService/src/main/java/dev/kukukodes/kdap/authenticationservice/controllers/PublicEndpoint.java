@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
+import dev.kukukodes.kdap.authenticationservice.models.ResponseModel;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -27,35 +28,35 @@ public class PublicEndpoint {
     final GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
-    private final UserEventPublisher userEventPublisher;
 
     public PublicEndpoint(GoogleAuthService googleAuthService, @Qualifier("ADMIN") UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
-        this.userEventPublisher = userEventPublisher;
     }
 
     /**
      * @return URI to login to google.
      */
     @GetMapping("/login/google")
-    public Mono<ResponseEntity<String>> getGoogleLoginURL() {
+    public Mono<ResponseEntity<ResponseModel<String>>> getGoogleLoginURL() {
         log.info("Getting URL Login");
-        return googleAuthService.createOAuth2AuthReq().map(oAuth2AuthorizationRequest -> ResponseEntity.ok(oAuth2AuthorizationRequest.getAuthorizationRequestUri())).defaultIfEmpty(ResponseEntity.status(404).body("Google Provider not registered."));
+        return googleAuthService
+                .createOAuth2AuthReq()
+                .map(oAuth2AuthorizationRequest -> ResponseModel.success("generated login url", oAuth2AuthorizationRequest.getAuthorizationRequestUri()))
+                .defaultIfEmpty(ResponseModel.buildResponse("Google Provider not registered.", null, 404));
     }
 
     /**
      * Redirect URL that needs to be hit by the provider.
      * This functions Authorizes the user, store the user info in database and generates JWT Token
-     *
+     * <p>
      * @return JWT Token whose subject is userID, and user info as claims.
      */
     @GetMapping("/redirect/google")
     public Mono<ResponseEntity<String>> handleGoogleRedirect(ServerWebExchange exchange) {
         String code = exchange.getRequest().getQueryParams().getFirst("code");
         String state = exchange.getRequest().getQueryParams().getFirst("state");
-
         //Get token response
         return googleAuthService.getTokenResponse(code, state)
                 //get user from token response

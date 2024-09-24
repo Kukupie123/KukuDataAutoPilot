@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.filter;
 
-import dev.kukukodes.kdap.dataBoxService.dto.KDAPUserDTO;
+import dev.kukukodes.kdap.dataBoxService.model.user.KDAPUser;
 import dev.kukukodes.kdap.dataBoxService.helper.RequestHelper;
 import dev.kukukodes.kdap.dataBoxService.service.KDAPUserService;
 import jakarta.servlet.FilterChain;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Extracts token from bearer authorization header and creates an authentication object with its credential set to the token.
@@ -40,7 +39,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        KDAPUserDTO userData = userService.getUserFromToken(token);
+        KDAPUser userData = userService.getUserFromToken(token);
         log.info("got user data from authentication service : {}", userData);
         if(userData == null){
             log.warn("Failed to authenticate user");

@@ -5,7 +5,6 @@ import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthen
 import dev.kukukodes.kdap.authenticationservice.repo.UserRepo;
 import dev.kukukodes.kdap.authenticationservice.service.CacheService;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
-import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,18 +18,16 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtTokenAuthenticationManager implements ReactiveAuthenticationManager {
     private final JwtService jwtService;
-    private final UserService userService;
     private final String superEmail;
     //Direct access to userRepo required because userService's operations valid authenticated user
     private final UserRepo userRepo;
-    private final CacheService cacheServer;
+    private final CacheService cacheService;
 
-    public JwtTokenAuthenticationManager(JwtService jwtService, UserService userService, @Value("${superemail}") String superEmail, UserRepo userRepo, CacheService cacheServer) {
+    public JwtTokenAuthenticationManager(JwtService jwtService, @Value("${superemail}") String superEmail, UserRepo userRepo, CacheService cacheService) {
         this.jwtService = jwtService;
-        this.userService = userService;
         this.superEmail = superEmail;
         this.userRepo = userRepo;
-        this.cacheServer = cacheServer;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -49,9 +46,9 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
         return Mono.fromCallable(() -> jwtService.extractClaimsFromJwtToken(token))
                 .map(Claims::getSubject)
                 .flatMap(userID -> {
-                    var user = cacheServer.getUser(userID);
+                    var user = cacheService.getUser(userID);
                     if (user == null) {
-                        return userRepo.getUserByID(userID).doOnSuccess(cacheServer::cacheUser);
+                        return userRepo.getUserByID(userID).doOnSuccess(cacheService::cacheUser);
                     }
                     return Mono.justOrEmpty(user);
                 })

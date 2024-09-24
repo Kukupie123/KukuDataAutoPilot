@@ -88,7 +88,7 @@ public class AuthenticatedEndpoint {
         return userService.getUserById(id)
                 //Do not send password
                 .map(this::removeSensitiveData)
-                .flatMap(userRequestDTO -> Mono.just(ResponseModel.success("Received", userRequestDTO)))
+                .flatMap(user -> Mono.just(ResponseModel.success("Received", user)))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
                 ;
     }

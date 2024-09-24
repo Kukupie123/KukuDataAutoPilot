@@ -3,14 +3,11 @@ package dev.kukukodes.kdap.dataBoxService.service;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.enums.KDAPUserAuthority;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
-import dev.kukukodes.kdap.dataBoxService.model.KDAPAuthenticatedUser;
+import dev.kukukodes.kdap.dataBoxService.model.user.KDAPAuthenticatedUser;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
 import dev.kukukodes.kdap.dataBoxService.publisher.DataBoxPublisher;
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.FileNotFoundException;
 import java.nio.file.AccessDeniedException;

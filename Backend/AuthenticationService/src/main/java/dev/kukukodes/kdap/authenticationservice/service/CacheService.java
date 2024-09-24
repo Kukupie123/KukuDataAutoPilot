@@ -22,12 +22,18 @@ public class CacheService {
     }
 
     public KDAPUserEntity getUser(String id) {
-        var user = cacheManager.getCache(userCacheName).get(id, KDAPUserEntity.class);
-        if (user == null) {
-            log.info("No user cached with key {}", id);
+        try {
+            var user = cacheManager.getCache(userCacheName).get(id, KDAPUserEntity.class);
+            if (user == null) {
+                log.info("No user cached with key {}", id);
+            }
+            log.info("Returning cached user {}", id);
+            return user;
+        } catch (IllegalStateException e) {
+            cacheManager.getCache(userCacheName).evict(id);
+            return null;
         }
-        log.info("Returning cached user {}", id);
-        return user;
+
     }
 
     public void removeUser(String id) {

@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.entity.user;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)//Do not include null fields
 public class KDAPUserEntity implements Serializable {
     @Id
     @Column(DbConst.ColumnNames.ID)

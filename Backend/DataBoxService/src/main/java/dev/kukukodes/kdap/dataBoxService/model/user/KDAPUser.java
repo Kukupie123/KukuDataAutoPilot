@@ -1,18 +1,16 @@
-package dev.kukukodes.kdap.dataBoxService.dto;
+package dev.kukukodes.kdap.dataBoxService.model.user;
 
 import dev.kukukodes.kdap.dataBoxService.enums.KDAPUserAuthority;
-import dev.kukukodes.kdap.dataBoxService.model.KDAPAuthenticatedUser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class KDAPUserDTO {
+public class KDAPUser {
     private String id;
     private String email;
     private String name;

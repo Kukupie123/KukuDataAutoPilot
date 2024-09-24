@@ -1,11 +1,9 @@
-package dev.kukukodes.kdap.dataBoxService.model;
+package dev.kukukodes.kdap.dataBoxService.model.user;
 
-import dev.kukukodes.kdap.dataBoxService.dto.KDAPUserDTO;
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -19,9 +17,9 @@ import java.util.List;
 @RequestScope
 @Component
 public class KDAPAuthenticatedUser implements Authentication {
-    private final KDAPUserDTO user;
+    private final KDAPUser user;
 
-    public KDAPAuthenticatedUser(KDAPUserDTO userData) {
+    public KDAPAuthenticatedUser(KDAPUser userData) {
         this.user = userData;
     }
 

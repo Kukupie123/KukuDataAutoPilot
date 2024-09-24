@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.service;
 
-import dev.kukukodes.kdap.dataBoxService.dto.KDAPUserDTO;
+import dev.kukukodes.kdap.dataBoxService.model.user.KDAPUser;
 import dev.kukukodes.kdap.dataBoxService.interServiceCommunication.clients.AuthenticationServiceComs;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class KDAPUserService {
         this.authenticationServiceComs = authenticationServiceComs;
     }
 
-    public KDAPUserDTO getUserFromToken(String jwtToken){
+    public KDAPUser getUserFromToken(String jwtToken){
         log.info("Attempting to get user from token {}", jwtToken);
         return authenticationServiceComs.getUserData("Bearer " + jwtToken);
     }
