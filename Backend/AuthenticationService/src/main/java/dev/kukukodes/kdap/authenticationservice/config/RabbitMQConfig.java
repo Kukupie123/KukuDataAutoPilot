@@ -8,29 +8,26 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    private final String userUpdatedQueueName;
-    private final String userExchangeName;
-    private final String routeKeyName;
+    @Value("${rabbitmq.queue.user.updated}")
+    private String userUpdatedQueueName;
 
-    public RabbitMQConfig(@Value("${rabbitmq.queue.user.updated}") String userQueueName, @Value("${rabbitmq.exchange.user}") String userExchangeName, @Value("${rabbitmq.route.user.updated}") String routeKeyName) {
-        this.userUpdatedQueueName = userQueueName;
-        this.userExchangeName = userExchangeName;
-        this.routeKeyName = routeKeyName;
-    }
+    @Value("${rabbitmq.exchange.user}")
+    private String userExchangeName;
 
-    /**
-     * Direct Exchange sends message to all queues routed to the bound routing key
-     */
+    @Value("${rabbitmq.route.user.updated}")
+    private String userUpdatedRouteKey;
+
+    @Value("${rabbitmq.route.user.added}")
+    private String userAddedRouteKey;
+
+    @Value("${rabbitmq.route.user.deleted}")
+    private String userDeletedRouteKey;
+
     @Bean
     public DirectExchange userEventsExchange() {
         return new DirectExchange(userExchangeName);
     }
 
-    /**
-     * Internal Queue used that stores the latest updated user, hence why it's length is 1.
-     * It has {spring.application.name} attached to it's start to make sure it's name isn't shared with other queues.
-     * This is to ensure that no other service accidentally consume its message.
-     */
     @Bean
     public Queue userUpdatedQueue() {
         return QueueBuilder.durable(userUpdatedQueueName)
@@ -39,10 +36,38 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding binding() {
+    public Queue userAddedQueue() {
+        return QueueBuilder.durable(userUpdatedQueueName.replace("updated", "added"))
+                .build();
+    }
+
+    @Bean
+    public Queue userDeletedQueue() {
+        return QueueBuilder.durable(userUpdatedQueueName.replace("updated", "deleted"))
+                .build();
+    }
+
+    @Bean
+    public Binding userUpdatedBinding() {
         return BindingBuilder
                 .bind(userUpdatedQueue())
                 .to(userEventsExchange())
-                .with(routeKeyName);
+                .with(userUpdatedRouteKey);
+    }
+
+    @Bean
+    public Binding userAddedBinding() {
+        return BindingBuilder
+                .bind(userAddedQueue())
+                .to(userEventsExchange())
+                .with(userAddedRouteKey);
+    }
+
+    @Bean
+    public Binding userDeletedBinding() {
+        return BindingBuilder
+                .bind(userDeletedQueue())
+                .to(userEventsExchange())
+                .with(userDeletedRouteKey);
     }
 }

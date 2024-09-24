@@ -9,63 +9,70 @@ import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.InputMismatchException;
 
-/**
- * Requires Authenticated access for most operations to function.
- */
 @Slf4j
-@Service
 public class UserService {
     private final IUserRepo userRepo;
     private final CacheService cacheService;
     private final SecurityHelper securityHelper;
     private final UserEventPublisher userEventPublisher;
+    private final boolean allowSuper;
 
-    UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
+    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean allowSuper) {
         this.userRepo = userRepo;
         this.cacheService = cacheService;
         this.securityHelper = securityHelper;
         this.userEventPublisher = userEventPublisher;
+        this.allowSuper = allowSuper;
     }
 
     /**
      * Adds a new user to database. ONLY ADMIN can do it
      */
     public Mono<UserEntity> addUser(UserEntity userToAdd) {
-        return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
-                .flatMap(kdapUserAuthentication -> {
-                    if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
-                        log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                        return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
-                    }
-                    return userRepo.addUser(userToAdd);
-                })
-                ;
-        //TODO: Publish user added event
+        if (!allowSuper)
+            return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
+                    .flatMap(kdapUserAuthentication -> {
+                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                            log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
+                            return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                        }
+                        return userRepo.addUser(userToAdd).doOnSuccess(userEventPublisher::publishUserAddedEvent);
+                    })
+                    ;
+        log.info("Adding user as a super user {}", userToAdd);
+        return userRepo.addUser(userToAdd).doOnSuccess(userEventPublisher::publishUserAddedEvent);
     }
 
     /**
      * Update existing user
      */
     public Mono<UserEntity> updateUser(UserEntity user) {
-        return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
-                // Needs to be admin or else only allowed to update self info
-                .flatMap(kdapUserAuthentication -> {
-                    if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
-                        if (!user.getId().equals(kdapUserAuthentication.getId())) {
-                            log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                            return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+        Mono<String> idMono;
+        if (!allowSuper) {
+            log.info("No super access. Checking security user");
+            idMono = isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
+                    // Needs to be admin or else only allowed to update self info
+                    .flatMap(kdapUserAuthentication -> {
+                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                            if (!user.getId().equals(kdapUserAuthentication.getId())) {
+                                log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
+                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                            }
                         }
-                    }
-                    return Mono.just(kdapUserAuthentication);
-                })
+                        return Mono.just(kdapUserAuthentication.getId());
+                    });
+        } else {
+            idMono = Mono.just(user.getId());
+        }
+
+        return idMono
                 //get user from database
-                .flatMap(kdapUserAuthentication -> userRepo.getUserByID(kdapUserAuthentication.getId()))
+                .flatMap(userRepo::getUserByID)
                 //compare the values to determine if they are different and update if not same
                 .flatMap(dbUser -> {
                     if (
@@ -97,46 +104,68 @@ public class UserService {
                     }
 
                     return userRepo.updateUser(dbUser)
-                            .doOnSuccess(updatedUser -> cacheService.removeUser(updatedUser.getId()));
-
+                            .doOnSuccess(updatedUser -> {
+                                cacheService.removeUser(updatedUser.getId());
+                                userEventPublisher.publishUserUpdatedEvent(updatedUser);
+                            });
                 })
                 ;
-        //TODO: Publish event
     }
 
     public Mono<UserEntity> getUserById(String id) {
+        if (!allowSuper)
+            return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
+                    .flatMap(kdapUserAuthentication -> {
+                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                            if (!id.equals(kdapUserAuthentication.getId())) {
+                                log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
+                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
 
-        return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
-                .flatMap(kdapUserAuthentication -> {
-                    if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
-                        if (!id.equals(kdapUserAuthentication.getId())) {
-                            log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                            return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
-
+                            }
                         }
-                    }
-                    return userRepo.getUserByID(id)
-                            .doOnSuccess(cacheService::cacheUser);
-                })
-                ;
+                        //Attempt to return cached value. If not found return from database and cache the result
+                        UserEntity user = cacheService.getUser(kdapUserAuthentication.getId());
+                        if (user != null) {
+                            return Mono.just(user);
+                        }
+                        return userRepo.getUserByID(id)
+                                .doOnSuccess(cacheService::cacheUser);
+                    })
+                    ;
+        log.info("Getting user by id {} as super user", id);
+        //Attempt to return cached value. If not found return from database and cache the result
+        UserEntity user = cacheService.getUser(id);
+        if (user != null) {
+            return Mono.just(user);
+        }
+        return userRepo.getUserByID(id).doOnSuccess(cacheService::cacheUser);
     }
 
     public Mono<Boolean> deleteUser(String userID) {
-        //TODO: publish event and cache evict
-        return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
-                .flatMap(kdapUserAuthentication -> {
-                    if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
-                        if (!userID.equals(kdapUserAuthentication.getId())) {
-                            log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                            return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+        if (!allowSuper)
+            return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
+                    .flatMap(kdapUserAuthentication -> {
+                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                            if (!userID.equals(kdapUserAuthentication.getId())) {
+                                log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
+                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                            }
                         }
-                    }
-                    return userRepo.deleteUserByID(userID).doOnSuccess(deleted -> {
-                        if (deleted)
-                            cacheService.removeUser(userID);
-                    });
-                })
-                ;
+                        return userRepo.deleteUserByID(userID).doOnSuccess(deleted -> {
+                            if (deleted) {
+                                cacheService.removeUser(userID);
+                                userEventPublisher.publishUserDeletedEvent(userID);
+                            }
+                        });
+                    })
+                    ;
+        log.info("Deleting user {} as super user", userID);
+        return userRepo.deleteUserByID(userID).doOnSuccess(deleted -> {
+            if (deleted) {
+                cacheService.removeUser(userID);
+                userEventPublisher.publishUserDeletedEvent(userID);
+            }
+        });
     }
 
 

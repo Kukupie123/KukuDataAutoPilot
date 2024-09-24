@@ -1,0 +1,27 @@
+package dev.kukukodes.kdap.authenticationservice.config;
+
+import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
+import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
+import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
+import dev.kukukodes.kdap.authenticationservice.service.CacheService;
+import dev.kukukodes.kdap.authenticationservice.service.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+@Configuration
+public class ServiceBeans {
+
+    @Bean()
+    @Primary
+    public UserService userService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
+        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
+    }
+
+    @Bean()
+    @Qualifier("ADMIN")
+    public UserService userServiceAdmin(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
+        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, true);
+    }
+}
