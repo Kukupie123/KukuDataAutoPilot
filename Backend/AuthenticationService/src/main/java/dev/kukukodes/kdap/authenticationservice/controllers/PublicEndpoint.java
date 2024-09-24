@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
-import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
+import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
@@ -67,7 +67,7 @@ public class PublicEndpoint {
                     return userService.getUserById(authUser.getSub())
                             .flatMap(userEntity -> {
                                 log.info("Found existing user");
-                                UserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, userEntity);
+                                KDAPUserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, userEntity);
                                 return userService.updateUser(updatedUser);
                             })
                             //Generate token based on user updated/added

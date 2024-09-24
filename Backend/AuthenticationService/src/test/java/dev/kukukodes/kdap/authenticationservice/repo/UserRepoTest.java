@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.repo;
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import io.r2dbc.spi.ConnectionFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,7 @@ class UserRepoTest {
 
     @Test
     void addUser() {
-        UserEntity user = new UserEntity();
+        KDAPUserEntity user = new KDAPUserEntity();
         user.setId("1");
         user.setName("testUser");
         user.setEmail("test@example.com");
@@ -47,7 +47,7 @@ class UserRepoTest {
 
     @Test
     void updateUser() {
-        UserEntity user = new UserEntity();
+        KDAPUserEntity user = new KDAPUserEntity();
         user.setId("1");
         user.setName("testUser");
         user.setEmail("test@example.com");
@@ -68,7 +68,7 @@ class UserRepoTest {
 
     @Test
     void getUserByID() {
-        UserEntity user = new UserEntity();
+        KDAPUserEntity user = new KDAPUserEntity();
         user.setId("1");
         user.setName("testUser");
         user.setEmail("test@example.com");
@@ -86,7 +86,7 @@ class UserRepoTest {
 
     @Test
     void deleteUserByID() {
-        UserEntity user = new UserEntity();
+        KDAPUserEntity user = new KDAPUserEntity();
         user.setId("1");
         user.setName("testUser");
         user.setEmail("test@example.com");

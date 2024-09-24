@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,13 @@ public class CacheService {
         this.cacheManager = cacheManager;
     }
 
-    public void cacheUser(UserEntity userEntity) {
-        log.info("Caching user {}", userEntity);
-        cacheManager.getCache(userCacheName).put(userEntity.getId(), userEntity);
+    public void cacheUser(KDAPUserEntity KDAPUserEntity) {
+        log.info("Caching user {}", KDAPUserEntity);
+        cacheManager.getCache(userCacheName).put(KDAPUserEntity.getId(), KDAPUserEntity);
     }
 
-    public UserEntity getUser(String id) {
-        var user = cacheManager.getCache(userCacheName).get(id, UserEntity.class);
+    public KDAPUserEntity getUser(String id) {
+        var user = cacheManager.getCache(userCacheName).get(id, KDAPUserEntity.class);
         if (user == null) {
             log.info("No user cached with key {}", id);
         }

@@ -1,8 +1,7 @@
-package dev.kukukodes.kdap.authenticationservice.entity;
+package dev.kukukodes.kdap.authenticationservice.entity.user;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
-import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,11 +12,12 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+
 @Table(DbConst.TableNames.USER_TABLE)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEntity implements Serializable {
+public class KDAPUserEntity implements Serializable {
     @Id
     @Column(DbConst.ColumnNames.ID)
     String id;
@@ -35,8 +35,8 @@ public class UserEntity implements Serializable {
     String picture;
 
     @Transient
-    public static UserEntity createUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle) {
-        return new UserEntity(
+    public static KDAPUserEntity createUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle) {
+        return new KDAPUserEntity(
                 oAuth2UserInfoGoogle.getSub(),
                 oAuth2UserInfoGoogle.getName(),
                 "",

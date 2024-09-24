@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,29 +35,29 @@ class CacheServiceTest {
     @Test
     void cacheUser_shouldCacheUserCorrectly() {
         // Arrange
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("123");
+        KDAPUserEntity KDAPUserEntity = new KDAPUserEntity();
+        KDAPUserEntity.setId("123");
 
         // Act
-        cacheService.cacheUser(userEntity);
+        cacheService.cacheUser(KDAPUserEntity);
 
         // Assert
-        verify(userCache).put(eq(userEntity.getId()), eq(userEntity));
+        verify(userCache).put(eq(KDAPUserEntity.getId()), eq(KDAPUserEntity));
     }
 
     @Test
     void getUser_shouldReturnCachedUserWhenExists() {
         // Arrange
         String userId = "123";
-        UserEntity cachedUser = new UserEntity();
+        KDAPUserEntity cachedUser = new KDAPUserEntity();
         cachedUser.setId(userId);
-        when(userCache.get(userId, UserEntity.class)).thenReturn(cachedUser);
+        when(userCache.get(userId, KDAPUserEntity.class)).thenReturn(cachedUser);
 
         // Act
-        UserEntity result = cacheService.getUser(userId);
+        KDAPUserEntity result = cacheService.getUser(userId);
 
         // Assert
-        verify(userCache).get(eq(userId), eq(UserEntity.class));
+        verify(userCache).get(eq(userId), eq(KDAPUserEntity.class));
         assertThat(result).isEqualTo(cachedUser);
     }
 
@@ -65,13 +65,13 @@ class CacheServiceTest {
     void getUser_shouldReturnNullWhenUserNotCached() {
         // Arrange
         String userId = "123";
-        when(userCache.get(userId, UserEntity.class)).thenReturn(null);
+        when(userCache.get(userId, KDAPUserEntity.class)).thenReturn(null);
 
         // Act
-        UserEntity result = cacheService.getUser(userId);
+        KDAPUserEntity result = cacheService.getUser(userId);
 
         // Assert
-        verify(userCache).get(eq(userId), eq(UserEntity.class));
+        verify(userCache).get(eq(userId), eq(KDAPUserEntity.class));
         assertThat(result).isNull();
     }
 
@@ -90,14 +90,14 @@ class CacheServiceTest {
     @Test
     void cacheUser_shouldLogCaching() {
         // Arrange
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("123");
+        KDAPUserEntity KDAPUserEntity = new KDAPUserEntity();
+        KDAPUserEntity.setId("123");
 
         // Act
-        cacheService.cacheUser(userEntity);
+        cacheService.cacheUser(KDAPUserEntity);
 
         // Assert
-        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
+        ArgumentCaptor<KDAPUserEntity> captor = ArgumentCaptor.forClass(KDAPUserEntity.class);
         verify(userCache).put(eq("123"), captor.capture());
         assertThat(captor.getValue().getId()).isEqualTo("123");
     }
@@ -106,13 +106,13 @@ class CacheServiceTest {
     void getUser_shouldLogWhenNoUserInCache() {
         // Arrange
         String userId = "456";
-        when(userCache.get(userId, UserEntity.class)).thenReturn(null);
+        when(userCache.get(userId, KDAPUserEntity.class)).thenReturn(null);
 
         // Act
-        UserEntity result = cacheService.getUser(userId);
+        KDAPUserEntity result = cacheService.getUser(userId);
 
         // Assert
         assertThat(result).isNull();
-        verify(userCache).get(eq(userId), eq(UserEntity.class));
+        verify(userCache).get(eq(userId), eq(KDAPUserEntity.class));
     }
 }

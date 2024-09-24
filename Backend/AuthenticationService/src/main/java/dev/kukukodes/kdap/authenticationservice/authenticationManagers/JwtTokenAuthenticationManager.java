@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.authenticationManagers;
 
 import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
-import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthentication;
+import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.repo.UserRepo;
 import dev.kukukodes.kdap.authenticationservice.service.CacheService;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;

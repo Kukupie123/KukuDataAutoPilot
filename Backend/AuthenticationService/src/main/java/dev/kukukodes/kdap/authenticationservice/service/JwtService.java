@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -49,7 +49,7 @@ public class JwtService {
     /**
      * Create claim with id as subject
      */
-    public Claims createClaimsForUser(UserEntity user) {
+    public Claims createClaimsForUser(KDAPUserEntity user) {
         return Jwts.claims().subject(user.getId()).build();
     }
 

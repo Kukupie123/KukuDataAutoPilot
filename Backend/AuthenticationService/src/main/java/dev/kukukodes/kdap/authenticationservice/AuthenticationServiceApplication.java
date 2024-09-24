@@ -12,4 +12,5 @@ public class AuthenticationServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(AuthenticationServiceApplication.class, args);
     }
+    //TODO: User model converter for converting from one user to another
 }

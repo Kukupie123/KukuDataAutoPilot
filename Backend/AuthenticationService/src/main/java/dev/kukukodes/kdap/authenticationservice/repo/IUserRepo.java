@@ -1,12 +1,12 @@
 package dev.kukukodes.kdap.authenticationservice.repo;
 
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import reactor.core.publisher.Mono;
 
 public interface IUserRepo{
-    Mono<UserEntity> addUser(UserEntity user);
-    Mono<UserEntity> updateUser(UserEntity user);
-    Mono<UserEntity> getUserByID(String id);
+    Mono<KDAPUserEntity> addUser(KDAPUserEntity user);
+    Mono<KDAPUserEntity> updateUser(KDAPUserEntity user);
+    Mono<KDAPUserEntity> getUserByID(String id);
     Mono<Boolean> deleteUserByID(String id);
 }

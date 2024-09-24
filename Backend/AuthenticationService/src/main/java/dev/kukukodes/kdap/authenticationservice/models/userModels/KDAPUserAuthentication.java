@@ -1,4 +1,4 @@
-package dev.kukukodes.kdap.authenticationservice.models;
+package dev.kukukodes.kdap.authenticationservice.models.userModels;
 
 import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
 import lombok.Getter;
@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * A KDAP User that implements authentication and can either be authenticated or not
+ */
 @Slf4j
 @Getter
 @Setter

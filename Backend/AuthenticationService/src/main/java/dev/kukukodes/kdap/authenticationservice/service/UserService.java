@@ -1,10 +1,10 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import dev.kukukodes.kdap.authenticationservice.entity.UserEntity;
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
-import dev.kukukodes.kdap.authenticationservice.models.KDAPUserAuthentication;
-import dev.kukukodes.kdap.authenticationservice.models.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
+import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class UserService {
     /**
      * Adds a new user to database. ONLY ADMIN can do it
      */
-    public Mono<UserEntity> addUser(UserEntity userToAdd) {
+    public Mono<KDAPUserEntity> addUser(KDAPUserEntity userToAdd) {
         if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
@@ -51,7 +51,7 @@ public class UserService {
     /**
      * Update existing user
      */
-    public Mono<UserEntity> updateUser(UserEntity user) {
+    public Mono<KDAPUserEntity> updateUser(KDAPUserEntity user) {
         Mono<String> idMono;
         if (!fullAccess) {
             log.info("No super access. Checking security user");
@@ -115,7 +115,7 @@ public class UserService {
                 ;
     }
 
-    public Mono<UserEntity> getUserById(String id) {
+    public Mono<KDAPUserEntity> getUserById(String id) {
         if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
@@ -127,7 +127,7 @@ public class UserService {
                             }
                         }
                         //Attempt to return cached value. If not found return from database and cache the result
-                        UserEntity user = cacheService.getUser(id);
+                        KDAPUserEntity user = cacheService.getUser(id);
                         if (user != null) {
                             return Mono.just(user);
                         }
@@ -137,7 +137,7 @@ public class UserService {
                     ;
         log.info("Getting user by id {} as super user", id);
         //Attempt to return cached value. If not found return from database and cache the result
-        UserEntity user = cacheService.getUser(id);
+        KDAPUserEntity user = cacheService.getUser(id);
         if (user != null) {
             return Mono.just(user);
         }
@@ -175,15 +175,15 @@ public class UserService {
     /**
      * Updates the property of user passed based on googleUserInfo
      */
-    public UserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserEntity userEntity) {
-        if (!oAuth2UserInfoGoogle.getSub().equals(userEntity.getId())) {
-            throw new InputMismatchException("OAuth2UserInfo has sub " + oAuth2UserInfoGoogle.getSub() + " but userEntity has id " + userEntity.getId());
+    public KDAPUserEntity updateUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, KDAPUserEntity KDAPUserEntity) {
+        if (!oAuth2UserInfoGoogle.getSub().equals(KDAPUserEntity.getId())) {
+            throw new InputMismatchException("OAuth2UserInfo has sub " + oAuth2UserInfoGoogle.getSub() + " but userEntity has id " + KDAPUserEntity.getId());
         }
-        userEntity.setUpdated(LocalDate.now());
-        userEntity.setName(oAuth2UserInfoGoogle.getName());
-        userEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
-        userEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
-        return userEntity;
+        KDAPUserEntity.setUpdated(LocalDate.now());
+        KDAPUserEntity.setName(oAuth2UserInfoGoogle.getName());
+        KDAPUserEntity.setPicture(oAuth2UserInfoGoogle.getPictureURL());
+        KDAPUserEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
+        return KDAPUserEntity;
     }
 
 

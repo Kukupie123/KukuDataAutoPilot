@@ -1,4 +1,4 @@
-package dev.kukukodes.kdap.authenticationservice.models;
+package dev.kukukodes.kdap.authenticationservice.models.userModels;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.ToString;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 /**
- * Represents User info of
+ * KDAP User info holds google provider details
  */
 @AllArgsConstructor
 @Getter
