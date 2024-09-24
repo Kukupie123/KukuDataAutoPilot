@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="AuthenticationService" />
         <module name="configServer" />
-        <module name="DataStoreService" />
+        <module name="DataBoxService" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -19,8 +19,8 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="AuthenticationService" options="-parameters" />
+      <module name="DataBoxService" options="-parameters" />
       <module name="DataStore" options="-parameters" />
-      <module name="DataStoreService" options="-parameters" />
       <module name="configServer" options="-parameters" />
     </option>
   </component>

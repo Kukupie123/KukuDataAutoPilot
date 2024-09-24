@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>dev.kukukodes.kdap</groupId>
-    <artifactId>DataStoreService</artifactId>
+    <artifactId>DataBoxService</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>DataStore</name>
-    <description>DataStore</description>
+    <name>DataBox</name>
+    <description>DataBox</description>
     <url/>
     <licenses>
         <license/>

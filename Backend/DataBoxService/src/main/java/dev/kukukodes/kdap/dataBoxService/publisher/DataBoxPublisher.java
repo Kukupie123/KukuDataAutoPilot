@@ -11,32 +11,37 @@ import org.springframework.stereotype.Service;
 public class DataBoxPublisher {
     private final RabbitTemplate template;
 
-    @Value("${rabbitmq.exchange.dataStore}")
+    // Correcting the exchange property name to match the config
+    @Value("${rabbitmq.exchange.databox}")
     private String dataStoreExchange;
 
-    @Value("${rabbitmq.route.dataStore.updated}")
+    // Correcting the routing key property names
+    @Value("${rabbitmq.route.databox.updated}")
     private String updatedRouteKey;
 
-    @Value("${rabbitmq.route.dataStore.added}")
+    @Value("${rabbitmq.route.databox.added}")
     private String addedRouteKey;
 
-    @Value("${rabbitmq.route.dataStore.deleted}")
+    @Value("${rabbitmq.route.databox.deleted}")
     private String deletedRouteKey;
 
     public DataBoxPublisher(RabbitTemplate template) {
         this.template = template;
     }
 
+    // Method to publish an updated event
     public void publishDataBoxUpdatedEvent(DataBox dataBox) {
         log.info("EVENT: Data box updated {}", dataBox);
         template.convertAndSend(dataStoreExchange, updatedRouteKey, dataBox);
     }
 
+    // Method to publish an added event
     public void publishDataBoxAddedEvent(DataBox dataBox) {
         log.info("EVENT: Data box added {}", dataBox);
         template.convertAndSend(dataStoreExchange, addedRouteKey, dataBox);
     }
 
+    // Method to publish a deleted event
     public void publishDataBoxDeletedEvent(DataBox dataBox) {
         log.info("EVENT: Data box deleted {}", dataBox);
         template.convertAndSend(dataStoreExchange, deletedRouteKey, dataBox);

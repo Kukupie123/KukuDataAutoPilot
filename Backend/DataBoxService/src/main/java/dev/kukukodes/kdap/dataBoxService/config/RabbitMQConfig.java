@@ -10,53 +10,69 @@ import org.springframework.context.annotation.Configuration;
 @EnableRabbit
 public class RabbitMQConfig {
 
-    @Value("${rabbitmq.exchange.dataStore}")
-    private String dataStoreExchangeName;
+    // Injecting exchange name
+    @Value("${rabbitmq.exchange.databox}")
+    private String datastoreExchangeName;
 
-    @Value("${rabbitmq.queue.dataStore.updated}")
-    private String dataStoreUpdatedQueueName;
+    // Injecting queue names
+    @Value("${rabbitmq.queue.databox.added}")
+    private String datastoreAddedQueueName;
 
-    @Value("${rabbitmq.route.dataStore.updated}")
-    private String dataStoreUpdatedRoutingKey;
+    @Value("${rabbitmq.queue.databox.updated}")
+    private String datastoreUpdatedQueueName;
 
-    @Value("${rabbitmq.route.dataStore.added}")
-    private String dataStoreAddedRoutingKey;
+    @Value("${rabbitmq.queue.databox.deleted}")
+    private String datastoreDeletedQueueName;
 
-    @Value("${rabbitmq.route.dataStore.deleted}")
-    private String dataStoreDeletedRoutingKey;
+    // Injecting routing keys
+    @Value("${rabbitmq.route.databox.added}")
+    private String datastoreAddedRoutingKey;
 
+    @Value("${rabbitmq.route.databox.updated}")
+    private String datastoreUpdatedRoutingKey;
+
+    @Value("${rabbitmq.route.databox.deleted}")
+    private String datastoreDeletedRoutingKey;
+
+    // Bean for the datastore exchange
     @Bean
     public DirectExchange dataStoreExchange() {
-        return new DirectExchange(dataStoreExchangeName);
+        return new DirectExchange(datastoreExchangeName);
     }
 
-    @Bean
-    public Queue dataStoreUpdatedQueue() {
-        return new Queue(dataStoreUpdatedQueueName);
-    }
-
+    // Bean for datastore added queue
     @Bean
     public Queue dataStoreAddedQueue() {
-        return new Queue(dataStoreUpdatedQueueName.replace("updated", "added"));
+        return new Queue(datastoreAddedQueueName);
     }
 
+    // Bean for datastore updated queue
+    @Bean
+    public Queue dataStoreUpdatedQueue() {
+        return new Queue(datastoreUpdatedQueueName);
+    }
+
+    // Bean for datastore deleted queue
     @Bean
     public Queue dataStoreDeletedQueue() {
-        return new Queue(dataStoreUpdatedQueueName.replace("updated", "deleted"));
+        return new Queue(datastoreDeletedQueueName);
     }
 
-    @Bean
-    public Binding bindingDataStoreUpdated(Queue dataStoreUpdatedQueue, DirectExchange dataStoreExchange) {
-        return BindingBuilder.bind(dataStoreUpdatedQueue).to(dataStoreExchange).with(dataStoreUpdatedRoutingKey);
-    }
-
+    // Binding for added queue
     @Bean
     public Binding bindingDataStoreAdded(Queue dataStoreAddedQueue, DirectExchange dataStoreExchange) {
-        return BindingBuilder.bind(dataStoreAddedQueue).to(dataStoreExchange).with(dataStoreAddedRoutingKey);
+        return BindingBuilder.bind(dataStoreAddedQueue).to(dataStoreExchange).with(datastoreAddedRoutingKey);
     }
 
+    // Binding for updated queue
+    @Bean
+    public Binding bindingDataStoreUpdated(Queue dataStoreUpdatedQueue, DirectExchange dataStoreExchange) {
+        return BindingBuilder.bind(dataStoreUpdatedQueue).to(dataStoreExchange).with(datastoreUpdatedRoutingKey);
+    }
+
+    // Binding for deleted queue
     @Bean
     public Binding bindingDataStoreDeleted(Queue dataStoreDeletedQueue, DirectExchange dataStoreExchange) {
-        return BindingBuilder.bind(dataStoreDeletedQueue).to(dataStoreExchange).with(dataStoreDeletedRoutingKey);
+        return BindingBuilder.bind(dataStoreDeletedQueue).to(dataStoreExchange).with(datastoreDeletedRoutingKey);
     }
 }
