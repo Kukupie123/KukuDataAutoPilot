@@ -40,7 +40,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        KDAPUser userData = null;
+        KDAPUser userData;
         try {
             userData = userService.getUserFromToken(token);
         } catch (Exception e) {

@@ -1,8 +1,11 @@
 package dev.kukukodes.kdap.dataBoxService.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
+@NoArgsConstructor
 @Data
 public class ResponseModel<T> {
     private String message;

@@ -3,6 +3,7 @@ package dev.kukukodes.kdap.authenticationservice.models;
 import lombok.*;
 import org.springframework.http.ResponseEntity;
 
+@NoArgsConstructor
 @Data
 public class ResponseModel<T> {
     private String message;
