@@ -10,51 +10,40 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Extracts token from bearer authorization header and creates an authentication object with its credential set to the token.
- */
 @Log4j2
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
     private final RequestHelper requestHelper;
-
     private final KDAPUserService userService;
 
-    public JwtTokenFilter(RequestHelper requestHelper, dev.kukukodes.kdap.dataBoxService.service.KDAPUserService kdapUserService) {
+    public JwtTokenFilter(RequestHelper requestHelper, KDAPUserService kdapUserService) {
         this.requestHelper = requestHelper;
-        userService = kdapUserService;
+        this.userService = kdapUserService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+        log.info("JWT Token filter active");
         String token = requestHelper.extractToken(request.getHeader("Authorization"));
-        if (token == null) {
-            log.warn("Authorization bearer Token is invalid or not found");
-            filterChain.doFilter(request, response);
-            return;
+        if (token != null) {
+            try {
+                KDAPUser userData = userService.getUserFromToken(token);
+                if (userData != null) {
+                    SecurityContextHolder.getContext().setAuthentication(new KDAPAuthenticatedUser(userData));
+                    log.info("Authenticated user: {}", userData);
+                } else {
+                    log.warn("Invalid token - no user found");
+                }
+            } catch (Exception e) {
+                log.error("Failed to process authentication token", e);
+            }
         }
-        KDAPUser userData;
-        try {
-            userData = userService.getUserFromToken(token);
-        } catch (Exception e) {
-            log.error("Failed to get user info from authentication service because {}", e.getMessage());
-            filterChain.doFilter(request, response);
-            return;
-        }
-        log.info("got user data from authentication service : {}", userData);
-        if (userData == null) {
-            log.error("Failed to authenticate user");
-            filterChain.doFilter(request, response);
-            return;
-        }
-        SecurityContextHolder.getContext().setAuthentication(new KDAPAuthenticatedUser(userData));
+
         filterChain.doFilter(request, response);
     }
 }

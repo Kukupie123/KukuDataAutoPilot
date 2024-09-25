@@ -56,11 +56,20 @@ public class DataboxController {
      * Get All databoxes
      */
     @GetMapping("/")
-    public ResponseEntity<ResponseModel<List<DataBox>>> getDataBoxes() {
-        log.warn("Getting all databoxes. ADD LIMIT IN FUTURE");
+    public ResponseEntity<ResponseModel<List<DataBox>>> getDataBoxes(@RequestParam(value = "userid", required = false) String userID) {
+        if (userID == null) {
+            log.warn("Getting all databoxes. ADD LIMIT IN FUTURE");
+            try {
+                return ResponseModel.success("Success", dataBoxService.getAllDatabox());
+            } catch (AccessDeniedException e) {
+                return ResponseModel.buildResponse(e.getMessage(), null, 500);
+            }
+        }
+        log.info("Getting databoxes of user {}", userID);
         try {
-            return ResponseModel.success("Success", dataBoxService.getAllDatabox());
-        } catch (AccessDeniedException e) {
+            var dbs = dataBoxService.getDataboxOfUser(userID);
+            return ResponseModel.success("Success", dbs);
+        } catch (Exception e) {
             return ResponseModel.buildResponse(e.getMessage(), null, 500);
         }
     }

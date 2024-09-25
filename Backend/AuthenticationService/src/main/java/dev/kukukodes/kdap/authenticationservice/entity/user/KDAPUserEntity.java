@@ -2,10 +2,9 @@ package dev.kukukodes.kdap.authenticationservice.entity.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
+import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;

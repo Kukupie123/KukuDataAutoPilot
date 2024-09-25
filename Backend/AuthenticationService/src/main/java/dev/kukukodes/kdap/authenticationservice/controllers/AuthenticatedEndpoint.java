@@ -1,8 +1,11 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
+import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.ResponseModel;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
+import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserPayload;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.util.ArrayList;
 import java.util.InvalidPropertiesFormatException;
 import java.util.List;
 
@@ -43,9 +47,11 @@ import java.util.List;
 public class AuthenticatedEndpoint {
 
     private final UserService userService;
+    private final SecurityHelper securityHelper;
 
-    public AuthenticatedEndpoint(UserService userService) {
+    public AuthenticatedEndpoint(UserService userService, SecurityHelper securityHelper) {
         this.userService = userService;
+        this.securityHelper = securityHelper;
     }
 
     private KDAPUserEntity removeSensitiveData(KDAPUserEntity kdapUserEntity) {
@@ -60,16 +66,15 @@ public class AuthenticatedEndpoint {
      * @return {@link KDAPUserEntity}
      */
     @GetMapping("/")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> getUserFromToken(@RequestHeader("Authorization") String authToken, @Value("${superemail}") String superEmail) {
+    public Mono<ResponseEntity<ResponseModel<KDAPUserPayload>>> getUserFromToken(@RequestHeader("Authorization") String authToken, @Value("${superemail}") String superEmail) {
         if (authToken == null || !authToken.startsWith("Bearer ")) {
             return Mono.error(new InvalidPropertiesFormatException("Bearer token is invalid"));
         }
         log.info("Getting user from token");
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .cast(KDAPUserAuthentication.class)
-                .flatMap(kdapUserAuthentication -> userService.getUserById(kdapUserAuthentication.getId()))
-                .map(this::removeSensitiveData)
+        return securityHelper.getKDAPUserAuthentication()
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("No KDAP User authentication found")))
+                .zipWhen(kdapUserAuthentication -> userService.getUserById(kdapUserAuthentication.getId()))
+                .map(authenticationKDAPUserEntityTuple2 -> KDAPUserPayload.fromKDAPUserEntity(authenticationKDAPUserEntityTuple2.getT2(), authenticationKDAPUserEntityTuple2.getT1().getUserRole()))
                 .map(user -> ResponseModel.success("Received", user))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
                 ;
@@ -82,32 +87,57 @@ public class AuthenticatedEndpoint {
      * @return {@link  KDAPUserEntity}
      */
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable String id,
-                                                                             @Value("${superemail}") String superEmail) {
+    public Mono<ResponseEntity<ResponseModel<List<KDAPUserPayload>>>> getUser(@PathVariable String id,
+                                                                              @Value("${superemail}") String superEmail) {
         if (id == null || id.trim().isEmpty()) {
             return Mono.just(ResponseModel.buildResponse("No id provided", null, 401));
         }
 
         if (id.equals("*")) {
             log.info("Getting all users as an admin");
-            Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> usersList = userService.getAllUsers()
+            Mono<ResponseEntity<ResponseModel<List<KDAPUserPayload>>>> usersList = userService.getAllUsers()
                     .collectList()
                     .switchIfEmpty(Mono.error(new AccountNotFoundException("Not found")))
-                    .map(users -> ResponseModel.success("Success", users))
+                    .zipWith(securityHelper.getKDAPUserAuthentication())
+                    .map(objects -> {
+                        List<KDAPUserPayload> userPayloads = new ArrayList<>();
+                        for (var user : objects.getT1()) {
+                            if (user.getId().equals(objects.getT2().getId())) {
+                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, objects.getT2().getUserRole()));
+                                continue;
+                            }
+                            if (user.getEmail().equals(superEmail)) {
+                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, UserRole.ADMIN));
+                                continue;
+                            }
+                            userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, UserRole.USER));
+                        }
+                        return userPayloads;
+                    })
+                    .map(kdapUserPayloads -> ResponseModel.success("Received", kdapUserPayloads))
                     .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
             return usersList;
+        } else {
+            log.info("Getting user from id parameter : {}", id);
+            return userService.getUserById(id)
+                    .switchIfEmpty(Mono.error(new Exception("User not found")))
+                    .zipWith(securityHelper.getKDAPUserAuthentication())
+                    .map(tuple -> {
+                        if (tuple.getT1().getId().equals(tuple.getT2().getId())) {
+                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), tuple.getT2().getUserRole());
+                        }
+                        if (tuple.getT1().getEmail().equals(superEmail)) {
+                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), UserRole.ADMIN);
+                        }
+                        return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), UserRole.USER);
+                    })
+                    .map(user -> ResponseModel.success("User found", List.of(user)))
+                    .onErrorResume(throwable -> {
+                        log.error("Error fetching user: ", throwable);
+                        return Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500));
+                    });
         }
 
-
-        log.info("Getting user from id parameter : {}", id);
-        return userService.getUserById(id)
-                .switchIfEmpty(Mono.error(new Exception("User not found")))
-                .map(this::removeSensitiveData)
-                .map(user -> ResponseModel.success("User found", List.of(user)))
-                .onErrorResume(throwable -> {
-                    log.error("Error fetching user: ", throwable);
-                    return Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500));
-                });
     }
 
     /**

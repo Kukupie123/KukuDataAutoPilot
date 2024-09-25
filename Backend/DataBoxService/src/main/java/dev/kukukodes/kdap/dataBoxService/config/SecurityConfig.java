@@ -18,6 +18,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenFilter jwtTokenFilter) throws Exception {
         http.authorizeHttpRequests(req -> req
+                        .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/authenticated/**").authenticated()
                         .anyRequest().denyAll()
                 )

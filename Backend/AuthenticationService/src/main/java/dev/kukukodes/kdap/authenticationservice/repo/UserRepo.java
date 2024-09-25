@@ -48,6 +48,6 @@ public class UserRepo implements IUserRepo {
     @Override
     public Flux<KDAPUserEntity> getAllUsers() {
         log.info("Getting all users from db");
-        return template.select(Query.empty(),KDAPUserEntity.class);
+        return template.select(KDAPUserEntity.class).all();
     }
 }

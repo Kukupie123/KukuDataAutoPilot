@@ -21,6 +21,6 @@ public class KDAPUserService {
         if (!resp.getStatusCode().is2xxSuccessful()) {
             throw new Exception(resp.getBody().getMessage());
         }
-        return (KDAPUser) resp.getBody().getData();
+        return resp.getBody().getData();
     }
 }
