@@ -1,183 +1,142 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
+import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
+import dev.kukukodes.kdap.authenticationservice.constants.RequestSourceConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
+import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPAuthenticated;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import java.time.LocalDate;
 
+@ExtendWith(MockitoExtension.class) //For mocks
 class UserServiceTest {
 
-    @Mock
-    private IUserRepo userRepo;
+    UserService userService;
 
     @Mock
-    private CacheService cacheService;
-
+    IUserRepo userRepo;
     @Mock
-    private SecurityHelper securityHelper;
-
+    CacheService cacheService;
     @Mock
-    private UserEventPublisher userEventPublisher;
+    SecurityHelper securityHelper;
+    @Mock
+    UserEventPublisher userEventPublisher;
 
-    private UserService userService;
+    @Nested
+    class NonAdminUserTests {
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        userService = new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
-    }
+        KDAPUserEntity currentUser = new KDAPUserEntity("kdap",
+                "testName",
+                "testPassword",
+                LocalDate.now(),
+                LocalDate.now(),
+                "testEmail",
+                "pic");
+        KDAPUserEntity anotherUser = new KDAPUserEntity("another",
+                "testName",
+                "testPassword",
+                LocalDate.now(),
+                LocalDate.now(),
+                "testEmail",
+                "pic");
 
-    @Test
-    void addUser_AdminRole_Success() {
-        // Arrange
-        KDAPUserEntity userToAdd = new KDAPUserEntity();
-        userToAdd.setId("user1");
+        KDAPAuthenticated kdapAuthenticated = new KDAPAuthenticated(
+                AccessLevelConst.SELF,
+                RequestSourceConst.CLIENT,
+                currentUser
+        );
 
-        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.ADMIN, true);
+        @BeforeEach
+        void setUp() {
+            userService = new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
+            Mockito.when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(kdapAuthenticated));
+        }
 
-        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(adminAuth));
-        when(userRepo.addUser(userToAdd)).thenReturn(Mono.just(userToAdd));
+        @Test
+        void addUser_shouldDeny() {
 
-        // Act
-        Mono<KDAPUserEntity> result = userService.addUser(userToAdd);
+            // Act & Assert: Check that AccessDeniedException is thrown
+            Assertions.assertThatThrownBy(() -> userService.addUser(anotherUser).block())
+                    .isInstanceOf(AccessDeniedException.class);
+        }
 
-        // Assert
-        StepVerifier.create(result)
-                .expectNext(userToAdd)
-                .verifyComplete();
+        @Test
+        void updateUser_Self_ShouldAllow() {
+            var toUpdate = new KDAPUserEntity("kdap", "updatedName", "testPassword", LocalDate.now(), LocalDate.now(), "testEmail", "pic");
 
-        verify(userRepo, times(1)).addUser(userToAdd);
-        verify(userEventPublisher, times(1)).publishUserAddedEvent(userToAdd);
-    }
+            Mockito.when(userRepo.getUserByID(currentUser.getId())).thenReturn(Mono.just(currentUser));
+            Mockito.when(userRepo.updateUser(toUpdate)).thenReturn(Mono.just(toUpdate));
+            var updated = userService.updateUser(toUpdate).block();
+            Assertions.assertThat(updated).isEqualTo(toUpdate);
 
-    @Test
-    void addUser_NonAdminRole_AccessDenied() {
-        // Arrange
-        KDAPUserEntity userToAdd = new KDAPUserEntity();
-        KDAPUserAuthentication nonAdminAuth = new KDAPUserAuthentication("token","user2", AuthAccessLevel.USER, true);
+        }
 
-        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(nonAdminAuth));
+        @Test
+        void updateUser_Other_ShouldDeny() {
+            Assertions.assertThatThrownBy(() -> userService.updateUser(anotherUser).block()).isInstanceOf(AccessDeniedException.class);
+        }
 
-        // Act
-        Mono<KDAPUserEntity> result = userService.addUser(userToAdd);
+        @Test
+        void getUser_self_shouldAllow_fromCache() {
+            var currentUser = kdapAuthenticated.getUser();
+            Mockito.when(userRepo.getUserByID(currentUser.getId())).thenReturn(Mono.just(currentUser));
+            Mockito.when(cacheService.getUser(currentUser.getId())).thenReturn(currentUser);
+            var gotten = userService.getUserById(currentUser.getId()).block();
+            Assertions.assertThat(gotten).isEqualTo(currentUser);
+        }
 
-        // Assert
-        StepVerifier.create(result)
-                .expectError(AccessDeniedException.class)
-                .verify();
+        @Test
+        void getUser_self_shouldAllow_fromDB() {
+            var currentUser = kdapAuthenticated.getUser();
+            Mockito.when(userRepo.getUserByID(currentUser.getId())).thenReturn(Mono.just(currentUser));
+            Mockito.when(cacheService.getUser(currentUser.getId())).thenReturn(null);
+            Mockito.when(userRepo.getUserByID(currentUser.getId())).thenReturn(Mono.just(currentUser));
+            var gotten = userService.getUserById(currentUser.getId()).block();
+            Assertions.assertThat(gotten).isEqualTo(currentUser);
+        }
 
-        verify(userRepo, never()).addUser(any(KDAPUserEntity.class));
-        verify(userEventPublisher, never()).publishUserAddedEvent(any());
-    }
+        @Test
+        void getUser_other_shouldDeny_fromCache() {
+            // Arrange
+            Mockito.when(userRepo.getUserByID(anotherUser.getId())).thenReturn(Mono.just(anotherUser));
 
-    @Test
-    void updateUser_SameUser_Success() {
-        // Arrange
-        KDAPUserEntity existingUser = new KDAPUserEntity();
-        existingUser.setId("user1");
-        existingUser.setEmail("oldEmail");
+            Assertions.assertThatThrownBy(() -> userService.getUserById(anotherUser.getId()).block()).isInstanceOf(AccessDeniedException.class);
+        }
 
-        KDAPUserEntity updatedUser = new KDAPUserEntity();
-        updatedUser.setId("user1");
-        updatedUser.setEmail("newEmail");
+        @Test
+        void getUser_other_shouldDeny_fromDB() {
+            // Arrange
+            var currentUser = kdapAuthenticated.getUser();
+            //No need to mock cache as it will get skipped. It's a flat map
+            Mockito.when(userRepo.getUserByID(anotherUser.getId())).thenReturn(Mono.just(anotherUser));
 
-        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.USER, true);
+            Assertions.assertThatThrownBy(() -> userService.getUserById(anotherUser.getId()).block()).isInstanceOf(AccessDeniedException.class);
+        }
 
-        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(auth));
-        when(userRepo.getUserByID("user1")).thenReturn(Mono.just(existingUser));
-        when(userRepo.updateUser(any(KDAPUserEntity.class))).thenReturn(Mono.just(updatedUser));
+        @Test
+        void deleteUser_self_shouldAllow() {
+            var currentUser = kdapAuthenticated.getUser();
+            Mockito.doNothing().when(cacheService).removeUser(currentUser.getId());
+            Mockito.when(userRepo.deleteUserByID(currentUser.getId())).thenReturn(Mono.just(true));
+            var success = userService.deleteUser(currentUser.getId()).block();
+            Assertions.assertThat(success).isTrue();
+        }
 
-        // Act
-        Mono<KDAPUserEntity> result = userService.updateUser(updatedUser);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectNext(updatedUser)
-                .verifyComplete();
-
-        verify(userRepo, times(1)).updateUser(updatedUser);
-        verify(cacheService, times(1)).removeUser("user1");
-        verify(userEventPublisher, times(1)).publishUserUpdatedEvent(updatedUser);
-    }
-
-    @Test
-    void updateUser_OtherUser_AccessDenied() {
-        // Arrange
-        KDAPUserEntity existingUser = new KDAPUserEntity();
-        existingUser.setId("user2");
-
-        KDAPUserEntity updatedUser = new KDAPUserEntity();
-        updatedUser.setId("user1");
-
-        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user2", AuthAccessLevel.USER, true);
-
-        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(auth));
-
-        // Act
-        Mono<KDAPUserEntity> result = userService.updateUser(updatedUser);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectError(AccessDeniedException.class)
-                .verify();
-
-        verify(userRepo, never()).updateUser(any(KDAPUserEntity.class));
-        verify(cacheService, never()).removeUser(anyString());
-        verify(userEventPublisher, never()).publishUserUpdatedEvent(any());
-    }
-
-    @Test
-    void getUserById_SuccessFromCache() {
-        // Arrange
-        KDAPUserEntity cachedUser = new KDAPUserEntity();
-        cachedUser.setId("user1");
-
-        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.USER, true);
-
-        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(auth));
-        when(cacheService.getUser("user1")).thenReturn(cachedUser);
-
-        // Act
-        Mono<KDAPUserEntity> result = userService.getUserById("user1");
-
-        // Assert
-        StepVerifier.create(result)
-                .expectNext(cachedUser)
-                .verifyComplete();
-
-        verify(userRepo, never()).getUserByID(anyString());
-        verify(cacheService, never()).cacheUser(any());
-    }
-
-    @Test
-    void deleteUser_AdminRole_Success() {
-        // Arrange
-        String userId = "user1";
-        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","admin", AuthAccessLevel.ADMIN, true);
-
-        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(adminAuth));
-        when(userRepo.deleteUserByID(userId)).thenReturn(Mono.just(true));
-
-        // Act
-        Mono<Boolean> result = userService.deleteUser(userId);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectNext(true)
-                .verifyComplete();
-
-        verify(userRepo, times(1)).deleteUserByID(userId);
-        verify(cacheService, times(1)).removeUser(userId);
-        verify(userEventPublisher, times(1)).publishUserDeletedEvent(userId);
+        @Test
+        void deleteUser_other_shouldDeny() {
+            Assertions.assertThatThrownBy(() -> userService.deleteUser(anotherUser.getId()).block()).isInstanceOf(AccessDeniedException.class);
+        }
     }
 }

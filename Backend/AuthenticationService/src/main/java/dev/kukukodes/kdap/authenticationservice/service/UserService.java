@@ -78,6 +78,7 @@ public class UserService {
                 })
                 // Step 3: Update the user if there are changes
                 .flatMap(dbUser -> {
+                    log.info("Updating from {} to {}", dbUser, user);
                     boolean hasChanges = false;
 
                     if (user.getEmail() != null && !user.getEmail().equals(dbUser.getEmail())) {
@@ -133,8 +134,13 @@ public class UserService {
                     });
         }
 
-        return idMono.flatMap(s -> {
+        return idMono
+                .flatMap(s -> {
                     var user = cacheService.getUser(s);
+                    if (user == null) {
+                        log.info("failed to get user from database");
+                        return Mono.empty();
+                    }
                     return Mono.just(user);
                 })
                 .switchIfEmpty(userRepo.getUserByID(id))

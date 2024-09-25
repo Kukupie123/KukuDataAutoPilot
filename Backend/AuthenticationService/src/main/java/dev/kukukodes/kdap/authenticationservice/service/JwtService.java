@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
+import dev.kukukodes.kdap.authenticationservice.constants.RequestSourceConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -22,6 +23,7 @@ public class JwtService {
     public JwtService(@Value("${jwtkey}") String jwtKey) {
         this.key = jwtKey;
     }
+
     public String generateJwtToken(Claims claims) {
         return Jwts.builder()
                 .claims(claims)
@@ -37,6 +39,7 @@ public class JwtService {
         var claimsObj = Jwts.claims().add(claims).subject(subject).build();
         return generateJwtToken(claimsObj);
     }
+
     public Claims extractClaimsFromJwtToken(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(generateKey())
@@ -50,7 +53,10 @@ public class JwtService {
      * Create claim with id as subject
      */
     public Claims createClaimsForUser(KDAPUserEntity user) {
-        return Jwts.claims().subject(user.getId()).build();
+        return Jwts.claims()
+                .subject(user.getId())
+                .add("source", RequestSourceConst.CLIENT)
+                .build();
     }
 
     private SecretKey generateKey() {
