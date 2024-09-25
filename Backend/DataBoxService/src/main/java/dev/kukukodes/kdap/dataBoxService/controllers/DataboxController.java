@@ -49,6 +49,4 @@ public class DataboxController {
     public DataboxController(DataBoxService dataBoxService) {
         this.dataBoxService = dataBoxService;
     }
-
-    public Flux<>
 }

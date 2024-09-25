@@ -8,6 +8,7 @@ import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -42,5 +43,11 @@ public class UserRepo implements IUserRepo {
         log.info("Deleting user from DB {}", id);
         return template.delete(Query.query(Criteria.where("id").is(id)), KDAPUserEntity.class)
                 .map(deleted -> deleted > 0);
+    }
+
+    @Override
+    public Flux<KDAPUserEntity> getAllUsers() {
+        log.info("Getting all users from db");
+        return template.select(Query.empty(),KDAPUserEntity.class);
     }
 }
