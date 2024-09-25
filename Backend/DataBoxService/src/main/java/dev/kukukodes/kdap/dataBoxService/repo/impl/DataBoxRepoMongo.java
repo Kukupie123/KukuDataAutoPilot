@@ -19,6 +19,7 @@ import java.util.List;
 public class DataBoxRepoMongo implements IDataBoxRepo {
 
     private final MongoTemplate template;
+
     public DataBoxRepoMongo(MongoTemplate template) {
         this.template = template;
     }
@@ -85,5 +86,11 @@ public class DataBoxRepoMongo implements IDataBoxRepo {
         log.info("Deleting DataBox : {}", id);
         DeleteResult deleteResult = template.remove(Query.query(Criteria.where(DbConst.DocumentFields.CommonFields.ID).is(id)), DataBox.class);
         return deleteResult.getDeletedCount() > 0;
+    }
+
+    @Override
+    public List<DataBox> getAllDatastore() {
+        log.info("Getting all datastore");
+        return template.findAll(DataBox.class);
     }
 }

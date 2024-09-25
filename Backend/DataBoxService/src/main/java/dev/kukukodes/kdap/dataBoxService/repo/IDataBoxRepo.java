@@ -27,4 +27,6 @@ public interface IDataBoxRepo {
     List<DataBox> getDataStoresByUserID(String userID);
 
     boolean deleteDataBox(String id);
+
+    List<DataBox> getAllDatastore();
 }

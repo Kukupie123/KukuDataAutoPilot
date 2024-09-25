@@ -10,10 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.util.InvalidPropertiesFormatException;
+import java.util.List;
 
 /**
  * Endpoints:
@@ -81,25 +82,32 @@ public class AuthenticatedEndpoint {
      * @return {@link  KDAPUserEntity}
      */
     @GetMapping("/{id}")
-    public Flux<ResponseEntity<ResponseModel<KDAPUserEntity>>> getUser(@PathVariable String id, @Value("${superemail}") String superEmail) {
-        if (id == null) {
-            return Flux.error(new IllegalArgumentException("id is null"));
+    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable String id,
+                                                                             @Value("${superemail}") String superEmail) {
+        if (id == null || id.trim().isEmpty()) {
+            return Mono.just(ResponseModel.buildResponse("No id provided", null, 401));
         }
+
         if (id.equals("*")) {
             log.info("Getting all users as an admin");
-            return userService.getAllUsers()
-                    .map(user -> ResponseModel.success("Received", user))
-                    ;
+            Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> usersList = userService.getAllUsers()
+                    .collectList()
+                    .switchIfEmpty(Mono.error(new AccountNotFoundException("Not found")))
+                    .map(users -> ResponseModel.success("Success", users))
+                    .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
+            return usersList;
         }
+
+
         log.info("Getting user from id parameter : {}", id);
         return userService.getUserById(id)
-                //Do not send password
+                .switchIfEmpty(Mono.error(new Exception("User not found")))
                 .map(this::removeSensitiveData)
-                //Convert it into a flux
-                .flux()
-                .map(user -> (ResponseModel.success("Received", user)))
-                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
-                ;
+                .map(user -> ResponseModel.success("User found", List.of(user)))
+                .onErrorResume(throwable -> {
+                    log.error("Error fetching user: ", throwable);
+                    return Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500));
+                });
     }
 
     /**

@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 @NoArgsConstructor
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseModel<T> {
     private String message;
     private T data;

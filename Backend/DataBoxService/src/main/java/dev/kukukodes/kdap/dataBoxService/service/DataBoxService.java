@@ -113,4 +113,13 @@ public class DataBoxService {
         log.info("Getting databox of user {} from collection", userId);
         return dataBoxRepo.getDataStoresByUserID(userId);
     }
+
+    public List<DataBox> getAllDatabox() throws AccessDeniedException{
+        KDAPAuthenticatedUser currentUser = securityHelper.getCurrentUser();
+        if(currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN){
+            log.error("Access denied. Can't get all databoxes");
+            throw new AccessDeniedException("Access denied. Can't get all databoxes");
+        }
+        return dataBoxRepo.getAllDatastore();
+    }
 }
