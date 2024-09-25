@@ -5,6 +5,7 @@ import dev.kukukodes.kdap.dataBoxService.service.DataBoxService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.io.FileNotFoundException;
 import java.nio.file.AccessDeniedException;
@@ -49,40 +50,5 @@ public class DataboxController {
         this.dataBoxService = dataBoxService;
     }
 
-    /**
-     * Get databox list of specified user. Access will be denied if attempting to access dbs of other user without admin role
-     * Pass userID as 'user' query param
-     *
-     * @return list of databox
-     */
-    @GetMapping("/")
-    public ResponseEntity<List<DataBox>> getAllDataBoxes(@RequestParam String user) {
-        if(user == null) {
-            log.error("No userID found in query param");
-            return ResponseEntity.badRequest().build();
-        }
-        log.info("getting all data boxes for user : {}", user);
-        return ResponseEntity.ok(dataBoxService.getDataboxOfUser(user));
-    }
-
-    /**
-     * Get databox. Access will be denied if attempting to access db of another user without admin role
-     * @param id id of the databox
-     * @return databox
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<DataBox> getDataBoxById(@PathVariable("id") String id) {
-        log.info("getting data box by id : {}", id);
-        try{
-            var db = dataBoxService.getDatabox(id);
-            return ResponseEntity.ok(db);
-        }
-        catch (AccessDeniedException e){
-            return ResponseEntity.status(403).body(null);
-        }
-        catch (FileNotFoundException e)
-        {
-            return ResponseEntity.status(404).body(null);
-        }
-    }
+    public Flux<>
 }

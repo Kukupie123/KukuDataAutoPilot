@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.InvalidPropertiesFormatException;
@@ -21,7 +22,7 @@ import java.util.InvalidPropertiesFormatException;
  * - Returns {@link KDAPUserEntity} info based on the JWT token in the Bearer Authorization header.
  * <p>
  * GET '/{id}'
- * - Returns {@link KDAPUserEntity} for the specified user.
+ * - Returns {@link KDAPUserEntity} for the specified user. If id is '*' then all users will be returned.
  * - Access is denied if attempting to retrieve info of another user without Admin role.
  * <p>
  * PUT '/'
@@ -74,21 +75,29 @@ public class AuthenticatedEndpoint {
     }
 
     /**
-     * Get user info of the userID passed as path param
+     * Get user info of the userID passed as path param or add users if id is *
      *
      * @param id path param
      * @return {@link  KDAPUserEntity}
      */
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> getUser(@PathVariable String id, @Value("${superemail}") String superEmail) {
+    public Flux<ResponseEntity<ResponseModel<KDAPUserEntity>>> getUser(@PathVariable String id, @Value("${superemail}") String superEmail) {
         if (id == null) {
-            return Mono.error(new IllegalArgumentException("id is null"));
+            return Flux.error(new IllegalArgumentException("id is null"));
+        }
+        if (id.equals("*")) {
+            log.info("Getting all users as an admin");
+            return userService.getAllUsers()
+                    .map(user -> ResponseModel.success("Received", user))
+                    ;
         }
         log.info("Getting user from id parameter : {}", id);
         return userService.getUserById(id)
                 //Do not send password
                 .map(this::removeSensitiveData)
-                .flatMap(user -> Mono.just(ResponseModel.success("Received", user)))
+                //Convert it into a flux
+                .flux()
+                .map(user -> (ResponseModel.success("Received", user)))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
                 ;
     }

@@ -9,8 +9,11 @@ import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.security.sasl.AuthenticationException;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.LocalDate;
 import java.util.InputMismatchException;
 
@@ -171,6 +174,24 @@ public class UserService {
         });
     }
 
+    public Flux<KDAPUserEntity> getAllUsers() {
+        if (!fullAccess) {
+            return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
+                    .flatMap(user -> {
+                        if (user.getUserRole() != UserRole.ADMIN) {
+                            log.info("Access denied {}", user.getUserRole().toString());
+                            return Mono.error(new AccessDeniedException("Access denied for role " + user.getUserRole().toString()));
+                        }
+                        return Mono.just(user);
+                    })
+                    .flux()
+                    .flatMap(kdapUserAuthentication -> userRepo.getAllUsers())
+                    ;
+
+        }
+        return Flux.error(new AccessDeniedException("Access denied"));
+    }
+
 
     /**
      * Updates the property of user passed based on googleUserInfo
@@ -188,12 +209,14 @@ public class UserService {
 
 
     private Mono<KDAPUserAuthentication> isKDAPUserAuthenticated(Mono<KDAPUserAuthentication> kdapUserAuthentication) {
-        return kdapUserAuthentication.flatMap(kdapUserAuthentication1 -> {
-            if (!kdapUserAuthentication1.isAuthenticated()) {
-                log.info("KDAP User not authenticated");
-                return Mono.empty();
-            }
-            return Mono.just(kdapUserAuthentication1);
-        });
+        return kdapUserAuthentication
+                .switchIfEmpty(Mono.error(new UserPrincipalNotFoundException("KDAP Authentication User not found")))
+                .flatMap(kdapUserAuthentication1 -> {
+                    if (!kdapUserAuthentication1.isAuthenticated()) {
+                        log.info("KDAP User not authenticated");
+                        return Mono.error(new AuthenticationException("KDAP User not authenticated"));
+                    }
+                    return Mono.just(kdapUserAuthentication1);
+                });
     }
 }
