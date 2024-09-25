@@ -1,22 +1,28 @@
 package dev.kukukodes.kdap.authenticationservice.models.authentication;
 
+import lombok.Getter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 import java.util.List;
 
-public class KDAPAuthentication implements Authentication {
-    private final KDAPAuthAuthority authority;
-    private final boolean isAuthenticated;
-    public KDAPAuthentication(KDAPAuthAuthority authority, boolean isAuthenticated) {
-        this.authority = authority;
-        this.isAuthenticated = isAuthenticated;
+/**
+ * Holds source and id (if source is client)
+ */
+@Getter
+public class KDAPPreAuthentication implements Authentication {
+    private final String source;
+    private final String id;
+
+    public KDAPPreAuthentication(String source, String id) {
+        this.source = source;
+        this.id = id;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(authority);
+        return List.of();
     }
 
     @Override
@@ -36,16 +42,16 @@ public class KDAPAuthentication implements Authentication {
 
     @Override
     public boolean isAuthenticated() {
-        return isAuthenticated;
+        return false;
     }
 
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        throw new IllegalArgumentException("Can't change authentication");
+
     }
 
     @Override
     public String getName() {
-        return "KDAP Authentication";
+        return "";
     }
 }

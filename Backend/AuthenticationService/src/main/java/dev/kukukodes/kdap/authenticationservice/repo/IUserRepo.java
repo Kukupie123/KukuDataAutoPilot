@@ -10,5 +10,5 @@ public interface IUserRepo{
     Mono<KDAPUserEntity> updateUser(KDAPUserEntity user);
     Mono<KDAPUserEntity> getUserByID(String id);
     Mono<Boolean> deleteUserByID(String id);
-    Flux<KDAPUserEntity> getAllUsers();
+    Flux<KDAPUserEntity> getAllUsers(int skip, int limit    );
 }

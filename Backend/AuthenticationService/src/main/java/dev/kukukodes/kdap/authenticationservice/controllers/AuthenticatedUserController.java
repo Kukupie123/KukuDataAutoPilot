@@ -1,45 +1,17 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
+import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
-import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.ResponseModel;
-import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
-import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserPayload;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import javax.security.auth.login.AccountNotFoundException;
-import java.util.ArrayList;
-import java.util.InvalidPropertiesFormatException;
 import java.util.List;
-
-/**
- * Endpoints:
- * <p>
- * GET '/'
- * - Returns {@link KDAPUserEntity} info based on the JWT token in the Bearer Authorization header.
- * <p>
- * GET '/{id}'
- * - Returns {@link KDAPUserEntity} for the specified user. If id is '*' then all users will be returned.
- * - Access is denied if attempting to retrieve info of another user without Admin role.
- * <p>
- * PUT '/'
- * - Update user info based on the user ID extracted from the JWT token in the Bearer Authorization header.
- * <p>
- * DELETE '/'
- * - Delete the user account based on the user ID extracted from the JWT token in the Bearer Authorization header.
- * <p>
- * DELETE '/{id}'
- * - Delete the specified user.
- * - Access is denied unless the requester has Admin role.
- */
 
 @Slf4j
 @RestController
@@ -49,7 +21,7 @@ public class AuthenticatedUserController {
     private final UserService userService;
     private final SecurityHelper securityHelper;
 
-    public AuthenticatedUserController(UserService userService, SecurityHelper securityHelper) {
+    public AuthenticatedUserController(@Qualifier(AccessLevelConst.SELF) UserService userService, SecurityHelper securityHelper) {
         this.userService = userService;
         this.securityHelper = securityHelper;
     }
@@ -61,137 +33,93 @@ public class AuthenticatedUserController {
     }
 
     /**
-     * Get user info by extracting userID from authorization bearer token
+     * Get all users or a specific user by their ID.
      *
-     * @return {@link KDAPUserEntity}
-     */
-    @GetMapping("/")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserPayload>>> getUserFromToken(@RequestHeader("Authorization") String authToken, @Value("${superemail}") String superEmail) {
-        if (authToken == null || !authToken.startsWith("Bearer ")) {
-            return Mono.error(new InvalidPropertiesFormatException("Bearer token is invalid"));
-        }
-        log.info("Getting user from token");
-        return securityHelper.getKDAPUserAuthentication()
-                .switchIfEmpty(Mono.error(new AccountNotFoundException("No KDAP User authentication found")))
-                .zipWhen(kdapUserAuthentication -> userService.getUserById(kdapUserAuthentication.getId()))
-                .map(authenticationKDAPUserEntityTuple2 -> KDAPUserPayload.fromKDAPUserEntity(authenticationKDAPUserEntityTuple2.getT2(), authenticationKDAPUserEntityTuple2.getT1().getAuthAccessLevel()))
-                .map(user -> ResponseModel.success("Received", user))
-                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
-                ;
-    }
-
-    /**
-     * Get user info of the userID passed as path param or add users if id is *
-     *
-     * @param id path param
-     * @return {@link  KDAPUserEntity}
+     * @param id path param for userID or "*" to get all users.
+     * @param skip number of records to skip.
+     * @param limit maximum number of records to retrieve.
+     * @return {@link KDAPUserEntity} or a list of users.
      */
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<ResponseModel<List<KDAPUserPayload>>>> getUser(@PathVariable String id,
-                                                                              @Value("${superemail}") String superEmail) {
-        if (id == null || id.trim().isEmpty()) {
-            return Mono.just(ResponseModel.buildResponse("No id provided", null, 401));
-        }
-
+    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable String id, @RequestParam int skip, @RequestParam int limit) {
         if (id.equals("*")) {
-            log.info("Getting all users as an admin");
-            Mono<ResponseEntity<ResponseModel<List<KDAPUserPayload>>>> usersList = userService.getAllUsers()
+            return userService.getAllUsers(skip, limit)
                     .collectList()
-                    .switchIfEmpty(Mono.error(new AccountNotFoundException("Not found")))
-                    .zipWith(securityHelper.getKDAPUserAuthentication())
-                    .map(objects -> {
-                        List<KDAPUserPayload> userPayloads = new ArrayList<>();
-                        for (var user : objects.getT1()) {
-                            if (user.getId().equals(objects.getT2().getId())) {
-                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, objects.getT2().getAuthAccessLevel()));
-                                continue;
-                            }
-                            if (user.getEmail().equals(superEmail)) {
-                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, AuthAccessLevel.ADMIN));
-                                continue;
-                            }
-                            userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, AuthAccessLevel.USER));
-                        }
-                        return userPayloads;
-                    })
-                    .map(kdapUserPayloads -> ResponseModel.success("Received", kdapUserPayloads))
+                    .map(kdapUserEntities -> ResponseModel.success("", kdapUserEntities))
                     .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
-            return usersList;
-        } else {
-            log.info("Getting user from id parameter : {}", id);
-            return userService.getUserById(id)
-                    .switchIfEmpty(Mono.error(new Exception("User not found")))
-                    .zipWith(securityHelper.getKDAPUserAuthentication())
-                    .map(tuple -> {
-                        if (tuple.getT1().getId().equals(tuple.getT2().getId())) {
-                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), tuple.getT2().getAuthAccessLevel());
-                        }
-                        if (tuple.getT1().getEmail().equals(superEmail)) {
-                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), AuthAccessLevel.ADMIN);
-                        }
-                        return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), AuthAccessLevel.USER);
-                    })
-                    .map(user -> ResponseModel.success("User found", List.of(user)))
-                    .onErrorResume(throwable -> {
-                        log.error("Error fetching user: ", throwable);
-                        return Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500));
-                    });
         }
-
-    }
-
-    /**
-     * Update user. If attempting to update another user, it will be defined if admin role not found
-     *
-     * @param payload updated user data along with id
-     * @return {@link  KDAPUserEntity}
-     */
-    @PutMapping("/")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> updateUser(@RequestBody KDAPUserEntity payload, @Value("${superemail}") String superEmail) {
-        log.info("Updating user : {}", payload);
-        return userService.getUserById(payload.getId())
-                //Get user from database to create new userEntity object with fields that are not present in payload
-                .flatMap(dbUser -> userService.updateUser(new KDAPUserEntity(dbUser.getId(), payload.getName(), payload.getPassword(), dbUser.getCreated(), dbUser.getUpdated(), payload.getEmail(), dbUser.getPicture())))
-                .map(this::removeSensitiveData)
-                .map(user -> ResponseModel.success("Updated", user))
-                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
-                ;
-    }
-
-    /**
-     * Delete user that is currently logged in
-     *
-     * @return {@link KDAPUserEntity}
-     */
-    @DeleteMapping("/")
-    public Mono<ResponseEntity<ResponseModel<Boolean>>> deleteSelfUser() {
-        log.info("Deleting self user");
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .cast(KDAPUserAuthentication.class)
-                .flatMap(kdapUserAuthentication -> userService.deleteUser(kdapUserAuthentication.getId()))
-                .map(deleted -> {
-                    if (deleted)
-                        return ResponseModel.success("Deleted", true);
-                    return ResponseModel.buildResponse("failed to delete", false, 500);
-                })
+        return userService.getUserById(id)
+                .map(user -> ResponseModel.success("", List.of(user)))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
     }
 
     /**
-     * Delete user. Access will be denied if attempting to delete another user without admin role
+     * Get the information of the authenticated user (self).
      *
-     * @param id id of the user to delete
-     * @return 200 status if deleted or else internal server error
+     * @return {@link KDAPUserEntity}
+     */
+    @GetMapping("/self")
+    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> getSelfUser() {
+        return securityHelper.getKDAPAuthenticated()
+                .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))
+                .map(this::removeSensitiveData)
+                .map(user -> ResponseModel.success("", user))
+                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
+    }
+
+    /**
+     * Update self user info.
+     *
+     * @param payload updated user data along with id.
+     * @return {@link KDAPUserEntity}
+     */
+    @PutMapping("/self")
+    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> updateSelfUser(@RequestBody KDAPUserEntity payload) {
+        return userService.updateUser(payload)
+                .map(user -> ResponseModel.success("", user))
+                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
+    }
+
+    /**
+     * Update user info by ID.
+     *
+     * @param id userID of the user to update.
+     * @param payload updated user data.
+     * @return {@link KDAPUserEntity}
+     */
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> updateUser(@PathVariable String id, @RequestBody KDAPUserEntity payload) {
+        return userService.updateUser(payload)
+                .map(user -> ResponseModel.success("", user))
+                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
+    }
+
+    /**
+     * Delete self user (authenticated user).
+     *
+     * @return {@link Boolean} status of deletion.
+     */
+    @DeleteMapping("/self")
+    public Mono<ResponseEntity<ResponseModel<Boolean>>> deleteSelfUser() {
+        return securityHelper.getKDAPAuthenticated()
+                .flatMap(authenticated -> userService.deleteUser(authenticated.getUser().getId()))
+                .map(deleted -> ResponseModel.success("", deleted))
+                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
+    }
+
+    /**
+     * Delete user by ID.
+     *
+     * @param id userID of the user to delete.
+     * @return {@link Boolean} status of deletion.
      */
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<ResponseModel<Boolean>>> deleteUser(@PathVariable String id) {
         log.info("Deleting user : {}", id);
         return userService.deleteUser(id)
                 .map(deleted -> {
-                    if (deleted)
-                        return ResponseModel.success("Deleted", true);
-                    return ResponseModel.buildResponse("failed to delete", false, 500);
+                    if (deleted) return ResponseModel.success("Deleted", true);
+                    return ResponseModel.buildResponse("Failed to delete", false, 500);
                 })
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
     }

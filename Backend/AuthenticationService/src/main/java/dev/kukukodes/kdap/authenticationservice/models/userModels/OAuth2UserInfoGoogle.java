@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.models.userModels;
 
+import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -22,4 +23,5 @@ public class OAuth2UserInfoGoogle {
         var attributes = googleUser.getAttributes();
         return new OAuth2UserInfoGoogle(attributes.get("email").toString(), attributes.get("name").toString(), attributes.get("picture").toString(), attributes.get("sub").toString());
     }
+
 }

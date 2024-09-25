@@ -1,12 +1,13 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
+import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import dev.kukukodes.kdap.authenticationservice.models.ResponseModel;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
-import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
-import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
+import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
+import dev.kukukodes.kdap.authenticationservice.service.oAuth.GoogleAuthService;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +30,7 @@ public class PublicEndpoint {
     private final UserService userService;
     private final JwtService jwtService;
 
-    public PublicEndpoint(GoogleAuthService googleAuthService, @Qualifier("ADMIN") UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, @Qualifier(AccessLevelConst.ADMIN) UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
@@ -51,6 +52,7 @@ public class PublicEndpoint {
      * Redirect URL that needs to be hit by the provider.
      * This functions Authorizes the user, store the user info in database and generates JWT Token
      * <p>
+     *
      * @return JWT Token whose subject is userID, and user info as claims.
      */
     @GetMapping("/redirect/google")
@@ -68,7 +70,8 @@ public class PublicEndpoint {
                     return userService.getUserById(authUser.getSub())
                             .flatMap(userEntity -> {
                                 log.info("Found existing user");
-                                KDAPUserEntity updatedUser = userService.updateUserFromOAuthUserInfoGoogle(authUser, userEntity);
+                                //get new user with updated fields
+                                KDAPUserEntity updatedUser = userEntity.updatePropertiesFromOAuth2UserInfoGoogle(authUser);
                                 return userService.updateUser(updatedUser);
                             })
                             //Generate token based on user updated/added

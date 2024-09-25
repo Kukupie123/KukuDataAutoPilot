@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.helpers;
 
-import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
+import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPAuthenticated;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 public class SecurityHelper {
-    public Mono<KDAPUserAuthentication> getKDAPUserAuthentication() {
+    public Mono<KDAPAuthenticated> getKDAPAuthenticated() {
         return ReactiveSecurityContextHolder.getContext()
                 .switchIfEmpty(Mono.defer(() -> {
                     log.info("KDAP Authenticated user not found");
@@ -18,6 +18,6 @@ public class SecurityHelper {
                 }))
                 .map(SecurityContext::getAuthentication)
                 .switchIfEmpty(Mono.error(new Exception("No authentication user found in security context")))
-                .cast(KDAPUserAuthentication.class);
+                .cast(KDAPAuthenticated.class);
     }
 }

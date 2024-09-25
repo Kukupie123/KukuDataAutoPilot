@@ -1,9 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
-import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
-import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +45,7 @@ class UserServiceTest {
 
         KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.ADMIN, true);
 
-        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(adminAuth));
+        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(adminAuth));
         when(userRepo.addUser(userToAdd)).thenReturn(Mono.just(userToAdd));
 
         // Act
@@ -68,7 +66,7 @@ class UserServiceTest {
         KDAPUserEntity userToAdd = new KDAPUserEntity();
         KDAPUserAuthentication nonAdminAuth = new KDAPUserAuthentication("token","user2", AuthAccessLevel.USER, true);
 
-        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(nonAdminAuth));
+        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(nonAdminAuth));
 
         // Act
         Mono<KDAPUserEntity> result = userService.addUser(userToAdd);
@@ -95,7 +93,7 @@ class UserServiceTest {
 
         KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.USER, true);
 
-        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
+        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(auth));
         when(userRepo.getUserByID("user1")).thenReturn(Mono.just(existingUser));
         when(userRepo.updateUser(any(KDAPUserEntity.class))).thenReturn(Mono.just(updatedUser));
 
@@ -123,7 +121,7 @@ class UserServiceTest {
 
         KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user2", AuthAccessLevel.USER, true);
 
-        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
+        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(auth));
 
         // Act
         Mono<KDAPUserEntity> result = userService.updateUser(updatedUser);
@@ -146,7 +144,7 @@ class UserServiceTest {
 
         KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.USER, true);
 
-        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
+        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(auth));
         when(cacheService.getUser("user1")).thenReturn(cachedUser);
 
         // Act
@@ -167,7 +165,7 @@ class UserServiceTest {
         String userId = "user1";
         KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","admin", AuthAccessLevel.ADMIN, true);
 
-        when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(adminAuth));
+        when(securityHelper.getKDAPAuthenticated()).thenReturn(Mono.just(adminAuth));
         when(userRepo.deleteUserByID(userId)).thenReturn(Mono.just(true));
 
         // Act

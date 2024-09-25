@@ -3,7 +3,9 @@ package dev.kukukodes.kdap.authenticationservice.entity.user;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -45,6 +47,22 @@ public class KDAPUserEntity implements Serializable {
                 oAuth2UserInfoGoogle.getEmailID(),
                 oAuth2UserInfoGoogle.getPictureURL()
         );
+    }
+
+    /**
+     * Immutable function that returns a new KDAPUserEntity with updated data from OAuth2UserInfoGoogle
+     *
+     * @return updated user
+     */
+    @Transient
+    public KDAPUserEntity updatePropertiesFromOAuth2UserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle) {
+
+        var updatedUser = new KDAPUserEntity(this.getId(), this.getName(), this.password, this.created, this.updated, this.getEmail(), this.picture);
+        updatedUser.setEmail(oAuth2UserInfoGoogle.getEmailID());
+        updatedUser.setPicture(oAuth2UserInfoGoogle.getPictureURL());
+        updatedUser.setName(oAuth2UserInfoGoogle.getName());
+        updatedUser.setId(oAuth2UserInfoGoogle.getSub());
+        return updatedUser;
     }
 
 }

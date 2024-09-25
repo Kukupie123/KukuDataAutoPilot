@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.config;
 
+import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
@@ -15,12 +16,13 @@ public class ServiceBeans {
 
     @Bean()
     @Primary
+    @Qualifier(AccessLevelConst.SELF)
     public UserService userService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
         return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
     }
 
     @Bean()
-    @Qualifier("ADMIN")
+    @Qualifier(AccessLevelConst.ADMIN)
     public UserService userServiceAdmin(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
         return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, true);
     }

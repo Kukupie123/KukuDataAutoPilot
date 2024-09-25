@@ -16,6 +16,11 @@
       <option name="SUGGEST_NULLABLE_ANNOTATIONS" value="false" />
       <option name="DONT_REPORT_TRUE_ASSERT_STATEMENTS" value="false" />
     </inspection_tool>
+    <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <Languages>
+        <language minSize="64" name="Java" />
+      </Languages>
+    </inspection_tool>
     <inspection_tool class="HttpUrlsUsage" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="InnerClassMayBeStatic" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="InstantiationOfUtilityClass" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -31,6 +36,7 @@
       <option name="REPORT_ANNOTATION_NOT_PROPAGATED_TO_OVERRIDERS" value="true" />
       <option name="REPORT_NULLS_PASSED_TO_NON_ANNOTATED_METHOD" value="true" />
     </inspection_tool>
+    <inspection_tool class="OptionalIsPresent" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SpringJavaAutowiredFieldsWarningInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="UnnecessaryLocalVariable" enabled="true" level="INFORMATION" enabled_by_default="true">
       <option name="m_ignoreImmediatelyReturnedVariables" value="false" />
