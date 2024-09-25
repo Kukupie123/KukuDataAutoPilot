@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
-import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.ResponseModel;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
@@ -44,12 +44,12 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/authenticated")
-public class AuthenticatedEndpoint {
+public class AuthenticatedUserController {
 
     private final UserService userService;
     private final SecurityHelper securityHelper;
 
-    public AuthenticatedEndpoint(UserService userService, SecurityHelper securityHelper) {
+    public AuthenticatedUserController(UserService userService, SecurityHelper securityHelper) {
         this.userService = userService;
         this.securityHelper = securityHelper;
     }
@@ -74,7 +74,7 @@ public class AuthenticatedEndpoint {
         return securityHelper.getKDAPUserAuthentication()
                 .switchIfEmpty(Mono.error(new AccountNotFoundException("No KDAP User authentication found")))
                 .zipWhen(kdapUserAuthentication -> userService.getUserById(kdapUserAuthentication.getId()))
-                .map(authenticationKDAPUserEntityTuple2 -> KDAPUserPayload.fromKDAPUserEntity(authenticationKDAPUserEntityTuple2.getT2(), authenticationKDAPUserEntityTuple2.getT1().getUserRole()))
+                .map(authenticationKDAPUserEntityTuple2 -> KDAPUserPayload.fromKDAPUserEntity(authenticationKDAPUserEntityTuple2.getT2(), authenticationKDAPUserEntityTuple2.getT1().getAuthAccessLevel()))
                 .map(user -> ResponseModel.success("Received", user))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
                 ;
@@ -103,14 +103,14 @@ public class AuthenticatedEndpoint {
                         List<KDAPUserPayload> userPayloads = new ArrayList<>();
                         for (var user : objects.getT1()) {
                             if (user.getId().equals(objects.getT2().getId())) {
-                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, objects.getT2().getUserRole()));
+                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, objects.getT2().getAuthAccessLevel()));
                                 continue;
                             }
                             if (user.getEmail().equals(superEmail)) {
-                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, UserRole.ADMIN));
+                                userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, AuthAccessLevel.ADMIN));
                                 continue;
                             }
-                            userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, UserRole.USER));
+                            userPayloads.add(KDAPUserPayload.fromKDAPUserEntity(user, AuthAccessLevel.USER));
                         }
                         return userPayloads;
                     })
@@ -124,12 +124,12 @@ public class AuthenticatedEndpoint {
                     .zipWith(securityHelper.getKDAPUserAuthentication())
                     .map(tuple -> {
                         if (tuple.getT1().getId().equals(tuple.getT2().getId())) {
-                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), tuple.getT2().getUserRole());
+                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), tuple.getT2().getAuthAccessLevel());
                         }
                         if (tuple.getT1().getEmail().equals(superEmail)) {
-                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), UserRole.ADMIN);
+                            return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), AuthAccessLevel.ADMIN);
                         }
-                        return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), UserRole.USER);
+                        return KDAPUserPayload.fromKDAPUserEntity(tuple.getT1(), AuthAccessLevel.USER);
                     })
                     .map(user -> ResponseModel.success("User found", List.of(user)))
                     .onErrorResume(throwable -> {

@@ -20,12 +20,14 @@ public class DataBoxService {
     private final SecurityHelper securityHelper;
     private final CacheService cacheService;
     private final DataBoxPublisher dataBoxPublisher;
+    private final KDAPUserService kdapUserService;
 
-    public DataBoxService(IDataBoxRepo dataBoxRepo, SecurityHelper securityHelper, CacheService cacheService, DataBoxPublisher dataBoxPublisher) {
+    public DataBoxService(IDataBoxRepo dataBoxRepo, SecurityHelper securityHelper, CacheService cacheService, DataBoxPublisher dataBoxPublisher, KDAPUserService kdapUserService) {
         this.dataBoxRepo = dataBoxRepo;
         this.securityHelper = securityHelper;
         this.cacheService = cacheService;
         this.dataBoxPublisher = dataBoxPublisher;
+        this.kdapUserService = kdapUserService;
     }
 
     public DataBox addDatabox(DataBox dataBox) {
@@ -121,5 +123,14 @@ public class DataBoxService {
             throw new AccessDeniedException("Access denied. Can't get all databoxes");
         }
         return dataBoxRepo.getAllDatastore();
+    }
+
+    public void validateDataBox(DataBox dataBox){
+        if(dataBox == null){
+            throw new IllegalArgumentException("DataBox is null");
+        }
+        if (dataBox.getFields() == null || dataBox.getFields().isEmpty()) {
+            throw new IllegalArgumentException("DataBox fields are empty");
+        }
     }
 }

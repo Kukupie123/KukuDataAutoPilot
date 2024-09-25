@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
-import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -45,7 +45,7 @@ class UserServiceTest {
         KDAPUserEntity userToAdd = new KDAPUserEntity();
         userToAdd.setId("user1");
 
-        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","user1", UserRole.ADMIN, true);
+        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.ADMIN, true);
 
         when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(adminAuth));
         when(userRepo.addUser(userToAdd)).thenReturn(Mono.just(userToAdd));
@@ -66,7 +66,7 @@ class UserServiceTest {
     void addUser_NonAdminRole_AccessDenied() {
         // Arrange
         KDAPUserEntity userToAdd = new KDAPUserEntity();
-        KDAPUserAuthentication nonAdminAuth = new KDAPUserAuthentication("token","user2", UserRole.USER, true);
+        KDAPUserAuthentication nonAdminAuth = new KDAPUserAuthentication("token","user2", AuthAccessLevel.USER, true);
 
         when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(nonAdminAuth));
 
@@ -93,7 +93,7 @@ class UserServiceTest {
         updatedUser.setId("user1");
         updatedUser.setEmail("newEmail");
 
-        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", UserRole.USER, true);
+        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.USER, true);
 
         when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
         when(userRepo.getUserByID("user1")).thenReturn(Mono.just(existingUser));
@@ -121,7 +121,7 @@ class UserServiceTest {
         KDAPUserEntity updatedUser = new KDAPUserEntity();
         updatedUser.setId("user1");
 
-        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user2", UserRole.USER, true);
+        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user2", AuthAccessLevel.USER, true);
 
         when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
 
@@ -144,7 +144,7 @@ class UserServiceTest {
         KDAPUserEntity cachedUser = new KDAPUserEntity();
         cachedUser.setId("user1");
 
-        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", UserRole.USER, true);
+        KDAPUserAuthentication auth = new KDAPUserAuthentication("token","user1", AuthAccessLevel.USER, true);
 
         when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(auth));
         when(cacheService.getUser("user1")).thenReturn(cachedUser);
@@ -165,7 +165,7 @@ class UserServiceTest {
     void deleteUser_AdminRole_Success() {
         // Arrange
         String userId = "user1";
-        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","admin", UserRole.ADMIN, true);
+        KDAPUserAuthentication adminAuth = new KDAPUserAuthentication("token","admin", AuthAccessLevel.ADMIN, true);
 
         when(securityHelper.getKDAPUserAuthentication()).thenReturn(Mono.just(adminAuth));
         when(userRepo.deleteUserByID(userId)).thenReturn(Mono.just(true));

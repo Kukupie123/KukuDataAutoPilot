@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.models.userModels;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
-import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,9 +18,9 @@ public class KDAPUserPayload {
     LocalDate created;
     String email;
     String picture;
-    UserRole authority;
+    AuthAccessLevel authority;
 
-    public static KDAPUserPayload fromKDAPUserEntity(KDAPUserEntity kdapUserEntity, UserRole role) {
+    public static KDAPUserPayload fromKDAPUserEntity(KDAPUserEntity kdapUserEntity, AuthAccessLevel role) {
         return new KDAPUserPayload(
                 kdapUserEntity.getId(),
                 kdapUserEntity.getName(),

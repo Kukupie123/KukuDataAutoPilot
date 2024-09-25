@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.models.userModels;
 
-import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,18 +21,18 @@ public class KDAPUserAuthentication implements Authentication {
     //The token that was used to extract user data
     private final String jwtToken;
     private final String id;
-    private UserRole userRole;
+    private AuthAccessLevel authAccessLevel;
     private final boolean authenticated;
 
     List<GrantedAuthority> authorities;
 
-    public KDAPUserAuthentication(String jwtToken, String id, UserRole userRole, boolean authenticated) {
+    public KDAPUserAuthentication(String jwtToken, String id, AuthAccessLevel authAccessLevel, boolean authenticated) {
         this.jwtToken = jwtToken;
         this.id = id;
-        this.userRole = userRole;
+        this.authAccessLevel = authAccessLevel;
         this.authenticated = authenticated;
         authorities = new ArrayList<>();
-        authorities.add(new KDAPUserAuthority(userRole, id));
+        authorities.add(new KDAPUserAuthority(authAccessLevel, id));
     }
 
     @Override
@@ -47,7 +47,7 @@ public class KDAPUserAuthentication implements Authentication {
 
     @Override
     public String getDetails() {
-        return String.format("User with id %s and role %s", id, userRole);
+        return String.format("User with id %s and role %s", id, authAccessLevel);
     }
 
     @Override

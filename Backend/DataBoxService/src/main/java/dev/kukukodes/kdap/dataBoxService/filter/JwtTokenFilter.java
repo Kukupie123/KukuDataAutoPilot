@@ -41,9 +41,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 log.error("Failed to process authentication token", e);
+                filterChain.doFilter(request, response);
             }
         }
-
+        log.info("No auth token found");
         filterChain.doFilter(request, response);
     }
 }

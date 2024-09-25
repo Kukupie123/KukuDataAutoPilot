@@ -90,7 +90,7 @@ public class DataBoxRepoMongo implements IDataBoxRepo {
 
     @Override
     public List<DataBox> getAllDatastore() {
-        log.info("Getting all datastore");
+        log.info("Getting all databoxes");
         return template.findAll(DataBox.class);
     }
 }

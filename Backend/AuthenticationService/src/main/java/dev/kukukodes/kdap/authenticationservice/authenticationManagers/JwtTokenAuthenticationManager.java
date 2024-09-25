@@ -1,6 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.authenticationManagers;
 
-import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.repo.UserRepo;
 import dev.kukukodes.kdap.authenticationservice.service.CacheService;
@@ -8,7 +8,6 @@ import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -61,8 +60,8 @@ public class JwtTokenAuthenticationManager implements ReactiveAuthenticationMana
                 }))
                 .map(user -> {
                     log.info("Successfully authenticated JWT Token request");
-                    UserRole role = user.getEmail().equals(superEmail) ? UserRole.ADMIN : UserRole.USER;
-                    log.info(role == UserRole.ADMIN ? "Logged in as super user" : "Logged in as regular user");
+                    AuthAccessLevel role = user.getEmail().equals(superEmail) ? AuthAccessLevel.ADMIN : AuthAccessLevel.USER;
+                    log.info(role == AuthAccessLevel.ADMIN ? "Logged in as super user" : "Logged in as regular user");
                     return new KDAPUserAuthentication(token, user.getId(), role, true);
                 })
                 ;

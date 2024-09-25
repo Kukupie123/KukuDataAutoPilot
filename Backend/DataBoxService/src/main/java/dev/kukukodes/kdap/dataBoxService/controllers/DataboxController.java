@@ -53,10 +53,10 @@ public class DataboxController {
     }
 
     /**
-     * Get All databoxes
+     * Get All databoxes or of specific user
      */
     @GetMapping("/")
-    public ResponseEntity<ResponseModel<List<DataBox>>> getDataBoxes(@RequestParam(value = "userid", required = false) String userID) {
+    public ResponseEntity<ResponseModel<List<DataBox>>> getDataBoxes(@RequestParam(value = "user", required = false) String userID) {
         if (userID == null) {
             log.warn("Getting all databoxes. ADD LIMIT IN FUTURE");
             try {
@@ -71,6 +71,14 @@ public class DataboxController {
             return ResponseModel.success("Success", dbs);
         } catch (Exception e) {
             return ResponseModel.buildResponse(e.getMessage(), null, 500);
+        }
+    }
+
+    @PostMapping("/")
+    public ResponseEntity<ResponseModel<DataBox>> createDataBox(@RequestBody DataBox dataBox) {
+        log.info("Creating data box {}", dataBox);
+        if (dataBox.getFields().isEmpty()) {
+            return ResponseModel.buildResponse("No fields specified", null, 500);
         }
     }
 }

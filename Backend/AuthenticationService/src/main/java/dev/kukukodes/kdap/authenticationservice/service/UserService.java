@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
-import dev.kukukodes.kdap.authenticationservice.enums.UserRole;
+import dev.kukukodes.kdap.authenticationservice.enums.AuthAccessLevel;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.KDAPUserAuthentication;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
@@ -40,9 +40,9 @@ public class UserService {
         if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
-                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
-                            log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                            return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                        if (kdapUserAuthentication.getAuthAccessLevel() != AuthAccessLevel.ADMIN) {
+                            log.info("Access denied {}", kdapUserAuthentication.getAuthAccessLevel().toString());
+                            return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getAuthAccessLevel().toString()));
                         }
                         return userRepo.addUser(userToAdd).doOnSuccess(userEventPublisher::publishUserAddedEvent);
                     })
@@ -61,10 +61,10 @@ public class UserService {
             idMono = isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     // Needs to be admin or else only allowed to update self info
                     .flatMap(kdapUserAuthentication -> {
-                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                        if (kdapUserAuthentication.getAuthAccessLevel() != AuthAccessLevel.ADMIN) {
                             if (!user.getId().equals(kdapUserAuthentication.getId())) {
-                                log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                                log.info("Access denied {}", kdapUserAuthentication.getAuthAccessLevel().toString());
+                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getAuthAccessLevel().toString()));
                             }
                         }
                         return Mono.just(kdapUserAuthentication.getId());
@@ -122,10 +122,10 @@ public class UserService {
         if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
-                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                        if (kdapUserAuthentication.getAuthAccessLevel() != AuthAccessLevel.ADMIN) {
                             if (!id.equals(kdapUserAuthentication.getId())) {
-                                log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                                log.info("Access denied {}", kdapUserAuthentication.getAuthAccessLevel().toString());
+                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getAuthAccessLevel().toString()));
 
                             }
                         }
@@ -151,10 +151,10 @@ public class UserService {
         if (!fullAccess)
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(kdapUserAuthentication -> {
-                        if (kdapUserAuthentication.getUserRole() != UserRole.ADMIN) {
+                        if (kdapUserAuthentication.getAuthAccessLevel() != AuthAccessLevel.ADMIN) {
                             if (!userID.equals(kdapUserAuthentication.getId())) {
-                                log.info("Access denied {}", kdapUserAuthentication.getUserRole().toString());
-                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getUserRole().toString()));
+                                log.info("Access denied {}", kdapUserAuthentication.getAuthAccessLevel().toString());
+                                return Mono.error(new AccessDeniedException("Access denied for role " + kdapUserAuthentication.getAuthAccessLevel().toString()));
                             }
                         }
                         return userRepo.deleteUserByID(userID).doOnSuccess(deleted -> {
@@ -178,9 +178,9 @@ public class UserService {
         if (!fullAccess) {
             return isKDAPUserAuthenticated(securityHelper.getKDAPUserAuthentication())
                     .flatMap(user -> {
-                        if (user.getUserRole() != UserRole.ADMIN) {
-                            log.info("Access denied {}", user.getUserRole().toString());
-                            return Mono.error(new AccessDeniedException("Access denied for role " + user.getUserRole().toString()));
+                        if (user.getAuthAccessLevel() != AuthAccessLevel.ADMIN) {
+                            log.info("Access denied {}", user.getAuthAccessLevel().toString());
+                            return Mono.error(new AccessDeniedException("Access denied for role " + user.getAuthAccessLevel().toString()));
                         }
                         return Mono.just(user);
                     })
@@ -206,7 +206,6 @@ public class UserService {
         KDAPUserEntity.setEmail(oAuth2UserInfoGoogle.getEmailID());
         return KDAPUserEntity;
     }
-
 
     private Mono<KDAPUserAuthentication> isKDAPUserAuthenticated(Mono<KDAPUserAuthentication> kdapUserAuthentication) {
         return kdapUserAuthentication
