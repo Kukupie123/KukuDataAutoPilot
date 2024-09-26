@@ -36,7 +36,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String token = requestHelper.extractToken(request.getHeader("Authorization"));
         if (token != null) {
             try {
-                ResponseEntity<ResponseModel<List<KDAPUser>>> authResp = authenticationComs.getUserInfoFromClientToken(token);
+                ResponseEntity<ResponseModel<List<KDAPUser>>> authResp = authenticationComs.getUserInfoFromClientToken("Bearer " + token);
                 if (!authResp.getStatusCode().is2xxSuccessful()) {
                     throw new CommunicationException(authResp.getBody().getMessage());
                 }
@@ -51,11 +51,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     log.warn("Invalid token - no user found");
                 }
             } catch (Exception e) {
-                log.error("Failed to process authentication token", e);
+                log.error("Failed to process authentication token {}", e.getMessage());
                 filterChain.doFilter(request, response);
             }
+        } else {
+            log.info("No auth token found");
         }
-        log.info("No auth token found");
         filterChain.doFilter(request, response);
     }
 }

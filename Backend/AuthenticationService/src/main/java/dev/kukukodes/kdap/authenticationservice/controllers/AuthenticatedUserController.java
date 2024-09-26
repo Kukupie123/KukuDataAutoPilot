@@ -48,6 +48,7 @@ public class AuthenticatedUserController {
             log.info("Getting self info");
             return securityHelper.getKDAPAuthenticated()
                     .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))
+                    .map(this::removeSensitiveData)
                     .map(user -> ResponseModel.success("user data", List.of(removeSensitiveData(user))))
                     .switchIfEmpty(Mono.just(ResponseModel.buildResponse("Failed to get user info", null, 500)))
                     .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
@@ -56,6 +57,7 @@ public class AuthenticatedUserController {
         if (id.equals("*")) {
             log.info("Getting all users");
             return userService.getAllUsers(skip, limit)
+                    .map(this::removeSensitiveData)
                     .collectList()
                     .map(kdapUserEntities -> ResponseModel.success("", kdapUserEntities))
                     .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
@@ -63,6 +65,7 @@ public class AuthenticatedUserController {
 
         log.info("Getting user with id {}", id);
         return userService.getUserById(id)
+                .map(this::removeSensitiveData)
                 .map(user -> ResponseModel.success("", List.of(user)))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
     }

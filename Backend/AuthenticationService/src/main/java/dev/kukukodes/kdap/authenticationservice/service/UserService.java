@@ -1,5 +1,6 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
+import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPAuthenticated;
@@ -186,6 +187,7 @@ public class UserService {
      * Checks if the user is admin or is processing self data
      */
     private boolean isAdminOrProcessingSelf(KDAPAuthenticated kdapAuthenticated, String processingUserID) {
+        if(kdapAuthenticated.getAccessLevel().equals(AccessLevelConst.ADMIN)) return true;
         return securityHelper.isSuperuser(kdapAuthenticated.getUser().getId()) || kdapAuthenticated.getUser().getId().equals(processingUserID);
     }
 

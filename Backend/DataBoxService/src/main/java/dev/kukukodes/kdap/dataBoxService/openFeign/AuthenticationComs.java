@@ -33,5 +33,5 @@ public interface AuthenticationComs {
      * @return ResponseEntity containing the ResponseModel with a list of KDAPUser.
      */
     @GetMapping("/{userID}")
-    ResponseEntity<ResponseModel<List<KDAPUser>>> getUserInfobyID(@PathVariable String userID, @RequestHeader("Authorization") String internalJWTToken);
+    ResponseEntity<ResponseModel<List<KDAPUser>>> getUserInfoByID(@PathVariable String userID, @RequestHeader("Authorization") String internalJWTToken);
 }

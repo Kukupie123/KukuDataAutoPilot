@@ -37,7 +37,7 @@ public class DataBoxPublisher {
 
     // Method to publish an added event
     public void publishDataBoxAddedEvent(DataBox dataBox) {
-        log.info("EVENT: Data box added {}", dataBox);
+            log.info("EVENT: Data box added {}", dataBox);
         template.convertAndSend(dataStoreExchange, addedRouteKey, dataBox);
     }
 

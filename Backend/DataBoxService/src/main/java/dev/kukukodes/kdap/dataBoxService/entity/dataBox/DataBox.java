@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.dataBoxService.entity.dataBox;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.kukukodes.kdap.dataBoxService.constants.DbConst;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +20,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(DbConst.Collections.DATA_BOX)
-public class DataBox {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class DataBox  implements  Serializable{
     @Field(DbConst.DocumentFields.DataBox.FIELDS)
     List<DataBoxField> fields;
     @MongoId(FieldType.STRING)

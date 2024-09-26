@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,9 +17,9 @@ import java.util.List;
  * <p>
  * Endpoints:
  * - GET /api/authenticated/databox/?boxid=&userid= : Retrieves DataBox(es) based on query params.
- *   - If 'boxid' is provided, fetches the specific DataBox.
- *   - If 'userid' is provided, fetches all DataBoxes of that user.
- *   - Otherwise, returns all DataBoxes with optional pagination (skip and limit).
+ * - If 'boxid' is provided, fetches the specific DataBox.
+ * - If 'userid' is provided, fetches all DataBoxes of that user.
+ * - Otherwise, returns all DataBoxes with optional pagination (skip and limit).
  * <p>
  * - POST /api/authenticated/databox/ : Adds a new DataBox. The DataBox payload should be in the request body.
  * <p>
@@ -74,12 +75,12 @@ public class DataboxController {
      */
     @PostMapping("/")
     public ResponseEntity<ResponseModel<DataBox>> createDatabox(@RequestBody DataBox dataBox) {
-        log.info("Creating new databox: {}", dataBox);
         try {
+            log.info("Creating new databox: {}", dataBox);
             return ResponseModel.success("Databox created successfully", dataBoxService.addDatabox(dataBox));
         } catch (Exception e) {
-            log.error("Error creating databox: {}", e.getMessage());
-            return ResponseModel.buildResponse(e.getMessage(), null, 500);
+            log.error("Error creating databox: {}", e.getMessage() + " \nBecause " + e.getCause());
+            return ResponseModel.buildResponse(e.getMessage() + "\n Because " + e.getCause()+"\n Stack : "+ Arrays.toString(e.getStackTrace()), null, 500);
         }
     }
 
