@@ -1,17 +1,18 @@
 package dev.kukukodes.kdap.dataBoxService.service;
 
+import dev.kukukodes.kdap.dataBoxService.constants.AccessLevelConst;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
-import dev.kukukodes.kdap.dataBoxService.enums.KDAPUserAuthority;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
-import dev.kukukodes.kdap.dataBoxService.model.user.KDAPAuthenticatedUser;
-import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
+import dev.kukukodes.kdap.dataBoxService.model.user.KDAPAuthenticated;
 import dev.kukukodes.kdap.dataBoxService.publisher.DataBoxPublisher;
+import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -29,8 +30,8 @@ public class DataBoxService {
     }
 
     public DataBox addDatabox(DataBox dataBox) {
-        KDAPUserAuthority authority = securityHelper.getCurrentUser().getUser().getAuthority();
-        if (authority != KDAPUserAuthority.ADMIN) {
+        String authority = securityHelper.getCurrentUser().getUser().getAccessLevel();
+        if (!authority.equals(AccessLevelConst.ADMIN)) {
             if (dataBox.getUserID().equals(securityHelper.getCurrentUser().getUser().getId())) {
                 log.info("Access denied. Attempting to add databox for userID {} while current user is {}", dataBox.getUserID(), securityHelper.getCurrentUser().getUser().getId());
                 return null;
@@ -45,8 +46,8 @@ public class DataBoxService {
     }
 
     public boolean updateDatabox(DataBox dataBox) {
-        KDAPAuthenticatedUser currentUser = securityHelper.getCurrentUser();
-        if (currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
+        KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
+        if (!currentUser.getUser().getAccessLevel().equals(AccessLevelConst.ADMIN)) {
             if (!dataBox.getUserID().equals(currentUser.getUser().getId())) {
                 log.info("Access denied. Attempted to update databox for user {} while current user is {}", dataBox.getUserID(), currentUser.getUser().getId());
                 return false;
@@ -68,7 +69,7 @@ public class DataBoxService {
             return false;
         }
         if (!db.getUserID().equals(securityHelper.getCurrentUser().getUser().getId())) {
-            if (securityHelper.getCurrentUser().getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
+            if (!securityHelper.getCurrentUser().getUser().getAccessLevel().equals(AccessLevelConst.ADMIN)) {
                 log.info("Access denied. Can't delete databox with id {} as it belongs to user {} but logged in as {}", id, db.getUserID(), securityHelper.getCurrentUser().getUser().getId());
                 return false;
             }
@@ -93,7 +94,7 @@ public class DataBoxService {
             throw new FileNotFoundException("Databox not found in database");
         }
         if (!db.getUserID().equals(currentUser.getUser().getId())) {
-            if (securityHelper.getCurrentUser().getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
+            if (!securityHelper.getCurrentUser().getUser().getAccessLevel().equals(AccessLevelConst.ADMIN)) {
                 log.info("Access denied. Can't get databox with id {} as it belongs to user {} but logged in as {}", id, db.getUserID(), securityHelper.getCurrentUser().getUser().getId());
                 throw new AccessDeniedException(String.format("Logged in as %s but attempted to access databox of user %s without admin role", currentUser.getUser().getId(), db.getUserID()));
             }
@@ -102,9 +103,9 @@ public class DataBoxService {
         return db;
     }
 
-    public List<DataBox> getDataboxOfUser(String userId) {
-        KDAPAuthenticatedUser currentUser = securityHelper.getCurrentUser();
-        if (currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN) {
+    public List<DataBox> getDataboxesOfUser(String userId) {
+        KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
+        if (!currentUser.getUser().getAccessLevel().equals(AccessLevelConst.ADMIN)) {
             if (!userId.equals(currentUser.getUser().getId())) {
                 log.info("Access denied. Can't get data boxes of user {} because logged in as {}", userId, currentUser.getUser().getId());
                 return List.of();
@@ -114,17 +115,17 @@ public class DataBoxService {
         return dataBoxRepo.getDataStoresByUserID(userId);
     }
 
-    public List<DataBox> getAllDatabox() throws AccessDeniedException{
-        KDAPAuthenticatedUser currentUser = securityHelper.getCurrentUser();
-        if(currentUser.getUser().getAuthority() != KDAPUserAuthority.ADMIN){
+    public List<DataBox> getAllDatabox() throws AccessDeniedException {
+        KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
+        if (!Objects.equals(currentUser.getUser().getAccessLevel(), AccessLevelConst.ADMIN)) {
             log.error("Access denied. Can't get all databoxes");
             throw new AccessDeniedException("Access denied. Can't get all databoxes");
         }
         return dataBoxRepo.getAllDatastore();
     }
 
-    public void validateDataBox(DataBox dataBox){
-        if(dataBox == null){
+    public void validateDataBox(DataBox dataBox) {
+        if (dataBox == null) {
             throw new IllegalArgumentException("DataBox is null");
         }
         if (dataBox.getFields() == null || dataBox.getFields().isEmpty()) {

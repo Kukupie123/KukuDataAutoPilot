@@ -173,7 +173,7 @@ public class UserService {
             return securityHelper.getKDAPAuthenticated()
                     .flux()
                     .flatMap(authenticated -> {
-                        if (securityHelper.isSuperuser(authenticated.getUser().getId())) {
+                        if (!securityHelper.isSuperuser(authenticated.getUser().getId())) {
                             return Mono.error(new AccessDeniedException("Not Logged in as admin : " + authenticated.getUser().getId()));
                         }
                         return userRepo.getAllUsers(skip, limit);

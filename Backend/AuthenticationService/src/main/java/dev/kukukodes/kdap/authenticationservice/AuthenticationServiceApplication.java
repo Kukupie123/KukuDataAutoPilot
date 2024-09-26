@@ -13,4 +13,5 @@ public class AuthenticationServiceApplication {
         SpringApplication.run(AuthenticationServiceApplication.class, args);
     }
     //TODO: add last activity and last login field in database
+    //TODO: REsponse exception
 }

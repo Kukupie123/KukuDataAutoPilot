@@ -44,7 +44,7 @@ public class AuthenticatedUserController {
     public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable(required = false) String id,
                                                                              @RequestParam(required = false, defaultValue = "0") int skip,
                                                                              @RequestParam(required = false, defaultValue = "10") int limit) {
-        if (id == null) {
+        if (id == null || id.isEmpty()) {
             log.info("Getting self info");
             return securityHelper.getKDAPAuthenticated()
                     .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))

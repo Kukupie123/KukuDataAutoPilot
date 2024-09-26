@@ -1,26 +1,23 @@
 package dev.kukukodes.kdap.dataBoxService.model.user;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- Authentication with user data and authenticated set to true.
+ * Authentication with user data and authenticated set to true.
  */
 @Getter
 @RequestScope
-public class KDAPAuthenticatedUser implements Authentication {
+@RequiredArgsConstructor
+public class KDAPAuthenticated implements Authentication {
     private final KDAPUser user;
-    public KDAPAuthenticatedUser(KDAPUser userData) {
-        this.user = userData;
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(user.getId()));
