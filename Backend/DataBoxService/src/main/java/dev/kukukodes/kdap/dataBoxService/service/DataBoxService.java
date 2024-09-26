@@ -22,7 +22,7 @@ public class DataBoxService {
     private final CacheService cacheService;
     private final DataBoxPublisher dataBoxPublisher;
 
-    public DataBoxService(IDataBoxRepo dataBoxRepo, SecurityHelper securityHelper, CacheService cacheService, DataBoxPublisher dataBoxPublisher, KDAPUserService kdapUserService) {
+    public DataBoxService(IDataBoxRepo dataBoxRepo, SecurityHelper securityHelper, CacheService cacheService, DataBoxPublisher dataBoxPublisher) {
         this.dataBoxRepo = dataBoxRepo;
         this.securityHelper = securityHelper;
         this.cacheService = cacheService;
