@@ -89,8 +89,14 @@ public class DataBoxRepoMongo implements IDataBoxRepo {
     }
 
     @Override
-    public List<DataBox> getAllDatastore() {
-        log.info("Getting all databoxes");
-        return template.findAll(DataBox.class);
+    public List<DataBox> getAllDatastore(int skip, int limit) {
+        log.info("Getting all databoxes with skip: {} and limit: {}", skip, limit);
+
+        Query query = new Query()
+                .skip(skip)
+                .limit(limit);
+
+        return template.find(query, DataBox.class);
     }
+
 }

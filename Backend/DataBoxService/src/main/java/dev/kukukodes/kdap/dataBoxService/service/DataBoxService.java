@@ -115,13 +115,13 @@ public class DataBoxService {
         return dataBoxRepo.getDataStoresByUserID(userId);
     }
 
-    public List<DataBox> getAllDatabox() throws AccessDeniedException {
+    public List<DataBox> getAllDatabox(int skip, int limit) throws AccessDeniedException {
         KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
         if (!Objects.equals(currentUser.getUser().getAccessLevel(), AccessLevelConst.ADMIN)) {
             log.error("Access denied. Can't get all databoxes");
             throw new AccessDeniedException("Access denied. Can't get all databoxes");
         }
-        return dataBoxRepo.getAllDatastore();
+        return dataBoxRepo.getAllDatastore(skip,limit);
     }
 
     public void validateDataBox(DataBox dataBox) {

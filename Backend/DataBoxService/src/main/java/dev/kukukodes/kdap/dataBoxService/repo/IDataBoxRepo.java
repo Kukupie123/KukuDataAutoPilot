@@ -28,5 +28,5 @@ public interface IDataBoxRepo {
 
     boolean deleteDataBox(String id);
 
-    List<DataBox> getAllDatastore();
+    List<DataBox> getAllDatastore(int skip, int limit);
 }

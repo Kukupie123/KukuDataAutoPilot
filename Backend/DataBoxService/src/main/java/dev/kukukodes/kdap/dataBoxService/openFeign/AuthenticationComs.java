@@ -10,22 +10,28 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
+/**
+ * Feign client for interacting with the authentication service.
+ */
 @FeignClient(value = "${auth.name}", url = "http://localhost:${auth.port}/api/authenticated")
 public interface AuthenticationComs {
+
     /**
-     * Get user info from client's bearer token
+     * Retrieve user information based on the provided client's bearer token.
      *
-     * @param clientToken bearer token
+     * @param clientToken the bearer token of the client.
+     * @return ResponseEntity containing the ResponseModel with a list of KDAPUser.
      */
     @GetMapping("/")
     ResponseEntity<ResponseModel<List<KDAPUser>>> getUserInfoFromClientToken(@RequestHeader("Authorization") String clientToken);
 
     /**
-     * Get information about the user
+     * Fetch detailed information about a specific user using their user ID.
      *
-     * @param internalJWTToken internal generated jwt token which contains source claim
+     * @param userID            the unique identifier of the user to retrieve.
+     * @param internalJWTToken  the internal JWT token that contains the source claim.
+     * @return ResponseEntity containing the ResponseModel with a list of KDAPUser.
      */
     @GetMapping("/{userID}")
-    ResponseEntity<ResponseModel<List<KDAPUser>>> getUserInfo(@PathVariable String userID, @RequestHeader("Authorization") String internalJWTToken);
-
+    ResponseEntity<ResponseModel<List<KDAPUser>>> getUserInfobyID(@PathVariable String userID, @RequestHeader("Authorization") String internalJWTToken);
 }
