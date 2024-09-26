@@ -24,17 +24,18 @@ public class CacheService {
     public KDAPUserEntity getUser(String id) {
         try {
             var user = cacheManager.getCache(userCacheName).get(id, KDAPUserEntity.class);
-            if (user == null) {
-                log.info("No user cached with key {}", id);
+            if (user == null || user.getAccessLevel() == null) {
+                log.info("No user cached with key {} or invalid access level", id);
                 return null;
             }
             log.info("Returning cached user {}", user);
             return user;
-        } catch (IllegalStateException e) {
-            log.error("Error when getting cached user {} because {}", e.getMessage(), e.getCause().toString());
+        } catch (Exception e) {
+            log.error("Error when getting cached user because {}: {}", e.getMessage(), e.getCause().toString());
             cacheManager.getCache(userCacheName).evict(id);
             return null;
         }
+
 
     }
 

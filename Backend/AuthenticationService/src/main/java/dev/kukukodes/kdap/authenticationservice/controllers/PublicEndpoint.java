@@ -2,6 +2,7 @@ package dev.kukukodes.kdap.authenticationservice.controllers;
 
 import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
+import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.ResponseModel;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
@@ -30,11 +31,13 @@ public class PublicEndpoint {
     final GoogleAuthService googleAuthService;
     private final UserService userService;
     private final JwtService jwtService;
+    private final SecurityHelper securityHelper;
 
-    public PublicEndpoint(GoogleAuthService googleAuthService, @Qualifier(AccessLevelConst.ADMIN) UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher) {
+    public PublicEndpoint(GoogleAuthService googleAuthService, @Qualifier(AccessLevelConst.ADMIN) UserService userService, JwtService jwtService, ApplicationEventPublisher eventPublisher, UserEventPublisher userEventPublisher, SecurityHelper securityHelper) {
         this.googleAuthService = googleAuthService;
         this.userService = userService;
         this.jwtService = jwtService;
+        this.securityHelper = securityHelper;
     }
 
     /**
@@ -82,7 +85,7 @@ public class PublicEndpoint {
                                 }
                                 log.info("Found existing user");
                                 //get new user with updated fields
-                                KDAPUserEntity updatedUser = userEntity.get().updatePropertiesFromOAuth2UserInfoGoogle(authUser, userService);
+                                KDAPUserEntity updatedUser = userEntity.get().updatePropertiesFromOAuth2UserInfoGoogle(authUser, securityHelper);
                                 //This function returns empty if user doesn't need to be updated so we send back default user if empty
                                 return userService.updateUser(updatedUser)
                                         .defaultIfEmpty(updatedUser)

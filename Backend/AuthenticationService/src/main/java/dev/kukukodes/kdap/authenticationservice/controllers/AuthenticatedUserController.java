@@ -41,7 +41,7 @@ public class AuthenticatedUserController {
      * @return {@link KDAPUserEntity} or a list of users.
      */
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable String id, @RequestParam int skip, @RequestParam int limit) {
+    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable(required = false) String id, @RequestParam int skip, @RequestParam int limit) {
         if (id == null) {
             log.info("Getting self info");
             return securityHelper.getKDAPAuthenticated()

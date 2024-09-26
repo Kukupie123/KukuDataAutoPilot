@@ -2,11 +2,12 @@ package dev.kukukodes.kdap.authenticationservice.authenticationManagers;
 
 import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
+import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPAuthenticated;
 import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPPreAuthentication;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Mono;
@@ -18,12 +19,10 @@ import static dev.kukukodes.kdap.authenticationservice.constants.RequestSourceCo
  * Uses {@link  dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPPreAuthentication} to create {@link KDAPAuthenticated}
  */
 @Slf4j
+@RequiredArgsConstructor
 public class KDAPAuthenticationManager implements ReactiveAuthenticationManager {
     private final UserService userService;
-
-    public KDAPAuthenticationManager(@Qualifier(AccessLevelConst.ADMIN) UserService userService) {
-        this.userService = userService;
-    }
+    private final SecurityHelper securityHelper;
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
@@ -36,7 +35,7 @@ public class KDAPAuthenticationManager implements ReactiveAuthenticationManager 
         String accessLevel;
         switch (preAuthentication.getSource()) {
             case CLIENT -> {
-                if (userService.isSuperuser(preAuthentication.getId())) {
+                if (securityHelper.isSuperuser(preAuthentication.getId())) {
                     accessLevel = AccessLevelConst.ADMIN;
                     break;
                 }

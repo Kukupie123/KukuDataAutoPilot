@@ -4,6 +4,7 @@ import dev.kukukodes.kdap.authenticationservice.authenticationConverter.JwtToken
 import dev.kukukodes.kdap.authenticationservice.authenticationManagers.KDAPAuthenticationManager;
 import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.helpers.RequestHelper;
+import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.service.JwtService;
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,8 +23,8 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 public class SecurityConfig {
 
     @Bean
-    public SecurityWebFilterChain webFilterChain(ServerHttpSecurity http, RequestHelper requestHelper, JwtService jwtService, @Qualifier(AccessLevelConst.ADMIN) UserService userService) {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(new KDAPAuthenticationManager(userService));
+    public SecurityWebFilterChain webFilterChain(ServerHttpSecurity http, RequestHelper requestHelper, JwtService jwtService, @Qualifier(AccessLevelConst.ADMIN) UserService userService, SecurityHelper securityHelper) {
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(new KDAPAuthenticationManager(userService, securityHelper));
         authenticationWebFilter.setServerAuthenticationConverter(new JwtTokenToKDAPPreAuthenticatedConverter(requestHelper, jwtService));
         return http
                 .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)

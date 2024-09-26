@@ -19,12 +19,12 @@ public class ServiceBeans {
     @Primary
     @Qualifier(AccessLevelConst.SELF)
     public UserService userService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, Environment environment) {
-        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false, environment);
+        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
     }
 
     @Bean()
     @Qualifier(AccessLevelConst.ADMIN)
     public UserService userServiceAdmin(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, Environment environment) {
-        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, true, environment);
+        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, true);
     }
 }

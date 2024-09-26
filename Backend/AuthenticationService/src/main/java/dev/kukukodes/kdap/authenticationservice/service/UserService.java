@@ -1,13 +1,11 @@
 package dev.kukukodes.kdap.authenticationservice.service;
 
-import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.entity.user.KDAPUserEntity;
 import dev.kukukodes.kdap.authenticationservice.helpers.SecurityHelper;
 import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPAuthenticated;
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,15 +19,13 @@ public class UserService {
     private final SecurityHelper securityHelper;
     private final UserEventPublisher userEventPublisher;
     private final boolean fullAccess; //If true, will ignore current user's role
-    private final Environment environment;
 
-    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean fullAccess, Environment environment) {
+    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean fullAccess) {
         this.userRepo = userRepo;
         this.cacheService = cacheService;
         this.securityHelper = securityHelper;
         this.userEventPublisher = userEventPublisher;
         this.fullAccess = fullAccess;
-        this.environment = environment;
     }
 
     /**
@@ -41,7 +37,7 @@ public class UserService {
         }
         return securityHelper.getKDAPAuthenticated()
                 .flatMap(authenticated -> {
-                    if (!hasAdminRole(authenticated)) {
+                    if (!securityHelper.isSuperuser(authenticated.getUser().getId())) {
                         return Mono.error(new AccessDeniedException("Not Logged in as admin : " + authenticated.getUser().getId()));
                     }
                     return userRepo.addUser(userToAdd).doOnSuccess(user -> userEventPublisher.publishUserAddedEvent(userToAdd));
@@ -63,7 +59,7 @@ public class UserService {
             userIdMono = securityHelper.getKDAPAuthenticated()
                     .flatMap(authenticated -> {
                         //Need to be admin or only allowed to update self
-                        if (!hasAdminRole(authenticated) && !authenticated.getUser().getId().equals(user.getId())) {
+                        if (!isAdminOrProcessingSelf(authenticated, user.getId())) {
                             return Mono.error(new AccessDeniedException("Not Logged in as admin : " + authenticated.getUser().getId()));
                         }
                         return Mono.just(user.getId());
@@ -129,7 +125,7 @@ public class UserService {
         } else {
             idMono = securityHelper.getKDAPAuthenticated()
                     .flatMap(authenticated -> {
-                        if (!hasAdminRole(authenticated) && !authenticated.getUser().getId().equals(id)) {
+                        if (!isAdminOrProcessingSelf(authenticated, id)) {
                             return Mono.error(new AccessDeniedException("Not Logged in as admin : " + authenticated.getUser().getId()));
                         }
                         return Mono.just(id);
@@ -141,7 +137,8 @@ public class UserService {
                     var user = cacheService.getUser(s);
                     if (user == null) {
                         log.info("failed to get user from cache");
-                        return userRepo.getUserByID(id).doOnSuccess(cacheService::cacheUser);
+                        return userRepo.getUserByID(id)
+                                .doOnSuccess(cacheService::cacheUser);
                     }
                     return Mono.just(user);
                 })
@@ -159,7 +156,7 @@ public class UserService {
         } else {
             idMono = securityHelper.getKDAPAuthenticated()
                     .flatMap(authenticated -> {
-                        if (!hasAdminRole(authenticated) && !authenticated.getUser().getId().equals(userID)) {
+                        if (!isAdminOrProcessingSelf(authenticated, userID)) {
                             return Mono.error(new AccessDeniedException("Not Logged in as admin : " + authenticated.getUser().getId()));
                         }
                         return Mono.just(userID);
@@ -176,7 +173,7 @@ public class UserService {
             return securityHelper.getKDAPAuthenticated()
                     .flux()
                     .flatMap(authenticated -> {
-                        if (!hasAdminRole(authenticated)) {
+                        if (securityHelper.isSuperuser(authenticated.getUser().getId())) {
                             return Mono.error(new AccessDeniedException("Not Logged in as admin : " + authenticated.getUser().getId()));
                         }
                         return userRepo.getAllUsers(skip, limit);
@@ -185,18 +182,11 @@ public class UserService {
         return userRepo.getAllUsers(skip, limit);
     }
 
-    public boolean isSuperuser(String userID) {
-        String[] sus = environment.getProperty("superusers").split(",");
-        for (var s : sus) {
-            if (s.equals(userID)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private Boolean hasAdminRole(KDAPAuthenticated kdapUserAuthentication) {
-        return kdapUserAuthentication.getAccessLevel().equals(AccessLevelConst.ADMIN);
+    /**
+     * Checks if the user is admin or is processing self data
+     */
+    private boolean isAdminOrProcessingSelf(KDAPAuthenticated kdapAuthenticated, String processingUserID) {
+        return securityHelper.isSuperuser(kdapAuthenticated.getUser().getId()) || kdapAuthenticated.getUser().getId().equals(processingUserID);
     }
 
 }
