@@ -102,7 +102,6 @@ public class UserService {
                         log.warn("No changes detected for user {}", dbUser.getId());
                         return Mono.empty(); //DoOnNext will not be called
                     }
-
                     dbUser.setUpdated(LocalDate.now());
                     log.info("Updating user info from {} to {}", dbUser, user);
                     return userRepo.updateUser(dbUser);

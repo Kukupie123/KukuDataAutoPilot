@@ -35,19 +35,21 @@ public class AuthenticatedUserController {
     /**
      * Get all users or a specific user by their ID.
      *
-     * @param id path param for userID or "*" to get all users.
-     * @param skip number of records to skip.
+     * @param id    path param for userID or "*" to get all users.
+     * @param skip  number of records to skip.
      * @param limit maximum number of records to retrieve.
      * @return {@link KDAPUserEntity} or a list of users.
      */
     @GetMapping("/{id}")
     public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable String id, @RequestParam int skip, @RequestParam int limit) {
         if (id.equals("*")) {
+            log.info("Getting all users");
             return userService.getAllUsers(skip, limit)
                     .collectList()
                     .map(kdapUserEntities -> ResponseModel.success("", kdapUserEntities))
                     .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
         }
+        log.info("Getting user with id {}", id);
         return userService.getUserById(id)
                 .map(user -> ResponseModel.success("", List.of(user)))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
@@ -61,34 +63,23 @@ public class AuthenticatedUserController {
     @GetMapping("/self")
     public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> getSelfUser() {
         return securityHelper.getKDAPAuthenticated()
+                .doOnNext(authenticated -> log.info("Getting self : {}", authenticated.getUser().getId()))
                 .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))
                 .map(this::removeSensitiveData)
                 .map(user -> ResponseModel.success("", user))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
     }
 
-    /**
-     * Update self user info.
-     *
-     * @param payload updated user data along with id.
-     * @return {@link KDAPUserEntity}
-     */
-    @PutMapping("/self")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> updateSelfUser(@RequestBody KDAPUserEntity payload) {
-        return userService.updateUser(payload)
-                .map(user -> ResponseModel.success("", user))
-                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
-    }
 
     /**
-     * Update user info by ID.
+     * Update user info by ID. Updating self is allowed if not admin.
      *
-     * @param id userID of the user to update.
      * @param payload updated user data.
      * @return {@link KDAPUserEntity}
      */
     @PutMapping("/{id}")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> updateUser(@PathVariable String id, @RequestBody KDAPUserEntity payload) {
+    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> updateUser(@RequestBody KDAPUserEntity payload) {
+        log.info("updating user {}", payload.getId());
         return userService.updateUser(payload)
                 .map(user -> ResponseModel.success("", user))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
@@ -102,6 +93,7 @@ public class AuthenticatedUserController {
     @DeleteMapping("/self")
     public Mono<ResponseEntity<ResponseModel<Boolean>>> deleteSelfUser() {
         return securityHelper.getKDAPAuthenticated()
+                .doOnNext(authenticated -> log.info("Deleting self {}", authenticated.getUser()))
                 .flatMap(authenticated -> userService.deleteUser(authenticated.getUser().getId()))
                 .map(deleted -> ResponseModel.success("", deleted))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
