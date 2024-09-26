@@ -26,10 +26,12 @@ public class CacheService {
             var user = cacheManager.getCache(userCacheName).get(id, KDAPUserEntity.class);
             if (user == null) {
                 log.info("No user cached with key {}", id);
+                return null;
             }
-            log.info("Returning cached user {}", id);
+            log.info("Returning cached user {}", user);
             return user;
         } catch (IllegalStateException e) {
+            log.error("Error when getting cached user {} because {}", e.getMessage(), e.getCause().toString());
             cacheManager.getCache(userCacheName).evict(id);
             return null;
         }

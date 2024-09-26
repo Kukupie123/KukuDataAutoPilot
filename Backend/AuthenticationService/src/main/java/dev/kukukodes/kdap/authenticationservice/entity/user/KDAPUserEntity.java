@@ -1,8 +1,10 @@
 package dev.kukukodes.kdap.authenticationservice.entity.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import dev.kukukodes.kdap.authenticationservice.constants.AccessLevelConst;
 import dev.kukukodes.kdap.authenticationservice.constants.DbConst;
 import dev.kukukodes.kdap.authenticationservice.models.userModels.OAuth2UserInfoGoogle;
+import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,9 +37,16 @@ public class KDAPUserEntity implements Serializable {
     String email;
     @Column(DbConst.ColumnNames.PICTURE)
     String picture;
+    @Transient
+    String accessLevel;
 
     @Transient
-    public static KDAPUserEntity createUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle) {
+    public static KDAPUserEntity createUserFromOAuthUserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserService userService) {
+
+        String accessLevel = AccessLevelConst.SELF;
+        if (userService.isSuperuser(oAuth2UserInfoGoogle.getSub())) {
+            accessLevel = AccessLevelConst.ADMIN;
+        }
         return new KDAPUserEntity(
                 oAuth2UserInfoGoogle.getSub(),
                 oAuth2UserInfoGoogle.getName(),
@@ -45,7 +54,8 @@ public class KDAPUserEntity implements Serializable {
                 LocalDate.now(),
                 LocalDate.now(),
                 oAuth2UserInfoGoogle.getEmailID(),
-                oAuth2UserInfoGoogle.getPictureURL()
+                oAuth2UserInfoGoogle.getPictureURL(),
+                accessLevel
         );
     }
 
@@ -55,9 +65,9 @@ public class KDAPUserEntity implements Serializable {
      * @return updated user
      */
     @Transient
-    public KDAPUserEntity updatePropertiesFromOAuth2UserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle) {
-
-        var updatedUser = new KDAPUserEntity(this.getId(), this.getName(), this.password, this.created, this.updated, this.getEmail(), this.picture);
+    public KDAPUserEntity updatePropertiesFromOAuth2UserInfoGoogle(OAuth2UserInfoGoogle oAuth2UserInfoGoogle, UserService userService) {
+        String accessLevel = userService.isSuperuser(oAuth2UserInfoGoogle.getSub()) ? AccessLevelConst.ADMIN : AccessLevelConst.SELF;
+        var updatedUser = new KDAPUserEntity(this.getId(), this.getName(), this.password, this.created, this.updated, this.getEmail(), this.picture, accessLevel);
         updatedUser.setEmail(oAuth2UserInfoGoogle.getEmailID());
         updatedUser.setPicture(oAuth2UserInfoGoogle.getPictureURL());
         updatedUser.setName(oAuth2UserInfoGoogle.getName());

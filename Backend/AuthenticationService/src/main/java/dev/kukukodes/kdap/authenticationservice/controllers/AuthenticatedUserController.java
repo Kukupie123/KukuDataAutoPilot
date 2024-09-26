@@ -35,13 +35,22 @@ public class AuthenticatedUserController {
     /**
      * Get all users or a specific user by their ID.
      *
-     * @param id    path param for userID or "*" to get all users.
+     * @param id    path param for userID or "*" to get all users. if empty then returns self data
      * @param skip  number of records to skip.
      * @param limit maximum number of records to retrieve.
      * @return {@link KDAPUserEntity} or a list of users.
      */
     @GetMapping("/{id}")
     public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable String id, @RequestParam int skip, @RequestParam int limit) {
+        if (id == null) {
+            log.info("Getting self info");
+            return securityHelper.getKDAPAuthenticated()
+                    .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))
+                    .map(user -> ResponseModel.success("user data", List.of(user)))
+                    .switchIfEmpty(Mono.just(ResponseModel.buildResponse("Failed to get user info", List.of(), 500)))
+                    .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
+                    ;
+        }
         if (id.equals("*")) {
             log.info("Getting all users");
             return userService.getAllUsers(skip, limit)

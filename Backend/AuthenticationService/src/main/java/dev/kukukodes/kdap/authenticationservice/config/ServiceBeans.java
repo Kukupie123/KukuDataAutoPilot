@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 
 @Configuration
 public class ServiceBeans {
@@ -17,13 +18,13 @@ public class ServiceBeans {
     @Bean()
     @Primary
     @Qualifier(AccessLevelConst.SELF)
-    public UserService userService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
-        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false);
+    public UserService userService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, Environment environment) {
+        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, false, environment);
     }
 
     @Bean()
     @Qualifier(AccessLevelConst.ADMIN)
-    public UserService userServiceAdmin(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher) {
-        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, true);
+    public UserService userServiceAdmin(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, Environment environment) {
+        return new UserService(userRepo, cacheService, securityHelper, userEventPublisher, true, environment);
     }
 }

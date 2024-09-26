@@ -7,12 +7,9 @@ import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPPreAut
 import dev.kukukodes.kdap.authenticationservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
 
 import static dev.kukukodes.kdap.authenticationservice.constants.RequestSourceConst.CLIENT;
 import static dev.kukukodes.kdap.authenticationservice.constants.RequestSourceConst.INTERNAL;
@@ -22,11 +19,9 @@ import static dev.kukukodes.kdap.authenticationservice.constants.RequestSourceCo
  */
 @Slf4j
 public class KDAPAuthenticationManager implements ReactiveAuthenticationManager {
-    private final Environment environment;
     private final UserService userService;
 
-    public KDAPAuthenticationManager(Environment environment, @Qualifier(AccessLevelConst.ADMIN) UserService userService) {
-        this.environment = environment;
+    public KDAPAuthenticationManager(@Qualifier(AccessLevelConst.ADMIN) UserService userService) {
         this.userService = userService;
     }
 
@@ -41,8 +36,7 @@ public class KDAPAuthenticationManager implements ReactiveAuthenticationManager 
         String accessLevel;
         switch (preAuthentication.getSource()) {
             case CLIENT -> {
-                //Check if ID is in superusers list of configuration
-                if (Arrays.stream(environment.getProperty("superusers").split(",")).anyMatch(s -> s.equals(preAuthentication.getId()))) {
+                if (userService.isSuperuser(preAuthentication.getId())) {
                     accessLevel = AccessLevelConst.ADMIN;
                     break;
                 }

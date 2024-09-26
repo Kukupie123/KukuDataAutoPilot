@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.authenticationservice.models.authentication;
 
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * Holds source and id (if source is client)
  */
 @Getter
+@ToString
 public class KDAPPreAuthentication implements Authentication {
     private final String source;
     private final String id;

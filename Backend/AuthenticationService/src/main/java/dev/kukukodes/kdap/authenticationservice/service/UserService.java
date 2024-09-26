@@ -7,6 +7,7 @@ import dev.kukukodes.kdap.authenticationservice.models.authentication.KDAPAuthen
 import dev.kukukodes.kdap.authenticationservice.publishers.UserEventPublisher;
 import dev.kukukodes.kdap.authenticationservice.repo.IUserRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,13 +21,15 @@ public class UserService {
     private final SecurityHelper securityHelper;
     private final UserEventPublisher userEventPublisher;
     private final boolean fullAccess; //If true, will ignore current user's role
+    private final Environment environment;
 
-    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean fullAccess) {
+    public UserService(IUserRepo userRepo, CacheService cacheService, SecurityHelper securityHelper, UserEventPublisher userEventPublisher, boolean fullAccess, Environment environment) {
         this.userRepo = userRepo;
         this.cacheService = cacheService;
         this.securityHelper = securityHelper;
         this.userEventPublisher = userEventPublisher;
         this.fullAccess = fullAccess;
+        this.environment = environment;
     }
 
     /**
@@ -49,7 +52,7 @@ public class UserService {
      * Update a user. If not admin or full access, updating self is possible but not updating others
      *
      * @param user the updated user data
-     * @return updated user
+     * @return updated user or empty
      */
     public Mono<KDAPUserEntity> updateUser(KDAPUserEntity user) {
         // Step 1: Determine if we need to check access
@@ -137,13 +140,13 @@ public class UserService {
                 .flatMap(s -> {
                     var user = cacheService.getUser(s);
                     if (user == null) {
-                        log.info("failed to get user from database");
-                        return Mono.empty();
+                        log.info("failed to get user from cache");
+                        return userRepo.getUserByID(id).doOnSuccess(cacheService::cacheUser);
                     }
                     return Mono.just(user);
                 })
-                .switchIfEmpty(userRepo.getUserByID(id))
-                ;
+                .switchIfEmpty(Mono.error(new RuntimeException("User not found: " + id)));
+
     }
 
     /**
@@ -180,6 +183,16 @@ public class UserService {
                     });
         }
         return userRepo.getAllUsers(skip, limit);
+    }
+
+    public boolean isSuperuser(String userID) {
+        String[] sus = environment.getProperty("superusers").split(",");
+        for (var s : sus) {
+            if (s.equals(userID)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Boolean hasAdminRole(KDAPAuthenticated kdapUserAuthentication) {
