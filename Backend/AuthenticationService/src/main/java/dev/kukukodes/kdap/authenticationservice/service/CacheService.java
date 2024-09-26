@@ -16,9 +16,13 @@ public class CacheService {
         this.cacheManager = cacheManager;
     }
 
-    public void cacheUser(KDAPUserEntity KDAPUserEntity) {
-        log.info("Caching user {}", KDAPUserEntity);
-        cacheManager.getCache(userCacheName).put(KDAPUserEntity.getId(), KDAPUserEntity);
+    public void cacheUser(KDAPUserEntity user) {
+        if (user == null) {
+            log.error("Cant cache null user");
+            return;
+        }
+        log.info("Caching user {}", user);
+        cacheManager.getCache(userCacheName).put(user.getId(), user);
     }
 
     public KDAPUserEntity getUser(String id) {

@@ -1,10 +1,15 @@
-# Authentication Service Endpoints
+Here’s the updated README based on your controller changes:
 
+---
+
+# Authentication Service Endpoints
 
 - [GET /api/authenticated](#get-apiauthenticated)
 - [PUT /api/authenticated/{userID}](#put-apiauthenticateduserid)
+- [DELETE /api/authenticated/{userID}](#delete-apiauthenticateduserid)
 - [GET /api/authenticated/self](#get-apiauthenticatedself)
 - [PUT /api/authenticated/self](#put-apiauthenticatedself)
+- [DELETE /api/authenticated/self](#delete-apiauthenticatedself)
 
 ## Endpoints
 
@@ -13,23 +18,17 @@
 <details>
 <summary>Click to expand</summary>
 
-#### Get User Info
+#### Get Self User Info (No Path Param)
 
-Get user info for any user in the system.
+Retrieves the information of the authenticated user (i.e., the user making the request).
 
-Payload:
+**Request:**
 
-```json
-{
-  "header": {
-    "Authorization": "Bearer <JWT TOKEN>"
-  },
-  "path param": "userID",
-  "query param": {}
-}
-```
+- Method: `GET`
+- Path: `/api/authenticated`
+- Auth Header: Bearer `<JWT TOKEN>`
 
-Response body:
+**Response:**
 
 ```json
 {
@@ -43,23 +42,20 @@ Response body:
 }
 ```
 
-#### Get All Users Info
+#### Get All Users Info (`/*` Path Param)
 
-Get all users' info. Only SUPER clients can do this.
+Retrieves a list of all users' information. Only accessible by users with SUPER access.
 
-Payload:
+**Request:**
 
-```json
-{
-  "header": {
-    "Authorization": "Bearer <JWT TOKEN>"
-  },
-  "path param": "*",
-  "query param": {}
-}
-```
+- Method: `GET`
+- Path: `/api/authenticated/*`
+- Auth Header: Bearer `<JWT TOKEN>`
+- Query params:
+    - `skip`: Number of records to skip (optional, defaults to `0`)
+    - `limit`: Maximum number of records to return (optional, defaults to `10`)
 
-Response body:
+**Response:**
 
 ```json
 {
@@ -77,8 +73,32 @@ Response body:
       "created": "created Local Date",
       "picture": "url to picture"
     },
-    "..."
+    ...
   ]
+}
+```
+
+#### Get Specific User Info (User ID Path Param)
+
+Retrieves information about a specific user by their ID.
+
+**Request:**
+
+- Method: `GET`
+- Path: `/api/authenticated/{userID}`
+- Auth Header: Bearer `<JWT TOKEN>`
+
+**Response:**
+
+```json
+{
+  "msg": "message about response",
+  "data": {
+    "id": "userID",
+    "email": "userEmail",
+    "created": "created Local Date",
+    "picture": "url to picture"
+  }
 }
 ```
 
@@ -91,26 +111,24 @@ Response body:
 
 #### Update User Info
 
-Update information of any user. Only SUPER clients can do this.
+Updates the information of any user. This operation can only be performed by users with SUPER access.
 
-Payload:
+**Request:**
+
+- Method: `PUT`
+- Path: `/api/authenticated/{userID}`
+- Auth Header: Bearer `<JWT TOKEN>`
+- Body:
 
 ```json
 {
-  "header": {
-    "Authorization": "Bearer <JWT TOKEN>"
-  },
-  "body": {
-    "email": "newEmail@example.com",
-    "name": "New Name",
-    "picture": "new_picture_url"
-  },
-  "path param": "userID",
-  "query param": {}
+  "email": "newEmail@example.com",
+  "name": "New Name",
+  "picture": "new_picture_url"
 }
 ```
 
-Response body:
+**Response:**
 
 ```json
 {
@@ -127,6 +145,32 @@ Response body:
 
 </details>
 
+### DELETE /api/authenticated/{userID}
+
+<details>
+<summary>Click to expand</summary>
+
+#### Delete User
+
+Deletes a user by their ID. This operation can only be performed by users with SUPER access.
+
+**Request:**
+
+- Method: `DELETE`
+- Path: `/api/authenticated/{userID}`
+- Auth Header: Bearer `<JWT TOKEN>`
+
+**Response:**
+
+```json
+{
+  "msg": "message about response",
+  "data": true
+}
+```
+
+</details>
+
 ### GET /api/authenticated/self
 
 <details>
@@ -134,22 +178,15 @@ Response body:
 
 #### Get Self User Info
 
-Returns the user info of the requesting client by extracting the authorization bearer token passed and using it to
-get user info.
+Retrieves the information of the authenticated user making the request.
 
-Payload:
+**Request:**
 
-```json
-{
-  "header": {
-    "Authorization": "Bearer <JWT TOKEN>"
-  },
-  "path param": "",
-  "query param": {}
-}
-```
+- Method: `GET`
+- Path: `/api/authenticated/self`
+- Auth Header: Bearer `<JWT TOKEN>`
 
-Response body:
+**Response:**
 
 ```json
 {
@@ -172,36 +209,61 @@ Response body:
 
 #### Update Self User Info
 
-Update information of requesting client. Client's user info is accessed by extracting claims from JWT token and using
-it, which is then updated.
+Updates the information of the authenticated user making the request.
 
-Payload:
+**Request:**
+
+- Method: `PUT`
+- Path: `/api/authenticated/self`
+- Auth Header: Bearer `<JWT TOKEN>`
+- Body:
 
 ```json
 {
-  "header": {
-    "Authorization": "Bearer <JWT TOKEN>"
-  },
-  "body": {
-    "*": "Nothing to update as of now. Every detail is taken from OAuth Resource provider such as Google."
-  },
-  "path param": "",
-  "query param": {}
+  "email": "newEmail@example.com",
+  "name": "New Name",
+  "picture": "new_picture_url"
 }
 ```
 
-Response body:
+**Response:**
 
 ```json
 {
   "msg": "message about response",
   "data": {
     "id": "userID",
-    "email": "userEmail",
+    "email": "newEmail@example.com",
     "created": "created Local Date",
-    "picture": "url to picture",
-    "name": "updated name"
+    "picture": "new_picture_url",
+    "name": "New Name"
   }
+}
+```
+
+</details>
+
+### DELETE /api/authenticated/self
+
+<details>
+<summary>Click to expand</summary>
+
+#### Delete Self User
+
+Deletes the account of the authenticated user making the request.
+
+**Request:**
+
+- Method: `DELETE`
+- Path: `/api/authenticated/self`
+- Auth Header: Bearer `<JWT TOKEN>`
+
+**Response:**
+
+```json
+{
+  "msg": "message about response",
+  "data": true
 }
 ```
 
@@ -212,10 +274,7 @@ Response body:
 <details>
 <summary>Click to expand</summary>
 
-This Authentication Service provides a robust system for handling both client and internal authentication and
-authorization. It uses JWT tokens for secure communication and supports different access levels (SELF and SUPER) to
-control permissions. The service integrates with OAuth providers like Google for client authentication and provides a
-comprehensive set of endpoints for managing user information.
+This Authentication Service provides a robust system for handling both client and internal authentication and authorization. It uses JWT tokens for secure communication and supports different access levels (SELF and SUPER) to control permissions. The service integrates with OAuth providers like Google for client authentication and provides a comprehensive set of endpoints for managing user information.
 
 Key features:
 
@@ -226,7 +285,10 @@ Key features:
 5. SELF and SUPER access levels
 6. Comprehensive user management capabilities
 
-For any further development or integration, please refer to the specific endpoint documentation provided above. Always
-ensure to follow security best practices when handling authentication and user data.
+For any further development or integration, please refer to the specific endpoint documentation provided above. Always ensure to follow security best practices when handling authentication and user data.
 
 </details>
+
+--- 
+
+This update reflects the new changes in the controller for the `/api/authenticated`, `/api/authenticated/*`, and `/api/authenticated/{id}` routes, as well as the `/self` endpoints.

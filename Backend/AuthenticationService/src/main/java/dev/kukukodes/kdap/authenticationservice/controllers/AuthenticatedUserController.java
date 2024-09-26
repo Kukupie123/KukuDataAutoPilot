@@ -33,24 +33,26 @@ public class AuthenticatedUserController {
     }
 
     /**
-     * Get all users or a specific user by their ID.
+     * Get self info, all users, or a specific user by their ID.
      *
-     * @param id    path param for userID or "*" to get all users. if empty then returns self data
+     * @param id    path param for userID or "*" to get all users. If empty, returns self data.
      * @param skip  number of records to skip.
      * @param limit maximum number of records to retrieve.
      * @return {@link KDAPUserEntity} or a list of users.
      */
-    @GetMapping("/{id}")
-    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable(required = false) String id, @RequestParam int skip, @RequestParam int limit) {
+    @GetMapping({"/", "/{id}"})
+    public Mono<ResponseEntity<ResponseModel<List<KDAPUserEntity>>>> getUser(@PathVariable(required = false) String id,
+                                                                             @RequestParam(required = false, defaultValue = "0") int skip,
+                                                                             @RequestParam(required = false, defaultValue = "10") int limit) {
         if (id == null) {
             log.info("Getting self info");
             return securityHelper.getKDAPAuthenticated()
                     .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))
-                    .map(user -> ResponseModel.success("user data", List.of(user)))
-                    .switchIfEmpty(Mono.just(ResponseModel.buildResponse("Failed to get user info", List.of(), 500)))
-                    .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)))
-                    ;
+                    .map(user -> ResponseModel.success("user data", List.of(removeSensitiveData(user))))
+                    .switchIfEmpty(Mono.just(ResponseModel.buildResponse("Failed to get user info", null, 500)))
+                    .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
         }
+
         if (id.equals("*")) {
             log.info("Getting all users");
             return userService.getAllUsers(skip, limit)
@@ -58,24 +60,10 @@ public class AuthenticatedUserController {
                     .map(kdapUserEntities -> ResponseModel.success("", kdapUserEntities))
                     .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
         }
+
         log.info("Getting user with id {}", id);
         return userService.getUserById(id)
                 .map(user -> ResponseModel.success("", List.of(user)))
-                .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
-    }
-
-    /**
-     * Get the information of the authenticated user (self).
-     *
-     * @return {@link KDAPUserEntity}
-     */
-    @GetMapping("/self")
-    public Mono<ResponseEntity<ResponseModel<KDAPUserEntity>>> getSelfUser() {
-        return securityHelper.getKDAPAuthenticated()
-                .doOnNext(authenticated -> log.info("Getting self : {}", authenticated.getUser().getId()))
-                .flatMap(authenticated -> userService.getUserById(authenticated.getUser().getId()))
-                .map(this::removeSensitiveData)
-                .map(user -> ResponseModel.success("", user))
                 .onErrorResume(throwable -> Mono.just(ResponseModel.buildResponse(throwable.getMessage(), null, 500)));
     }
 
