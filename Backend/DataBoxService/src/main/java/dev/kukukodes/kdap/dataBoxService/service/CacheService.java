@@ -2,7 +2,6 @@ package dev.kukukodes.kdap.dataBoxService.service;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
-import dev.kukukodes.kdap.dataBoxService.helper.DataboxHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.LogHelper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,16 +15,14 @@ public class CacheService {
     private final CacheManager cacheManager;
     private final String dataBoxCacheName = "dataBoxCache";
     private final String dataEntryCacheName = "dataEntryCache";
-    private final DataboxHelper databoxHelper;
     private final LogHelper logHelper;
     @Getter
     private final DataBoxCache dataBoxCache;
     @Getter
     private final DataEntryCache dataEntryCache;
 
-    public CacheService(CacheManager cacheManager, DataboxHelper databoxHelper, LogHelper logHelper) {
+    public CacheService(CacheManager cacheManager, LogHelper logHelper) {
         this.cacheManager = cacheManager;
-        this.databoxHelper = databoxHelper;
         this.logHelper = logHelper;
         dataBoxCache = new DataBoxCache();
         dataEntryCache = new DataEntryCache();

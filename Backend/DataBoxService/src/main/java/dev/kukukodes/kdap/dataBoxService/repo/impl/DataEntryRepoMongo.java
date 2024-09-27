@@ -16,7 +16,7 @@ import java.util.List;
 public class DataEntryRepoMongo implements IDataEntryRepo {
     private final MongoTemplate mongoTemplate;
 
-    public DataEntryRepoMongo(MongoTemplate mongoTemplate ) {
+    public DataEntryRepoMongo(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -47,8 +47,16 @@ public class DataEntryRepoMongo implements IDataEntryRepo {
     }
 
     @Override
-    public List<DataEntry> getDataEntriesByBoxID(String boxID) {
+    public List<DataEntry> getDataEntriesByBoxID(String boxID, int skip, int limit) {
         log.info("getting data entries for boxID {}", boxID);
-        return mongoTemplate.find(Query.query(Criteria.where(DbConst.DocumentFields.DataEntry.STORE_ID).is(boxID)), DataEntry.class);
+        return mongoTemplate
+                .find(
+                        Query.query(
+                                        Criteria.where(DbConst.DocumentFields.DataEntry.STORE_ID)
+                                                .is(boxID)
+                                )
+                                .skip(skip)
+                                .limit(limit),
+                        DataEntry.class);
     }
 }

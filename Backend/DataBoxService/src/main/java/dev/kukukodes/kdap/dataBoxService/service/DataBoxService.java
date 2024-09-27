@@ -116,17 +116,12 @@ public class DataBoxService {
     }
 
     public List<DataBox> getAllDatabox(int skip, int limit) throws AccessDeniedException {
-        validateAdminAccess();
-        return dataBoxRepo.getAllDatastore(skip, limit);
-    }
-
-
-    private void validateAdminAccess() throws AccessDeniedException {
         KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
-        if (!Objects.equals(currentUser.getUser().getAccessLevel(), AccessLevelConst.ADMIN)) {
+        if (!currentUser.getUser().getAccessLevel().equals(AccessLevelConst.ADMIN)) {
             log.error("Access denied. Can't get all databoxes");
             throw new AccessDeniedException("Access denied. Can't get all databoxes");
         }
+        return dataBoxRepo.getAllDatastore(skip, limit);
     }
 
 

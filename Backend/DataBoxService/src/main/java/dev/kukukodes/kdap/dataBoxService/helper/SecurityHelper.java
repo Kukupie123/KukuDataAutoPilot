@@ -21,6 +21,10 @@ public class SecurityHelper {
         return (KDAPAuthenticated) SecurityContextHolder.getContext().getAuthentication();
     }
 
+    /**
+     * If the current use match the passed user or is an amin the function will complete without throwing exception
+     * @param userId user operating on
+     */
     public void validateAccess(String userId) throws AccessDeniedException {
         KDAPAuthenticated currentUser = getCurrentUser();
         if (!currentUser.getUser().getAccessLevel().equals(AccessLevelConst.ADMIN) &&
