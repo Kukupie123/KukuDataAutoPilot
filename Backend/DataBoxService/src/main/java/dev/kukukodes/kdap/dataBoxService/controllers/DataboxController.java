@@ -1,6 +1,7 @@
 package dev.kukukodes.kdap.dataBoxService.controllers;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
+import dev.kukukodes.kdap.dataBoxService.helper.LogHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.model.ResponseModel;
 import dev.kukukodes.kdap.dataBoxService.service.DataBoxService;
@@ -35,6 +36,7 @@ public class DataboxController {
 
     private final SecurityHelper securityHelper;
     private final DataBoxService dataBoxService;
+    private final LogHelper logHelper;
 
     /**
      * Fetches DataBox(es) based on query parameters.
@@ -62,7 +64,7 @@ public class DataboxController {
                 return ResponseModel.success("All databoxes retrieved", dataBoxService.getAllDatabox(skip, limit));
             }
         } catch (Exception e) {
-            log.error("Error fetching databox(es): {}", e.getMessage());
+            logHelper.logException(log, e);
             return ResponseModel.buildResponse(e.getMessage(), null, 500);
         }
     }
@@ -79,7 +81,7 @@ public class DataboxController {
             log.info("Creating new databox: {}", dataBox);
             return ResponseModel.success("Databox created successfully", dataBoxService.addDatabox(dataBox));
         } catch (Exception e) {
-            log.error("Error creating databox: {}", e.getMessage() + " \nBecause " + e.getCause());
+            logHelper.logException(log, e);
             return ResponseModel.buildResponse(e.getMessage() + "\n Because " + e.getCause() + "\n Stack : " + Arrays.toString(e.getStackTrace()), null, 500);
         }
     }
@@ -96,7 +98,7 @@ public class DataboxController {
         try {
             return ResponseModel.success("Databox updated successfully", dataBoxService.updateDatabox(dataBox));
         } catch (Exception e) {
-            log.error("Error updating databox: {}", e.getMessage() + " in stack \n " + Arrays.toString(e.getStackTrace()));
+            logHelper.logException(log, e);
             return ResponseModel.buildResponse(e.getMessage(), null, 500);
         }
     }
@@ -113,7 +115,7 @@ public class DataboxController {
         try {
             return ResponseModel.success("Databox deleted successfully", dataBoxService.deleteDatabox(id));
         } catch (Exception e) {
-            log.error("Error deleting databox: {}", e.getMessage());
+            logHelper.logException(log, e);
             return ResponseModel.buildResponse(e.getMessage(), null, 500);
         }
     }
