@@ -2,17 +2,15 @@ package dev.kukukodes.kdap.dataBoxService.service;
 
 import dev.kukukodes.kdap.dataBoxService.constants.AccessLevelConst;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
+import dev.kukukodes.kdap.dataBoxService.helper.DataboxHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.ServiceCommunicationHelper;
-import dev.kukukodes.kdap.dataBoxService.model.ResponseModel;
 import dev.kukukodes.kdap.dataBoxService.model.user.KDAPAuthenticated;
-import dev.kukukodes.kdap.dataBoxService.model.user.KDAPUser;
 import dev.kukukodes.kdap.dataBoxService.openFeign.AuthenticationComs;
 import dev.kukukodes.kdap.dataBoxService.publisher.DataBoxPublisher;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -32,6 +30,7 @@ public class DataBoxService {
     private final DataBoxPublisher dataBoxPublisher;
     private final AuthenticationComs authenticationComs;
     private final ServiceCommunicationHelper serviceCommunicationHelper;
+    private final DataboxHelper databoxHelper;
 
     public DataBox addDatabox(DataBox dataBox) throws Exception {
         /*
@@ -40,10 +39,9 @@ public class DataBoxService {
         - Validate userID
         - Update UID, Created and Modified
          */
-
-        validateAccess(dataBox.getUserID());
-        validateDatabox(dataBox);
-        validateUserID(dataBox.getUserID());
+        securityHelper.validateAccess(dataBox.getUserID());
+        databoxHelper.validateDatabox(dataBox);
+        databoxHelper.validateUserID(dataBox.getUserID());
 
         //Update UID, dates
         dataBox.setId(UUID.randomUUID().toString());
@@ -59,16 +57,12 @@ public class DataBoxService {
     }
 
     public boolean updateDatabox(DataBox dataBox) throws Exception {
-        validateAccess(dataBox.getUserID());
-        validateDatabox(dataBox);
-        validateUserID(dataBox.getUserID());
+        securityHelper.validateAccess(dataBox.getUserID());
+        databoxHelper.validateDatabox(dataBox);
+        databoxHelper.validateUserID(dataBox.getUserID());
 
         //Update ID, and date
-        dataBox.setId(UUID.randomUUID().toString());
-        dataBox.setCreated(LocalDate.now());
-        dataBox.setModified(LocalDate.now());
-
-        log.info("Updating databox {} to collection", dataBox.getName());
+        log.info("Updating databox {} in collection", dataBox.getName());
         boolean updated = dataBoxRepo.updateDataStore(dataBox);
         if (updated) {
             cacheService.getDataBoxCache().clearDataBox(dataBox.getId());
@@ -89,16 +83,11 @@ public class DataBoxService {
     }
 
     public DataBox getDatabox(String id) throws AccessDeniedException, FileNotFoundException {
-        /*
-        1. Get box from cache or db
-        2. compare userID of box's userID against currentUser's ID
-        3. Validate access
-         */
         return getDataboxAndValidateAccess(id);
     }
 
     public List<DataBox> getDataboxesOfUser(String userId) throws AccessDeniedException {
-        validateAccess(userId);
+        securityHelper.validateAccess(userId);
         log.info("Getting databox of user {} from collection", userId);
         return dataBoxRepo.getDataStoresByUserID(userId);
     }
@@ -108,14 +97,6 @@ public class DataBoxService {
         return dataBoxRepo.getAllDatastore(skip, limit);
     }
 
-    private void validateAccess(String userId) throws AccessDeniedException {
-        KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
-        if (!currentUser.getUser().getAccessLevel().equals(AccessLevelConst.ADMIN) &&
-                !userId.equals(currentUser.getUser().getId())) {
-            log.info("Access denied. Attempting to access data for userID {} while current user is {}", userId, currentUser.getUser().getId());
-            throw new AccessDeniedException("Access denied");
-        }
-    }
 
     private void validateAdminAccess() throws AccessDeniedException {
         KDAPAuthenticated currentUser = securityHelper.getCurrentUser();
@@ -125,26 +106,13 @@ public class DataBoxService {
         }
     }
 
-    private void validateDatabox(DataBox dataBox) throws Exception {
-        if (dataBox == null) throw new NullPointerException("Databox is null");
-        if (dataBox.getFields() == null || dataBox.getFields().isEmpty())
-            throw new Exception("Missing fields for " + dataBox);
-        if (dataBox.getName() == null || dataBox.getName().isEmpty())
-            throw new Exception("Missing name for databox " + dataBox);
-    }
-
-    private void validateUserID(String userId) throws Exception {
-        ResponseEntity<ResponseModel<List<KDAPUser>>> authResp = authenticationComs.getUserInfoByID(userId, "Bearer " + serviceCommunicationHelper.generateToken());
-        if (!authResp.getStatusCode().is2xxSuccessful()) {
-            throw new Exception("Getting userinfo from authentication failed with message" + authResp.getBody().getMessage());
-        }
-        log.info("Got back response : "+ authResp.getBody().toString());
-        if (authResp.getBody().getData() == null || authResp.getBody().getData().size() != 1) {
-            throw new Exception("Expected one user info but got null or more than one or empty " + authResp.getBody());
-        }
-    }
 
     private DataBox getDataboxAndValidateAccess(String id) throws AccessDeniedException, FileNotFoundException {
+        /*
+        1. Get box from cache or db
+        2. compare userID of box's userID against currentUser's ID
+        3. Validate access
+         */
         DataBox db = cacheService.getDataBoxCache().getDataBox(id);
         if (db == null) {
             db = dataBoxRepo.getDataBoxByID(id);
@@ -155,7 +123,7 @@ public class DataBoxService {
         if (db == null) {
             throw new FileNotFoundException("Databox not found in database");
         }
-        validateAccess(db.getUserID());
+        securityHelper.validateAccess(db.getUserID());
         return db;
     }
 }

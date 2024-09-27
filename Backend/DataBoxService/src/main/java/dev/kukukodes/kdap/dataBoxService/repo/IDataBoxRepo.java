@@ -7,12 +7,14 @@ import java.util.List;
 
 public interface IDataBoxRepo {
     /**
-     * Add new data store
+     * Add new data store.
+     * UID, Created and updated will be updated manually.
      */
     DataBox addDataStore(DataBox dataStore);
 
     /**
-     * Update the data store info excluding created and id
+     * Update the data store info excluding created and id.
+     * Modified date will be updated internally
      */
     boolean updateDataStore(DataBox dataStore);
 

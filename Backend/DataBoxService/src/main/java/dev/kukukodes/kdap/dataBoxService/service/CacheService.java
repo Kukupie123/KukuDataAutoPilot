@@ -11,17 +11,21 @@ import org.springframework.stereotype.Service;
 public class CacheService {
     private final CacheManager cacheManager;
     private final String dataBoxCacheName = "dataBoxCache";
+    private final String dataEntryCacheName = "dataEntryCache";
     @Getter
     private final DataBoxCache dataBoxCache;
+    @Getter
+    private final DataEntryCache dataEntryCache;
 
     public CacheService(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
         dataBoxCache = new DataBoxCache();
+        dataEntryCache = new DataEntryCache();
     }
 
     class DataBoxCache {
         public void cacheDataBox(DataBox dataBox) {
-            if(dataBox == null) {
+            if (dataBox == null) {
                 log.warn("DataBox is null skipping caching");
                 return;
             }
@@ -46,7 +50,7 @@ public class CacheService {
 
     }
 
-    class DataEntryCache{
+    class DataEntryCache {
 
     }
 }
