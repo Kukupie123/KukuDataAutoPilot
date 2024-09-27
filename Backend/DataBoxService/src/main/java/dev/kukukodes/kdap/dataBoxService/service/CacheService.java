@@ -1,13 +1,13 @@
 package dev.kukukodes.kdap.dataBoxService.service;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
+import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
 import dev.kukukodes.kdap.dataBoxService.helper.DataboxHelper;
+import dev.kukukodes.kdap.dataBoxService.helper.LogHelper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
 
 @Slf4j
 @Service
@@ -17,48 +17,80 @@ public class CacheService {
     private final String dataBoxCacheName = "dataBoxCache";
     private final String dataEntryCacheName = "dataEntryCache";
     private final DataboxHelper databoxHelper;
+    private final LogHelper logHelper;
     @Getter
     private final DataBoxCache dataBoxCache;
     @Getter
     private final DataEntryCache dataEntryCache;
 
-    public CacheService(CacheManager cacheManager, DataboxHelper databoxHelper) {
+    public CacheService(CacheManager cacheManager, DataboxHelper databoxHelper, LogHelper logHelper) {
         this.cacheManager = cacheManager;
         this.databoxHelper = databoxHelper;
+        this.logHelper = logHelper;
         dataBoxCache = new DataBoxCache();
         dataEntryCache = new DataEntryCache();
     }
 
+    protected void cacheObj(String key, Object object, String cacheName) {
+        try {
+            log.info("Caching {} with key {} in cache {}", cacheName, key, cacheName);
+            cacheManager.getCache(cacheName).put(key, object);
+        } catch (Exception e) {
+            logHelper.logException(log, e);
+        }
+    }
+
+    protected void clearCache(String cacheName, String key) {
+        try {
+            log.info("Clearing cache {} key {}", cacheName, key);
+            cacheManager.getCache(cacheName).evict(key);
+        } catch (Exception e) {
+            logHelper.logException(log, e);
+        }
+    }
+
+    protected <T> T getObj(String key, Class<T> cacheObjType, String cacheName) {
+        try {
+            log.info("Attempting to get cached {} of key {} from {}", cacheObjType.getName(), key, cacheName);
+            T obj = cacheManager.getCache(cacheName).get(key, cacheObjType);
+            if (obj == null) {
+                throw new NullPointerException(String.format("Failed to get object from cache in %s, key %s", cacheName, key));
+            }
+            log.info("Got {} from key {} in {}", obj, key, cacheName);
+            return obj;
+        } catch (Exception e) {
+            logHelper.logException(log, e);
+            clearCache(cacheName, key);
+            return null;
+        }
+    }
+
     class DataBoxCache {
         public void cacheDataBox(DataBox dataBox) {
-            try {
-                databoxHelper.validateDataboxValues(dataBox);
-                log.info("Caching databox {}", dataBox);
-                cacheManager.getCache(dataBoxCacheName).put(dataBox.getId(), dataBox);
-            } catch (Exception e) {
-                log.error("{}\n{}", e.getMessage(), Arrays.toString(e.getStackTrace()));
-            }
-
+            cacheObj(dataBox.getId(), dataBox, dataBoxCacheName);
         }
 
         public DataBox getDataBox(String id) {
-            var db = cacheManager.getCache(dataBoxCacheName).get(id, DataBox.class);
-            if (db == null) {
-                log.info("No data box cached with id {}", id);
-                return null;
-            }
-            log.info("Found cached data box {}", db);
-            return db;
+            return getObj(id, DataBox.class, dataBoxCacheName);
         }
 
         public void clearDataBox(String id) {
-            log.info("Clearing cached data box {}", id);
-            cacheManager.getCache(dataBoxCacheName).evict(id);
+            clearCache(id, dataBoxCacheName);
         }
 
     }
 
     class DataEntryCache {
+        public void cacheDataEntry(DataEntry dataEntry) {
+            cacheObj(dataEntry.getId(), dataEntry, dataEntryCacheName);
+        }
 
+        public void clearDataEntry(String id) {
+            cacheObj(id, null, dataEntryCacheName);
+        }
+
+        public DataEntry getDataEntry(String id) {
+            return getObj(id, DataEntry.class, dataEntryCacheName);
+        }
     }
 }

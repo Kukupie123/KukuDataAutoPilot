@@ -8,7 +8,7 @@ public class LogHelper {
 
     public void logException(Logger logger, Exception e) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Message : " + e.getMessage());
+        stringBuilder.append("Message : ").append(e.getMessage());
         stringBuilder.append("\n");
         stringBuilder.append("--Stack trace--\n");
         for (var s : e.getStackTrace()) {
