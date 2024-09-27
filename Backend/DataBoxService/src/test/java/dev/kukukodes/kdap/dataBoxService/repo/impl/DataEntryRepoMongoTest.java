@@ -1,7 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.repo.impl;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
-import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxField;
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
 import dev.kukukodes.kdap.dataBoxService.enums.DataBoxFieldType;
 import dev.kukukodes.kdap.dataBoxService.helper.DataEntryHelper;
@@ -19,8 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataMongoTest
 class DataEntryRepoMongoTest {

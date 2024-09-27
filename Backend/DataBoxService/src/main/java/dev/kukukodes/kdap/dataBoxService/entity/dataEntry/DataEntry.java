@@ -20,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DataEntry  implements Serializable {
+public class DataEntry implements Serializable {
     @MongoId(FieldType.STRING)
     private String id;
     @Field(DbConst.DocumentFields.DataEntry.STORE_ID)
@@ -30,6 +30,7 @@ public class DataEntry  implements Serializable {
     @Field(DbConst.DocumentFields.CommonFields.MODIFIED)
     private LocalDate modified;
     @Field(DbConst.DocumentFields.DataEntry.VALUE)
+    //FieldName, Value
     private Map<String, String> values;
 
     public DataEntry(String boxID, Map<String, String> values) {

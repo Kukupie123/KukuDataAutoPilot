@@ -80,7 +80,7 @@ public class DataboxController {
             return ResponseModel.success("Databox created successfully", dataBoxService.addDatabox(dataBox));
         } catch (Exception e) {
             log.error("Error creating databox: {}", e.getMessage() + " \nBecause " + e.getCause());
-            return ResponseModel.buildResponse(e.getMessage() + "\n Because " + e.getCause()+"\n Stack : "+ Arrays.toString(e.getStackTrace()), null, 500);
+            return ResponseModel.buildResponse(e.getMessage() + "\n Because " + e.getCause() + "\n Stack : " + Arrays.toString(e.getStackTrace()), null, 500);
         }
     }
 
@@ -96,7 +96,7 @@ public class DataboxController {
         try {
             return ResponseModel.success("Databox updated successfully", dataBoxService.updateDatabox(dataBox));
         } catch (Exception e) {
-            log.error("Error updating databox: {}", e.getMessage());
+            log.error("Error updating databox: {}", e.getMessage() + " in stack \n " + Arrays.toString(e.getStackTrace()));
             return ResponseModel.buildResponse(e.getMessage(), null, 500);
         }
     }

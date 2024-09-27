@@ -1,7 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.repo.impl;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
-import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxField;
 import dev.kukukodes.kdap.dataBoxService.enums.DataBoxFieldType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

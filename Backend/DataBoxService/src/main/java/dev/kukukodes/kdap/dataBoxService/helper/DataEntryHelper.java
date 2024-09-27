@@ -1,14 +1,13 @@
 package dev.kukukodes.kdap.dataBoxService.helper;
 
+import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxFieldDescriptor;
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
-import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxField;
 import dev.kukukodes.kdap.dataBoxService.enums.DataBoxFieldType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -19,34 +18,30 @@ public class DataEntryHelper {
      *
      * @return true if it's valid.
      */
-    public boolean validateEntryForDataBox(List<DataBoxField> boxFields, DataEntry dataEntry) {
-
+    public boolean validateEntryForDataBox(Map<String, DataBoxFieldDescriptor> boxFields, DataEntry dataEntry) {
+        //Validate entries and fields size
         if (dataEntry.getValues().size() > boxFields.size()) {
             log.error("required fields count : {} but got entries : {}", boxFields.size(), dataEntry.getValues().size());
             return false;
         }
-        //Create map of fast access
 
-        Map<String, DataBoxField> fieldsMap = new HashMap<>();
-
-        boxFields.forEach(dataBoxField -> fieldsMap.put(dataBoxField.getFieldName(), dataBoxField));
-        Map<String, String> entryValuesMap = new HashMap<>(dataEntry.getValues());
-
-        //Loop fieldsMap
-        for (Map.Entry<String, DataBoxField> entry : fieldsMap.entrySet()) {
-            String fieldName = entry.getKey();
-            DataBoxField dataBoxField = entry.getValue();
-            String entryValue = entryValuesMap.get(fieldName);
+        Map<String, String> entries = new HashMap<>(dataEntry.getValues());
+        //Check each entry
+        for (Map.Entry<String, DataBoxFieldDescriptor> field : boxFields.entrySet()) {
+            String fieldName = field.getKey();
+            DataBoxFieldDescriptor fieldDescription = field.getValue();
+            String entryValue = entries.get(fieldName);
+            //If entry is null check if it's required or optional
             if (entryValue == null) {
-                if (dataBoxField.isRequired()) {
-                    log.error("Required field {} is missing from entry", fieldName);
+                if (fieldDescription.isRequired()) {
+                    log.error("Required field {} is missing from field", fieldName);
                     return false;
                 }
                 continue;
             }
-            DataBoxFieldType requiredDataType = dataBoxField.getFieldType();
+            DataBoxFieldType requiredDataType = fieldDescription.getFieldType();
             if (!isEntryValueValid(requiredDataType, entryValue)) {
-                log.error("Required field {} is invalid from entry {}", fieldName, entryValue);
+                log.error("Required field {} is invalid from field {}", fieldName, entryValue);
                 return false;
             }
         }

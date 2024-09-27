@@ -4,6 +4,7 @@ import com.mongodb.client.result.DeleteResult;
 import dev.kukukodes.kdap.dataBoxService.constants.DbConst;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataBoxRepo;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -16,13 +17,10 @@ import java.util.List;
 
 @Slf4j
 @Repository
+@RequiredArgsConstructor
 public class DataBoxRepoMongo implements IDataBoxRepo {
 
     private final MongoTemplate template;
-
-    public DataBoxRepoMongo(MongoTemplate template) {
-        this.template = template;
-    }
 
     @Override
     public DataBox addDataStore(DataBox dataBox) {

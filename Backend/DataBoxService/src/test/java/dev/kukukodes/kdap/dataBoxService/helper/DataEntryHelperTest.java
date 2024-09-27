@@ -2,7 +2,6 @@ package dev.kukukodes.kdap.dataBoxService.helper;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
-import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxField;
 import dev.kukukodes.kdap.dataBoxService.enums.DataBoxFieldType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;

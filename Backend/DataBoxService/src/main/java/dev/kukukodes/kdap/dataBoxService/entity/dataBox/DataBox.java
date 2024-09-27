@@ -13,17 +13,17 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(DbConst.Collections.DATA_BOX)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DataBox  implements  Serializable{
+public class DataBox implements Serializable {
     @Field(DbConst.DocumentFields.DataBox.FIELDS)
-    List<DataBoxField> fields;
+    //FieldName, <Type, Required>
+    Map<String, DataBoxFieldDescriptor> fields;
     @MongoId(FieldType.STRING)
     private String id;
     @Field(DbConst.DocumentFields.DataBox.USER_ID)
@@ -36,14 +36,4 @@ public class DataBox  implements  Serializable{
     private LocalDate created;
     @Field(DbConst.DocumentFields.CommonFields.MODIFIED)
     private LocalDate modified;
-
-    public DataBox(String userID, String name, String description, List<DataBoxField> fields) {
-        this.userID = userID;
-        this.name = name;
-        this.description = description;
-        this.fields = fields;
-        this.created = LocalDate.now();
-        this.modified = LocalDate.now();
-        this.id = UUID.randomUUID().toString();
-    }
 }
