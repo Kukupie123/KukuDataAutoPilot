@@ -2,6 +2,9 @@ package dev.kukukodes.kdap.dataBoxService.service;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
+import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.InvalidFieldValue;
+import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.MissingField;
+import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.WrongNumberOfFields;
 import dev.kukukodes.kdap.dataBoxService.helper.DataEntryHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataEntryRepo;
@@ -28,7 +31,7 @@ public class DataEntryService {
     //TODO: Cache
 
 
-    public DataEntry addDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException {
+    public DataEntry addDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException, InvalidFieldValue, MissingField, WrongNumberOfFields {
         log.info("Adding  entry {} to box {}", dataEntry, dataEntry.getBoxID());
         DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
         //Validate
@@ -45,7 +48,7 @@ public class DataEntryService {
         return dataEntryRepo.addDateEntry(dataEntry);
     }
 
-    public boolean updateDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException {
+    public boolean updateDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException, InvalidFieldValue, MissingField, WrongNumberOfFields {
         DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
         securityHelper.validateAccess(dataBox.getUserID());
         boolean canUpdate = dataEntryHelper.validateEntryForDataBox(dataBox.getFields(), dataEntry);
@@ -64,11 +67,10 @@ public class DataEntryService {
         return dataEntryRepo.updateDateEntry(dataEntry);
     }
 
-    public boolean deleteDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException {
-        log.info("Deleting  entry {} from box {}", dataEntry, dataEntry.getBoxID());
-        DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
-        securityHelper.validateAccess(dataBox.getUserID());
-        return dataEntryRepo.deleteDateEntry(dataEntry);
+    public boolean deleteDataEntryForBox(String entryID) throws AccessDeniedException, FileNotFoundException {
+        //No need to validate user. This function does it.
+        DataEntry dbDe = getDataEntry(entryID);
+        return dataEntryRepo.deleteDateEntry(entryID);
     }
 
     public DataEntry getDataEntry(String id) throws FileNotFoundException, AccessDeniedException {

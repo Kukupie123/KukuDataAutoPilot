@@ -22,7 +22,7 @@ public class ServiceCommunicationHelper {
 
     public ServiceCommunicationHelper(@Value("${jwtkey}") String jwtKey) {
         this.jwtKey = jwtKey;
-        log.info("JWT KEY IS {}", jwtKey);
+        //log.info("JWT KEY IS {}", jwtKey);
     }
 
     /**

@@ -3,6 +3,9 @@ package dev.kukukodes.kdap.dataBoxService.helper;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBoxFieldDescriptor;
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
 import dev.kukukodes.kdap.dataBoxService.enums.DataBoxFieldType;
+import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.InvalidFieldValue;
+import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.MissingField;
+import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.WrongNumberOfFields;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +21,10 @@ public class DataEntryHelper {
      *
      * @return true if it's valid.
      */
-    public boolean validateEntryForDataBox(Map<String, DataBoxFieldDescriptor> boxFields, DataEntry dataEntry) {
+    public boolean validateEntryForDataBox(Map<String, DataBoxFieldDescriptor> boxFields, DataEntry dataEntry) throws MissingField, InvalidFieldValue, WrongNumberOfFields {
         //Validate entries and fields size
         if (dataEntry.getValues().size() > boxFields.size()) {
-            log.error("required fields count : {} but got entries : {}", boxFields.size(), dataEntry.getValues().size());
-            return false;
+            throw new WrongNumberOfFields(boxFields.size(),dataEntry.getValues().size());
         }
 
         Map<String, String> entries = new HashMap<>(dataEntry.getValues());
@@ -34,16 +36,19 @@ public class DataEntryHelper {
             //If entry is null check if it's required or optional
             if (entryValue == null) {
                 if (fieldDescription.isRequired()) {
-                    log.error("Required field {} is missing from field", fieldName);
-                    return false;
+                    throw new MissingField(fieldName, field.getValue().getFieldType());
                 }
                 continue;
             }
             DataBoxFieldType requiredDataType = fieldDescription.getFieldType();
-            if (!isEntryValueValid(requiredDataType, entryValue)) {
-                log.error("Required field {} is invalid from field {}", fieldName, entryValue);
-                return false;
+            try {
+                if (!isEntryValueValid(requiredDataType, entryValue)) {
+                    throw new InvalidFieldValue(fieldName, entryValue, field.getValue().getFieldType());
+                }
+            } catch (NumberFormatException e) {
+                throw new InvalidFieldValue(fieldName, entryValue, field.getValue().getFieldType());
             }
+
         }
         return true;
     }

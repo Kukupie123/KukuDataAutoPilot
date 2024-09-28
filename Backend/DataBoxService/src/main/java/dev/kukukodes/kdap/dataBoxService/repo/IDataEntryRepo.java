@@ -9,7 +9,7 @@ public interface IDataEntryRepo {
 
     boolean updateDateEntry(DataEntry dataEntry);
 
-    boolean deleteDateEntry(DataEntry dataEntry);
+    boolean deleteDateEntry(String id);
 
     DataEntry getDataEntry(String id);
 

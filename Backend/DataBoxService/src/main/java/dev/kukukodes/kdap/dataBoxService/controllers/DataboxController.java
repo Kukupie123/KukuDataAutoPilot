@@ -1,7 +1,7 @@
 package dev.kukukodes.kdap.dataBoxService.controllers;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
-import dev.kukukodes.kdap.dataBoxService.helper.LogHelper;
+import dev.kukukodes.kdap.dataBoxService.helper.ExceptionHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.model.ResponseModel;
 import dev.kukukodes.kdap.dataBoxService.service.DataBoxService;
@@ -10,7 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
+import java.io.FileNotFoundException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 /**
@@ -33,10 +34,9 @@ import java.util.List;
 @RequestMapping("/api/authenticated/databox")
 @RequiredArgsConstructor
 public class DataboxController {
-
+    private final ExceptionHelper exceptionHelper;
     private final SecurityHelper securityHelper;
     private final DataBoxService dataBoxService;
-    private final LogHelper logHelper;
 
     /**
      * Fetches DataBox(es) based on query parameters.
@@ -51,22 +51,20 @@ public class DataboxController {
     public ResponseEntity<ResponseModel<List<DataBox>>> getDataboxes(@RequestParam(required = false) String boxid,
                                                                      @RequestParam(required = false) String userid,
                                                                      @RequestParam(defaultValue = "0") int skip,
-                                                                     @RequestParam(defaultValue = "10") int limit) {
-        try {
-            if (boxid != null && !boxid.isEmpty()) {
-                log.info("Fetching data for box ID: {}", boxid);
-                return ResponseModel.success("Box data retrieved", List.of(dataBoxService.getDatabox(boxid)));
-            } else if (userid != null && !userid.isEmpty()) {
-                log.info("Fetching databoxes for user ID: {}", userid);
-                return ResponseModel.success("User's databoxes retrieved", dataBoxService.getDataboxesOfUser(userid));
-            } else {
-                log.info("Fetching all databoxes with pagination - skip: {}, limit: {}", skip, limit);
-                return ResponseModel.success("All databoxes retrieved", dataBoxService.getAllDatabox(skip, limit));
-            }
-        } catch (Exception e) {
-            logHelper.logException(log, e);
-            return ResponseModel.buildResponse(e.getMessage(), null, 500);
+                                                                     @RequestParam(defaultValue = "10") int limit) throws AccessDeniedException, FileNotFoundException {
+
+        if (userid != null && !userid.isEmpty()) {
+            log.info("Fetching databoxes for user ID: {}", userid);
+            return ResponseModel.success("User's databoxes retrieved", dataBoxService.getDataboxesOfUser(userid));
         }
+        if (boxid != null && !boxid.isEmpty()) {
+            log.info("Fetching data for box ID: {}", boxid);
+            return ResponseModel.success("Box data retrieved", List.of(dataBoxService.getDatabox(boxid)));
+        } else {
+            log.info("Fetching all databoxes with pagination - skip: {}, limit: {}", skip, limit);
+            return ResponseModel.success("All databoxes retrieved", dataBoxService.getAllDatabox(skip, limit));
+        }
+
     }
 
     /**
@@ -76,14 +74,10 @@ public class DataboxController {
      * @return Response containing the newly created DataBox.
      */
     @PostMapping("/")
-    public ResponseEntity<ResponseModel<DataBox>> createDatabox(@RequestBody DataBox dataBox) {
-        try {
-            log.info("Creating new databox: {}", dataBox);
-            return ResponseModel.success("Databox created successfully", dataBoxService.addDatabox(dataBox));
-        } catch (Exception e) {
-            logHelper.logException(log, e);
-            return ResponseModel.buildResponse(e.getMessage() + "\n Because " + e.getCause() + "\n Stack : " + Arrays.toString(e.getStackTrace()), null, 500);
-        }
+    public ResponseEntity<ResponseModel<DataBox>> createDatabox(@RequestBody DataBox dataBox) throws Exception {
+        log.info("Creating new databox: {}", dataBox);
+        return ResponseModel.success("Databox created successfully", dataBoxService.addDatabox(dataBox));
+
     }
 
     /**
@@ -93,14 +87,10 @@ public class DataboxController {
      * @return Response indicating success or failure.
      */
     @PutMapping("/")
-    public ResponseEntity<ResponseModel<Boolean>> updateDatabox(@RequestBody DataBox dataBox) {
+    public ResponseEntity<ResponseModel<Boolean>> updateDatabox(@RequestBody DataBox dataBox) throws Exception {
         log.info("Updating databox: {}", dataBox);
-        try {
-            return ResponseModel.success("Databox updated successfully", dataBoxService.updateDatabox(dataBox));
-        } catch (Exception e) {
-            logHelper.logException(log, e);
-            return ResponseModel.buildResponse(e.getMessage(), null, 500);
-        }
+        return ResponseModel.success("Databox updated successfully", dataBoxService.updateDatabox(dataBox));
+
     }
 
     /**
@@ -110,13 +100,14 @@ public class DataboxController {
      * @return Response indicating success or failure.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseModel<Boolean>> deleteDatabox(@PathVariable("id") String id) {
+    public ResponseEntity<ResponseModel<Boolean>> deleteDatabox(@PathVariable("id") String id) throws AccessDeniedException, FileNotFoundException {
         log.info("Deleting databox with ID: {}", id);
-        try {
-            return ResponseModel.success("Databox deleted successfully", dataBoxService.deleteDatabox(id));
-        } catch (Exception e) {
-            logHelper.logException(log, e);
-            return ResponseModel.buildResponse(e.getMessage(), null, 500);
-        }
+        return ResponseModel.success("Databox deleted successfully", dataBoxService.deleteDatabox(id));
+
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ResponseModel<Object>> exceptionHandler(Exception ex) {
+        return exceptionHelper.kdapExceptionHandler(ex);
     }
 }

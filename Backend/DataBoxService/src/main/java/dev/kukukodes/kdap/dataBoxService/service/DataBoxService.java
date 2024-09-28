@@ -2,6 +2,7 @@ package dev.kukukodes.kdap.dataBoxService.service;
 
 import dev.kukukodes.kdap.dataBoxService.constants.AccessLevelConst;
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
+import dev.kukukodes.kdap.dataBoxService.exceptions.databox.FailedToUpdate;
 import dev.kukukodes.kdap.dataBoxService.helper.DataboxHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.RequestHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
@@ -18,7 +19,6 @@ import java.io.FileNotFoundException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -65,11 +65,6 @@ public class DataBoxService {
         if (dataBox.getId() == null) {
             throw new NullPointerException("DataBox id is null");
         }
-        //Validate user
-        var user = requestHelper.getAuthenticationRequest().getUserInfo(dataBox.getUserID());
-        if (user == null) {
-            throw new Exception("User is null");
-        }
         //Compare against existing record
         var dbFromCollection = getDatabox(dataBox.getId());
         if (dbFromCollection == null) {
@@ -90,8 +85,10 @@ public class DataBoxService {
             //Invalidate cache and publish event
             cacheService.getDataBoxCache().clearDataBox(dataBox.getId());
             dataBoxPublisher.publishDataBoxUpdatedEvent(dataBox);
+            return true;
         }
-        return updated;
+        log.error("Failed to update");
+        throw new FailedToUpdate(dataBox);
     }
 
     public boolean deleteDatabox(String id) throws AccessDeniedException, FileNotFoundException {
@@ -135,9 +132,11 @@ public class DataBoxService {
                 //Cache the retrieved db
                 cacheService.getDataBoxCache().cacheDataBox(db);
             }
-        }
-        if (db == null) {
-            throw new FileNotFoundException("Databox not found in database");
+            //database not found
+            else {
+                throw new FileNotFoundException("Databox not found in database");
+
+            }
         }
         securityHelper.validateAccess(db.getUserID());
         return db;

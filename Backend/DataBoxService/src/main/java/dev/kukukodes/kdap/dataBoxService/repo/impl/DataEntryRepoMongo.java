@@ -35,9 +35,12 @@ public class DataEntryRepoMongo implements IDataEntryRepo {
     }
 
     @Override
-    public boolean deleteDateEntry(DataEntry dataEntry) {
-        log.info("deleting entry {} for boxID {}", dataEntry, dataEntry.getBoxID());
-        return mongoTemplate.remove(dataEntry).getDeletedCount() > 0;
+    public boolean deleteDateEntry(String id) {
+        log.info("deleting entry {}", id);
+        return mongoTemplate.remove(Query.query(
+                        Criteria.where(DbConst.DocumentFields.CommonFields.ID).is(id)
+                ), DataEntry.class)
+                .getDeletedCount() > 0;
     }
 
     @Override

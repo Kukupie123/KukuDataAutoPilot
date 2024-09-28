@@ -1,9 +1,9 @@
 package dev.kukukodes.kdap.dataBoxService.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @NoArgsConstructor
@@ -23,6 +23,10 @@ public class ResponseModel<T> {
     }
 
     public static <T> ResponseEntity<ResponseModel<T>> buildResponse(String msg, T data, int statusCode) {
+        return ResponseEntity.status(statusCode).body(new ResponseModel<>(msg, data));
+    }
+
+    public static <T> ResponseEntity<ResponseModel<T>> buildResponse(String msg, T data, HttpStatus statusCode) {
         return ResponseEntity.status(statusCode).body(new ResponseModel<>(msg, data));
     }
 }
