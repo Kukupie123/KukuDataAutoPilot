@@ -2,9 +2,6 @@ package dev.kukukodes.kdap.dataBoxService.service;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataBox.DataBox;
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.InvalidFieldValue;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.MissingField;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.WrongNumberOfFields;
 import dev.kukukodes.kdap.dataBoxService.helper.DataEntryHelper;
 import dev.kukukodes.kdap.dataBoxService.helper.SecurityHelper;
 import dev.kukukodes.kdap.dataBoxService.repo.IDataEntryRepo;
@@ -26,12 +23,10 @@ public class DataEntryService {
     private final IDataEntryRepo dataEntryRepo;
     private final DataBoxService dataBoxService;
     private final SecurityHelper securityHelper;
+    private final CacheService cacheService;
+    //TODO: Publishing
 
-    //TODO: Verify that it belongs to the same user
-    //TODO: Cache
-
-
-    public DataEntry addDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException, InvalidFieldValue, MissingField, WrongNumberOfFields {
+    public DataEntry addDataEntryForBox(DataEntry dataEntry) throws Exception {
         log.info("Adding  entry {} to box {}", dataEntry, dataEntry.getBoxID());
         DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
         //Validate
@@ -48,7 +43,7 @@ public class DataEntryService {
         return dataEntryRepo.addDateEntry(dataEntry);
     }
 
-    public boolean updateDataEntryForBox(DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException, InvalidFieldValue, MissingField, WrongNumberOfFields {
+    public boolean updateDataEntryForBox(DataEntry dataEntry) throws Exception {
         DataBox dataBox = dataBoxService.getDatabox(dataEntry.getBoxID());
         securityHelper.validateAccess(dataBox.getUserID());
         boolean canUpdate = dataEntryHelper.validateEntryForDataBox(dataBox.getFields(), dataEntry);
@@ -64,19 +59,30 @@ public class DataEntryService {
         dataEntry.setModified(LocalDate.now());
         dataEntry.setCreated(dbDe.getCreated());
         log.info("Updating  entry {} to box {}", dataEntry, dataEntry.getBoxID());
-        return dataEntryRepo.updateDateEntry(dataEntry);
+        if (dataEntryRepo.updateDateEntry(dataEntry)) {
+            cacheService.getDataEntryCache().clearDataEntry(dataEntry.getBoxID());
+            return true;
+        }
+        return false;
     }
 
     public boolean deleteDataEntryForBox(String entryID) throws AccessDeniedException, FileNotFoundException {
         //No need to validate user. This function does it.
         DataEntry dbDe = getDataEntry(entryID);
-        return dataEntryRepo.deleteDateEntry(entryID);
+        if (dataEntryRepo.deleteDateEntry(entryID)) {
+            cacheService.getDataEntryCache().clearDataEntry(entryID);
+            return true;
+        }
+        return false;
     }
 
     public DataEntry getDataEntry(String id) throws FileNotFoundException, AccessDeniedException {
-        var foundData = dataEntryRepo.getDataEntry(id);
+        var foundData = cacheService.getDataEntryCache().getDataEntry(id);
         if (foundData == null) {
-            throw new FileNotFoundException("Failed to find dataEntry " + id);
+            foundData = dataEntryRepo.getDataEntry(id);
+            if (foundData == null) {
+                throw new FileNotFoundException("Failed to find dataEntry with id " + id);
+            }
         }
         log.info("Getting data entry {}", id);
         DataBox dataBox = dataBoxService.getDatabox(foundData.getBoxID());

@@ -83,7 +83,7 @@ public class CacheService {
         }
 
         public void clearDataEntry(String id) {
-            cacheObj(id, null, dataEntryCacheName);
+            clearCache(dataEntryCacheName, id);
         }
 
         public DataEntry getDataEntry(String id) {

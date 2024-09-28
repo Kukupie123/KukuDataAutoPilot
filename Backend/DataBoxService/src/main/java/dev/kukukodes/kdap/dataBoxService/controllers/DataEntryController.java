@@ -1,10 +1,6 @@
 package dev.kukukodes.kdap.dataBoxService.controllers;
 
 import dev.kukukodes.kdap.dataBoxService.entity.dataEntry.DataEntry;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.DataEntryNotFound;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.InvalidFieldValue;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.MissingField;
-import dev.kukukodes.kdap.dataBoxService.exceptions.dataentry.WrongNumberOfFields;
 import dev.kukukodes.kdap.dataBoxService.helper.ExceptionHelper;
 import dev.kukukodes.kdap.dataBoxService.model.ResponseModel;
 import dev.kukukodes.kdap.dataBoxService.service.DataEntryService;
@@ -56,20 +52,19 @@ public class DataEntryController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<ResponseModel<DataEntry>> addDataEntry(@RequestBody DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException, InvalidFieldValue, MissingField, WrongNumberOfFields {
+    public ResponseEntity<ResponseModel<DataEntry>> addDataEntry(@RequestBody DataEntry dataEntry) throws Exception {
         return ResponseModel.success("", dataEntryService.addDataEntryForBox(dataEntry));
 
     }
 
     @PutMapping("/")
-    public ResponseEntity<ResponseModel<Boolean>> updateDataEntry(@RequestBody DataEntry dataEntry) throws AccessDeniedException, FileNotFoundException, InvalidFieldValue, MissingField, WrongNumberOfFields {
+    public ResponseEntity<ResponseModel<Boolean>> updateDataEntry(@RequestBody DataEntry dataEntry) throws Exception {
         return ResponseModel.success("", dataEntryService.updateDataEntryForBox(dataEntry));
 
     }
 
-    //TODO: caching and publishing event
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseModel<Boolean>> deleteDataEntry(@PathVariable String id) throws AccessDeniedException, FileNotFoundException, DataEntryNotFound {
+    public ResponseEntity<ResponseModel<Boolean>> deleteDataEntry(@PathVariable String id) throws Exception {
         return ResponseModel.success("", dataEntryService.deleteDataEntryForBox(id));
 
     }
