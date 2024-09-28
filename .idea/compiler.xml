@@ -13,11 +13,13 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="ActionService" target="17" />
       <module name="DataStore" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ActionService" options="-parameters" />
       <module name="AuthenticationService" options="-parameters" />
       <module name="DataBoxService" options="-parameters" />
       <module name="DataStore" options="-parameters" />
