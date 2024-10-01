@@ -11,6 +11,7 @@
         <option value="$PROJECT_DIR$/Backend/DataStoreService/pom.xml" />
         <option value="$PROJECT_DIR$/Backend/DataBoxService/pom.xml" />
         <option value="$PROJECT_DIR$/ActionService/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/ActionService/pom.xml" />
       </list>
     </option>
   </component>

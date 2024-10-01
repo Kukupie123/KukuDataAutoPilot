@@ -10,10 +10,10 @@
         <module name="AuthenticationService" />
         <module name="configServer" />
         <module name="DataBoxService" />
+        <module name="ActionService" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="ActionService" target="17" />
       <module name="DataStore" target="17" />
     </bytecodeTargetLevel>
   </component>
