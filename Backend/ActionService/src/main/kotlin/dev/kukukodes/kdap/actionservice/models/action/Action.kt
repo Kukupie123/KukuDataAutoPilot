@@ -1,16 +1,13 @@
 package dev.kukukodes.kdap.actionservice.models.action
 
-import dev.kukukodes.kdap.actionservice.helper.action.ActionHelper
-import dev.kukukodes.kdap.actionservice.models.ActionRuntimeEnvironment
-
-/**
- * Action is an action that performs different operations which can be system defined or user defined.
- */
 interface Action {
-    fun getInputStructure(): Map<String, ActionInputOutputStructure>
-    fun getOutputStructure(): Map<String, ActionInputOutputStructure>
-    fun getActionHelper(): ActionHelper
-    fun execute(input: Map<String, Any>, env: ActionRuntimeEnvironment, outputSaveName: String?)
+    fun getInputStructure(): Map<String, Any>
+    fun getOutputStructure(): Map<String, Any>
 
-    //TODO: Input and output processor so that we can pass "name":"storage.output1.name"
+    /**
+     * @param runtimeStorage The runtime storage
+     * @param inputValues Actual input values. Needs to match inputStructure
+     * @param outputName The key that will be used to store the output in runtime storage
+     */
+    fun execute(runtimeStorage: HashMap<String, Any>, inputValues: Map<String, Any>, outputName: String)
 }
