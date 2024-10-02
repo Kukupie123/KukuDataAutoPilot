@@ -10,4 +10,8 @@ class LinearActionNode : ActionNode {
     override fun getNextNode(): ActionNode {
         TODO("Not yet implemented")
     }
+
+    override fun execute() {
+        val input = getAction().in
+    }
 }

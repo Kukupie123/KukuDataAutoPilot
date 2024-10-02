@@ -8,5 +8,6 @@ import dev.kukukodes.kdap.actionservice.models.action.Action
  */
 interface ActionNode {
     fun getAction(): Action;
-    fun getNextNode(): ActionNode;
+    fun getNextNode(): ActionNode?;
+    fun execute();
 }
