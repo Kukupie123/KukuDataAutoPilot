@@ -94,9 +94,12 @@ class ActionServiceTest {
         val expectedSumResult = 579 // 123 + 456 = 579 (should match the integer type)
         val expectedMultiplyResult = expectedSumResult * 53 // (579 * 53)
 
-        // Check if the runtime storage has the correct multiResult
-        assertEquals(expectedMultiplyResult, runtimeStorage["multiResult"])
-        log.info("Final Result after multiplication: {}", runtimeStorage["multiResult"])
+        // Extract the actual result from the multiResult map
+        val actualMultiplyResult = (runtimeStorage["multiResult"] as Map<String, Any>)["Result"]
+
+    // Check if the runtime storage has the correct multiResult
+        assertEquals(expectedMultiplyResult.toFloat(), actualMultiplyResult)
+        log.info("Final Result after multiplication: {}", actualMultiplyResult)
     }
 
 
