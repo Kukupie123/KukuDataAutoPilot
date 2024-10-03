@@ -1,99 +1,17 @@
 package dev.kukukodes.kdap.actionservice.models
 
+import lombok.ToString
+
 /**
  * Action that is being "Executed" with required parameters such as input values and saveName for output
  */
+@ToString
 class RuntimeAction(
     private val action: ActionDefinition,
     private val inputMap: Map<String, Any>,
     private val saveName: String,
     private val runtimeStorage: MutableMap<String, Any>
 ) {
-
-    /**
-     * Validate the inputMap against the input structure of the action.
-     * Ensure that the inputMap contains the correct keys and that values conform to expected types.
-     */
-    private fun validateInputMap() {
-        val inputStructure = action.inputStructure
-
-        // Iterate over the input structure to validate each field
-        for ((fieldName, fieldType) in inputStructure) {
-            val inputValue = inputMap[fieldName]
-                ?: throw IllegalArgumentException("Missing input field: $fieldName")
-
-            when (fieldType) {
-                is String -> {
-                    if (fieldType !in listOf("INTEGER", "DECIMAL", "BOOLEAN", "TEXT")) {
-                        throw IllegalArgumentException("Invalid field type: $fieldType for field $fieldName")
-                    }
-                    // Check value type based on expected input field type
-                    when (fieldType) {
-                        "INTEGER" -> inputValue.toString().toIntOrNull()
-                            ?: throw IllegalArgumentException("Expected INTEGER value for field $fieldName")
-
-                        "DECIMAL" -> inputValue.toString().toDoubleOrNull()
-                            ?: throw IllegalArgumentException("Expected DECIMAL value for field $fieldName")
-
-                        "BOOLEAN" -> if (inputValue !is Boolean && inputValue !is String)
-                            throw IllegalArgumentException("Expected BOOLEAN value for field $fieldName")
-
-                        "TEXT" -> if (inputValue !is String)
-                            throw IllegalArgumentException("Expected TEXT value for field $fieldName")
-                    }
-                }
-
-                is Map<*, *> -> {
-                    if (inputValue !is Map<*, *>) {
-                        throw IllegalArgumentException("Expected a map for field $fieldName")
-                    }
-                    // Recursively validate the nested map structure
-                    validateNestedInputMap(fieldType as Map<String, Any>, inputValue as Map<String, Any>)
-                }
-
-                else -> throw IllegalArgumentException("Unknown field type for $fieldName")
-            }
-        }
-    }
-
-    /**
-     * Validate nested input maps recursively.
-     */
-    private fun validateNestedInputMap(nestedStructure: Map<String, Any>, nestedMap: Map<String, Any>) {
-        for ((nestedFieldName, nestedFieldType) in nestedStructure) {
-            val nestedInputValue = nestedMap[nestedFieldName]
-                ?: throw IllegalArgumentException("Missing input field: $nestedFieldName")
-
-            when (nestedFieldType) {
-                is String -> {
-                    if (nestedFieldType !in listOf("INTEGER", "DECIMAL", "BOOLEAN", "TEXT")) {
-                        throw IllegalArgumentException("Invalid field type: $nestedFieldType for field $nestedFieldName")
-                    }
-                    when (nestedFieldType) {
-                        "INTEGER" -> nestedInputValue.toString().toIntOrNull()
-                            ?: throw IllegalArgumentException("Expected INTEGER value for nested field $nestedFieldName")
-
-                        "DECIMAL" -> nestedInputValue.toString().toDoubleOrNull()
-                            ?: throw IllegalArgumentException("Expected DECIMAL value for nested field $nestedFieldName")
-
-                        "BOOLEAN" -> if (nestedInputValue !is Boolean && nestedInputValue !is String)
-                            throw IllegalArgumentException("Expected BOOLEAN value for nested field $nestedFieldName")
-
-                        "TEXT" -> if (nestedInputValue !is String)
-                            throw IllegalArgumentException("Expected TEXT value for nested field $nestedFieldName")
-                    }
-                }
-
-                is Map<*, *> -> {
-                    if (nestedInputValue !is Map<*, *>) {
-                        throw IllegalArgumentException("Expected a map for nested field $nestedFieldName")
-                    }
-                    // Recursively validate nested structure
-                    validateNestedInputMap(nestedFieldType as Map<String, Any>, nestedInputValue as Map<String, Any>)
-                }
-            }
-        }
-    }
 
     /**
      * Resolve inputMap to get literal values that need to be passed to action as input.
@@ -125,10 +43,10 @@ class RuntimeAction(
                 // Convert resolved value to the expected type
                 when (fieldType) {
                     "INTEGER" -> resolvedValue = resolvedValue.toString().toIntOrNull()
-                        ?: throw IllegalArgumentException("Expected INTEGER value for $fieldName")
+                        ?: throw IllegalArgumentException("Expected INTEGER value for $fieldName but got $resolvedValue")
 
                     "DECIMAL" -> resolvedValue = resolvedValue.toString().toDoubleOrNull()
-                        ?: throw IllegalArgumentException("Expected DECIMAL value for $fieldName")
+                        ?: throw IllegalArgumentException("Expected DECIMAL value for $fieldName but got $resolvedValue")
 
                     "TEXT" -> resolvedValue = resolvedValue.toString()
                     "BOOLEAN" -> resolvedValue = resolvedValue.toString().toBoolean()
@@ -153,7 +71,7 @@ class RuntimeAction(
         var currentMap: Any = runtimeStorage
         for (key in keys) {
             if (currentMap is Map<*, *>) {
-                currentMap = currentMap[key] ?: throw IllegalArgumentException("Key $key not found in runtimeStorage")
+                currentMap = currentMap[key] ?: throw IllegalArgumentException("Key ($key) not found in runtimeStorage")
             } else {
                 throw IllegalArgumentException("Invalid storage path at key $key")
             }
@@ -166,12 +84,19 @@ class RuntimeAction(
      */
     fun executeAction() {
         // Validate input map before resolving
-        validateInputMap()
+        //validateInputMap()
+        //TODO : Fix validate input. It needs to validate input value not map
 
         val resolvedInputs = resolveInputMap()
         val output = action.execute(resolvedInputs)
 
         // Store the output in runtimeStorage under the specified saveName
-        runtimeStorage[saveName] = output
+        if(!output.isNullOrEmpty()) {
+            runtimeStorage[saveName] = output
+        }
     }
+    override fun toString(): String {
+        return "RuntimeAction(action=$action, inputMap=$inputMap, saveName='$saveName', runtimeStorage=$runtimeStorage)"
+    }
+    //TODO: We need output map similar to input map to map return values. Execute function also needs to be modified to handle this.
 }
