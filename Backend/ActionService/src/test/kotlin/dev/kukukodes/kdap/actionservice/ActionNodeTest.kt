@@ -4,6 +4,11 @@ import dev.kukukodes.kdap.actionservice.models.ActionDefinition
 import dev.kukukodes.kdap.actionservice.models.AddAction
 import dev.kukukodes.kdap.actionservice.models.MultiplyAction
 import dev.kukukodes.kdap.actionservice.models.RuntimeAction
+import dev.kukukodes.kdap.actionservice.models.actions.ActionConnection
+import dev.kukukodes.kdap.actionservice.models.actions.ActionRunner
+import dev.kukukodes.kdap.actionservice.models.actions.InnerAction
+import dev.kukukodes.kdap.actionservice.models.actions.UserAction
+import dev.kukukodes.kdap.actionservice.models.actions.plug.ActionPlug
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -97,10 +102,63 @@ class ActionServiceTest {
         // Extract the actual result from the multiResult map
         val actualMultiplyResult = (runtimeStorage["multiResult"] as Map<String, Any>)["Result"]
 
-    // Check if the runtime storage has the correct multiResult
+        // Check if the runtime storage has the correct multiResult
         assertEquals(expectedMultiplyResult.toFloat(), actualMultiplyResult)
         log.info("Final Result after multiplication: {}", actualMultiplyResult)
     }
 
+    @Test
+    fun version2() {
+        val storage = mutableMapOf<String, Any?>(
+            "add" to mapOf(
+                "one" to 10,
+                "two" to 20
+            ),
+            "multiply" to 2
+        )
+        val add = dev.kukukodes.kdap.actionservice.models.actions.definedActions.AddAction()
+        val addConnection = ActionConnection(
+            plugInMap = mapOf(
+                "num1" to "storage.add.one",
+                "num2" to "storage.add.two",
+            ),
+            plugOutMap = mapOf(
+                "result" to "sum"
+            )
+        )
+        val pro = dev.kukukodes.kdap.actionservice.models.actions.definedActions.MultiplyAction()
+        val proConnection = ActionConnection(
+            plugInMap = mapOf(
+                "num1" to "sum",
+                "num2" to "storage.multiply"
+            ),
+            plugOutMap = mapOf(
+                "result" to "final"
+            )
+        )
+        val user = UserAction(
+            "Add and multiplication",
+            "Adds two number then multiplies the result with another number",
+            plugIn = mapOf(
+                "add" to ActionPlug.Nest(
+                    mapOf(
+                        "one" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0),
+                        "two" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0)
+                    ),
+                    defaultValue = mapOf(
+                        "one" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0),
+                        "two" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0)
+                    )
+                )
+            ),
+            plugOut = mapOf(
+                "result" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0),
+            ),
+            actions = listOf(InnerAction(add, addConnection), InnerAction(pro, proConnection)),
+            storageResultKey = "final"
+        )
 
+        val actionRunner = ActionRunner(user, storage = storage)
+        actionRunner.run()
+    }
 }

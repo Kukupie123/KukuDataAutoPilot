@@ -100,3 +100,9 @@ class RuntimeAction(
     }
     //TODO: We need output map similar to input map to map return values. Execute function also needs to be modified to handle this.
 }
+
+/*
+I am making an action system where there's gonna be predefined actions. Users can create their own actions by combining predefined actions or using their already defined user actions.
+Input Structure and output structure defines the input structure it accepts and output structure it returns.
+For predefined actions its easy to return an output but i cant figure out how can user defined actions give an output
+ */
