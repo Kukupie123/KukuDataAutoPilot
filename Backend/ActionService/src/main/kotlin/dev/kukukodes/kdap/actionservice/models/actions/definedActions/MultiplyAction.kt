@@ -1,6 +1,5 @@
 package dev.kukukodes.kdap.actionservice.models.actions.definedActions
 
-import dev.kukukodes.kdap.actionservice.models.actions.Action
 import dev.kukukodes.kdap.actionservice.models.actions.plug.ActionPlug
 
 class MultiplyAction(
@@ -14,8 +13,8 @@ class MultiplyAction(
         "result" to (ActionPlug.Primitive("DECIMAL", defaultValue = 0)
                 ),
     ),
-) : Action {
+) : DefinedActionBase(name, description, plugIn, plugOut) {
     override fun execute(input: Map<String, Any?>): Map<String, Any?> {
-        return mapOf("result" to (input["num1"] as Float * input["num2"] as Float))
+        return mapOf("result" to (input["num1"].toString().toFloat() * input["num2"].toString().toFloat()))
     }
 }

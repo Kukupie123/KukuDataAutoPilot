@@ -7,5 +7,4 @@ interface Action {
     val description: String
     val plugIn: Map<String, ActionPlug>
     val plugOut: Map<String, ActionPlug>
-    fun execute(input: Map<String, Any?>): Map<String, Any?>
 }
