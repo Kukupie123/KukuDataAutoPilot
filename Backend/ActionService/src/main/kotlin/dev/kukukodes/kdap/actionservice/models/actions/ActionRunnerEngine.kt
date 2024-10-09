@@ -24,7 +24,7 @@ class ActionRunnerEngine {
             //Get input values
             val inputValues = mutableMapOf<String, Any?>()
             for (con in innerAction.actionConnection.plugInMap) {
-                inputValues[con.key] = input[con.value]
+                inputValues[con.key] = scopeStorage[con.value]
             }
             val output = executeAction(innerAction.action, inputValues)
             // Store output in working storage using connection mapping
@@ -36,7 +36,7 @@ class ActionRunnerEngine {
         // Prepare final output according to UserAction's output mapping
         val actionOutput = mutableMapOf<String, Any?>()
         for (outputMap in userAction.outputMap) {
-            actionOutput[outputMap.value] = scopeStorage[outputMap.key]
+            actionOutput[outputMap.key] = scopeStorage[outputMap.value]
         }
         return actionOutput
     }
