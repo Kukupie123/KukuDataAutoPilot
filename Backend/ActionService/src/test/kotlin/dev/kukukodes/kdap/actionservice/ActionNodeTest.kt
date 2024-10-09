@@ -1,8 +1,11 @@
 package dev.kukukodes.kdap.actionservice
 
 import dev.kukukodes.kdap.actionservice.models.actions.ActionConnection
+import dev.kukukodes.kdap.actionservice.models.actions.ActionRunnerEngine
 import dev.kukukodes.kdap.actionservice.models.actions.InnerAction
 import dev.kukukodes.kdap.actionservice.models.actions.UserAction
+import dev.kukukodes.kdap.actionservice.models.actions.definedActions.AddAction
+import dev.kukukodes.kdap.actionservice.models.actions.definedActions.MultiplyAction
 import dev.kukukodes.kdap.actionservice.models.actions.plug.ActionPlug
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -12,35 +15,34 @@ class ActionServiceTest {
 
     @Test
     fun version2() {
-
-        val storage = mutableMapOf<String, Any?>(
+        val storage = mutableMapOf(
             "one" to 1,
             "two" to 2,
             "three" to 3,
         )
-        /*
 
-         */
-        val add = dev.kukukodes.kdap.actionservice.models.actions.definedActions.AddAction()
+        val add = AddAction()
         val addConnection = ActionConnection(
             plugInMap = mapOf(
-                "num1" to "one",//storage[add][one] (Nested value)
+                "num1" to "one",
                 "num2" to "two",
             ),
             plugOutMap = mapOf(
-                "result" to "sum" // Will be stored in storage[sum]
+                "result" to "sum"
             )
         )
-        val pro = dev.kukukodes.kdap.actionservice.models.actions.definedActions.MultiplyAction()
+
+        val pro = MultiplyAction()
         val proConnection = ActionConnection(
             plugInMap = mapOf(
-                "num1" to "sum", //storage[sum]
-                "num2" to "three" //storage[multiply]
+                "num1" to "sum",
+                "num2" to "three"
             ),
             plugOutMap = mapOf(
-                "result" to "final" //Will be stored in storage[final]
+                "result" to "final"
             )
         )
+
         val userAddMulti = UserAction(
             "Add and multiplication",
             "Adds two number then multiplies the result with another number",
@@ -54,8 +56,9 @@ class ActionServiceTest {
             outputMap = mapOf("result" to "final")
         )
 
-        val finalStorage = userAddMulti.execute(storage);
+        val engine = ActionRunnerEngine()
+        val finalOutput = engine.executeAction(userAddMulti, storage)
 
-        print("GGEZ")
+        println("Final output: $finalOutput")
     }
 }

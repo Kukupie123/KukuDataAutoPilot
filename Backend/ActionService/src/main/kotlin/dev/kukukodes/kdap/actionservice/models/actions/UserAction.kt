@@ -13,9 +13,9 @@ class UserAction(
      */
     val actions: List<InnerAction>,
     /**
-     * The key where the result is stored in "local storage"
+     * Map the outputs returned by the inner actions into output plug
      */
-    private val outputMap: Map<String, String>
+    val outputMap: Map<String, String>
 ) : Action {
     fun execute(storage: Map<String, Any?>): Map<String, Any?> {
         val ls = storage.toMutableMap()
