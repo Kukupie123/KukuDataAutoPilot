@@ -36,6 +36,7 @@ class ActionServiceTest {
         Assertions.assertThat(result).isNotNull
         Assertions.assertThat(result?.get("result")).isEqualTo(4.0f)
     }
+
     @Test
     fun nestedPlugs() {
         val storage = mutableMapOf(
@@ -61,6 +62,72 @@ class ActionServiceTest {
             ), storage
         )
         log.info(result.toString())
+    }
+
+    @Test
+    fun compositeAction() {
+        val storage = mapOf(
+            "storageNum" to 2
+        )
+        val compositeAction = createCompositeAction()
+        val engine = ActionRunnerEngine()
+        val result = engine.executeAction(
+            InnerAction(
+                compositeAction,
+                ActionConnection(
+                    plugInMap = mapOf(
+                        "num" to "{storageNum}"
+                    )
+                )
+            ), storage
+        )
+        log.info(result.toString())
+    }
+
+    private fun createCompositeAction(): UserAction {
+
+        val square = createSquareAction()
+        val addMulti = createAddAndMultiplyAction()
+        return UserAction(
+            name = "Composite",
+            plugIn = mapOf(
+                "num" to ActionPlug.Primitive("DECIMAL", defaultValue = 0)
+            ),
+            plugOut = mapOf(
+                "result" to ActionPlug.Primitive("DECIMAL", defaultValue = 0)
+            ),
+            actions = listOf(
+                //Square action
+                InnerAction(
+                    action = square,
+                    actionConnection = ActionConnection(
+                        plugInMap = mapOf(
+                            "number" to "{num}"
+                        ),
+                        plugOutMap = mapOf(
+                            "{result}" to "{result.square}"
+                        )
+                    )
+                ),
+                //addMulti action
+                InnerAction(
+                    action = addMulti,
+                    actionConnection = ActionConnection(
+                        plugInMap = mapOf(
+                            "number1" to "{result.square}",
+                            "number2" to "{result.square}",
+                            "number3" to "{result.square}"
+                        ),
+                        plugOutMap = mapOf(
+                            "{result}" to "{result.addMulti}"
+                        )
+                    )
+                )
+            ),
+            outputMap = mapOf(
+                "result" to "{result.addMulti}"
+            )
+        )
     }
 
 

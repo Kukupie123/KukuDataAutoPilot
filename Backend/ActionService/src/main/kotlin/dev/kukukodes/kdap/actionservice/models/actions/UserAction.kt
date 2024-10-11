@@ -4,7 +4,7 @@ import dev.kukukodes.kdap.actionservice.models.actions.plug.ActionPlug
 
 class UserAction(
     override val name: String,
-    override val description: String,
+    override val description: String = "",
     override val plugIn: Map<String, ActionPlug>,
     override val plugOut: Map<String, ActionPlug>,
     /**
