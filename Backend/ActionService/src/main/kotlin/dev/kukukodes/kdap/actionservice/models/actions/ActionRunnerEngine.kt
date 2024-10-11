@@ -8,7 +8,12 @@ import org.slf4j.LoggerFactory
 
 class ActionRunnerEngine {
     private val log: Logger = LoggerFactory.getLogger(ActionRunnerEngine::class.java)
-    fun executeAction(action: Action, storage: Map<String, Any?>): Map<String, Any?>? {
+    fun executeAction(action: InnerAction, storage: Map<String, Any?>): Map<String, Any?>? {
+        val inputValues = parseValuesFromMap(storage, action.actionConnection.plugInMap)
+        return executeActionPvt(action.action, inputValues)
+    }
+
+    private fun executeActionPvt(action: Action, storage: Map<String, Any?>): Map<String, Any?>? {
         if (action is DefinedActionBase) {
             //Defined Actions require the values to be present in the storage. It doesn't parse
             val inputs = mutableMapOf<String, Any?>()
@@ -30,7 +35,7 @@ class ActionRunnerEngine {
             //Get input values
             val inputValues = parseValuesFromMap(scopeStorage, innerAction.actionConnection.plugInMap)
             //Store output of action
-            val output = executeAction(innerAction.action, inputValues)
+            val output = executeActionPvt(innerAction.action, inputValues)
             // Map the output to a valid scopeStorage key using plugOutMap
             if (output != null && innerAction.actionConnection.plugOutMap.isNotEmpty()) {
                 for ((outputKey, storageKey) in innerAction.actionConnection.plugOutMap) {

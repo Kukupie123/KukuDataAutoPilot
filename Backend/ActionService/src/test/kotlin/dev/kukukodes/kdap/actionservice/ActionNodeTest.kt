@@ -15,110 +15,129 @@ class ActionServiceTest {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     @Test
-    fun version2() {
+    fun squareAction() {
         val storage = mutableMapOf(
-            "add" to mutableMapOf(
-                "one" to 5,
-                "two" to "10"
-            ),
-            "product" to 3,
+            "storageNum" to 2
         )
-
-        val add = AddAction()
-        val addConnection = ActionConnection(
-            plugInMap = mapOf(
-                "num1" to "{add.one}",
-                "num2" to "{add.two}",
-            ),
-            plugOutMap = mapOf(
-                "{result}" to "{sum}"
-            )
-        )
-
-        val pro = MultiplyAction()
-        val proConnection = ActionConnection(
-            plugInMap = mapOf(
-                "num1" to "{sum}",
-                "num2" to "{product}"
-            ), plugOutMap = mapOf(
-                "{result}" to "{final}"
-            )
-        )
-
-        val userAddMulti = UserAction(
-            "Add and multiplication",
-            "Adds two number then multiplies the result with another number",
-            plugIn = mapOf(
-                "num" to ActionPlug.Primitive("DECIMAL", defaultValue = 1)
-            ),
-            plugOut = mapOf(
-                "result" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0),
-            ),
-            actions = listOf(InnerAction(add, addConnection), InnerAction(pro, proConnection)),
-            outputMap = mapOf("{result}" to "{final}")
-        )
-
+        val userSquareAction = createSquareAction()
         val engine = ActionRunnerEngine()
-        val finalOutput = engine.executeAction(userAddMulti, storage)
-
-        println("Final output: $finalOutput")
-        Assertions.assertThat(finalOutput).isNotNull
-        Assertions.assertThat(finalOutput?.containsKey("result")).isTrue()
-        Assertions.assertThat(finalOutput?.get("result")).isEqualTo(45.0f)
+        val result = engine.executeAction(
+            InnerAction(
+                userSquareAction,
+                ActionConnection(
+                    plugInMap = mapOf(
+                        "number" to "{storageNum}"
+                    ),
+                )
+            ),
+            storage = storage
+        )
+        log.info(result.toString())
+        Assertions.assertThat(result).isNotNull
+        Assertions.assertThat(result?.get("result")).isEqualTo(4.0f)
     }
-
     @Test
-    fun nestedInputAndOutputTest() {
+    fun nestedPlugs() {
         val storage = mutableMapOf(
             "add" to mutableMapOf(
-                "one" to 5,
-                "two" to "10"
+                "num1" to 2,
+                "num2" to 5,
             ),
-            "product" to 3,
+            "product" to 2
         )
 
-        val add = AddAction()
-        val addConnection = ActionConnection(
-            plugInMap = mapOf(
-                "num1" to "{add.one}",
-                "num2" to "{add.two}",
-            ),
-            //Store the value of result in sum
-            plugOutMap = mapOf(
-                "{result}" to "{result.sum}"
-            )
+        val addMultiAction = createAddAndMultiplyAction()
+        val engine = ActionRunnerEngine()
+        val result = engine.executeAction(
+            InnerAction(
+                addMultiAction,
+                ActionConnection(
+                    plugInMap = mapOf(
+                        "number1" to "{add.num1}",
+                        "number2" to "{add.num2}",
+                        "number3" to "{product}"
+                    )
+                )
+            ), storage
         )
+        log.info(result.toString())
+    }
 
-        val pro = MultiplyAction()
-        val proConnection = ActionConnection(
-            plugInMap = mapOf(
-                "num1" to "{result.sum}",
-                "num2" to "{product}"
-            ), plugOutMap = mapOf(
-                "{result}" to "{result.final}"
-            )
-        )
 
-        val userAddMulti = UserAction(
-            "Add and multiplication",
-            "Adds two number then multiplies the result with another number",
+    private fun createAddAndMultiplyAction(): UserAction {
+        return UserAction(
+            name = "Add Multiply Action",
+            description = "Adds a number then multiplies",
             plugIn = mapOf(
-                "num" to ActionPlug.Primitive("DECIMAL", defaultValue = 1)
+                "number1" to ActionPlug.Primitive("DECIMAL", defaultValue = 0),
+                "number2" to ActionPlug.Primitive("DECIMAL", defaultValue = 0),
+                "number3" to ActionPlug.Primitive("DECIMAL", defaultValue = 0),
+            ),
+            plugOut = mapOf(
+                "result" to ActionPlug.Primitive("DECIMAL", defaultValue = 0),
+            ),
+            actions = listOf(
+                //Add inner action
+                InnerAction(
+                    action = AddAction(),
+                    actionConnection = ActionConnection(
+                        plugInMap = mapOf(
+                            "num1" to "{number1}",
+                            "num2" to "{number2}",
+                        ),
+                        plugOutMap = mapOf(
+                            "{result}" to "{result.add}"
+                        )
+                    )
+                ),
+                //Multiple inner action
+                InnerAction(
+                    action = MultiplyAction(),
+                    actionConnection = ActionConnection(
+                        plugInMap = mapOf(
+                            "num1" to "{result.add}",
+                            "num2" to "{number3}"
+                        ),
+                        plugOutMap = mapOf(
+                            "{result}" to "{result.multiply}"
+                        )
+                    )
+                )
+            ),
+            outputMap = mapOf(
+                "result" to "{result.multiply}"
+            )
+        )
+    }
+
+
+    private fun createSquareAction(): UserAction {
+        return UserAction(
+            name = "Square action",
+            description = "Square action",
+            plugIn = mapOf(
+                "number" to ActionPlug.Primitive("DECIMAL", defaultValue = 0)
             ),
             plugOut = mapOf(
                 "result" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0),
             ),
-            actions = listOf(InnerAction(add, addConnection), InnerAction(pro, proConnection)),
-            outputMap = mapOf("result" to "{result.final}")
+            actions = listOf(
+                InnerAction(
+                    action = MultiplyAction(),
+                    actionConnection = ActionConnection(
+                        plugInMap = mapOf(
+                            "num1" to "{number}",
+                            "num2" to "{number}",
+                        ),
+                        plugOutMap = mapOf(
+                            "{result}" to "{result.square}"
+                        ),
+                    )
+                )
+            ),
+            outputMap = mapOf(
+                "result" to "{result.square}"
+            )
         )
-
-        val engine = ActionRunnerEngine()
-        val finalOutput = engine.executeAction(userAddMulti, storage)
-
-        println("Final output: $finalOutput")
-        Assertions.assertThat(finalOutput).isNotNull
-        Assertions.assertThat(finalOutput?.containsKey("result")).isTrue()
-        Assertions.assertThat(finalOutput?.get("result")).isEqualTo(45.0f)
     }
-
 }
