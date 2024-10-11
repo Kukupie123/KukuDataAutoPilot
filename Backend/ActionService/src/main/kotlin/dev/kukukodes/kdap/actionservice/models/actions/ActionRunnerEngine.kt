@@ -28,23 +28,35 @@ class ActionRunnerEngine {
         // Execute each inner action
         for (innerAction in userAction.actions) {
             //Get input values
-            val inputValues = parseInputValuesFromMap(scopeStorage, innerAction.actionConnection.plugInMap)
+            val inputValues = parseValuesFromMap(scopeStorage, innerAction.actionConnection.plugInMap)
+            //Store output of action
             val output = executeAction(innerAction.action, inputValues)
-            // Store output in working storage using connection mapping
-            for ((outputKey, storageKey) in innerAction.actionConnection.plugOutMap) {
-                scopeStorage[storageKey] = output?.get(outputKey)
-                    ?: throw IllegalStateException("Expected output key $outputKey not found in action result")
+            // Map the output to a valid scopeStorage key using plugOutMap
+            if (output != null && innerAction.actionConnection.plugOutMap.isNotEmpty()) {
+                for ((outputKey, storageKey) in innerAction.actionConnection.plugOutMap) {
+                    if (!(storageKey.startsWith("{") && storageKey.endsWith("}"))) {
+                        throw Exception("Invalid storage key while storing output")
+                    }
+                    val outputVal = parseInput(outputKey, output)
+                    val storageKeyMap = storageKey.substring(1, storageKey.length - 1).split(".")
+                    if (storageKeyMap.size == 1) {
+                        scopeStorage[storageKeyMap[0]] = outputVal
+                    } else {
+                        val maxLevel = storageKeyMap.size - 2
+                        var nestedMap = scopeStorage
+                        for (i in 0..maxLevel) {
+                            nestedMap = (scopeStorage[storageKeyMap[i]] as Map<String, Any?>).toMutableMap()
+                        }
+                        nestedMap[storageKeyMap[storageKeyMap.size - 1]] = outputVal
+                    }
+                }
             }
         }
         // Prepare final output according to UserAction's output mapping
-        val actionOutput = mutableMapOf<String, Any?>()
-        for (outputMap in userAction.outputMap) {
-            actionOutput[outputMap.key] = scopeStorage[outputMap.value]
-        }
-        return actionOutput
+        return parseValuesFromMap(scopeStorage, userAction.outputMap)
     }
 
-    private fun parseInputValuesFromMap(storage: Map<String, Any?>, plug: Map<String, String>): Map<String, Any?> {
+    private fun parseValuesFromMap(storage: Map<String, Any?>, plug: Map<String, String>): Map<String, Any?> {
         val inputMap = mutableMapOf<String, Any?>()
         for ((key, value) in plug) {
             inputMap[key] = parseInput(value, storage)
@@ -73,5 +85,6 @@ class ActionRunnerEngine {
         // Literal value
         return inputExpression
     }
+
 
 }

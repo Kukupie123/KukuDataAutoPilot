@@ -29,8 +29,9 @@ class ActionServiceTest {
             plugInMap = mapOf(
                 "num1" to "{add.one}",
                 "num2" to "{add.two}",
-            ), plugOutMap = mapOf(
-                "result" to "sum"
+            ),
+            plugOutMap = mapOf(
+                "{result}" to "{sum}"
             )
         )
 
@@ -40,7 +41,7 @@ class ActionServiceTest {
                 "num1" to "{sum}",
                 "num2" to "{product}"
             ), plugOutMap = mapOf(
-                "result" to "final"
+                "{result}" to "{final}"
             )
         )
 
@@ -54,7 +55,7 @@ class ActionServiceTest {
                 "result" to ActionPlug.Primitive(type = "DECIMAL", defaultValue = 0),
             ),
             actions = listOf(InnerAction(add, addConnection), InnerAction(pro, proConnection)),
-            outputMap = mapOf("result" to "final")
+            outputMap = mapOf("{result}" to "{final}")
         )
 
         val engine = ActionRunnerEngine()
@@ -65,4 +66,6 @@ class ActionServiceTest {
         Assertions.assertThat(finalOutput?.containsKey("result")).isTrue()
         Assertions.assertThat(finalOutput?.get("result")).isEqualTo(45.0f)
     }
+
+
 }
