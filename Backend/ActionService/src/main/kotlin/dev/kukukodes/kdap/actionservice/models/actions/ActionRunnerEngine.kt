@@ -45,7 +45,11 @@ class ActionRunnerEngine {
                         val maxLevel = storageKeyMap.size - 2
                         var nestedMap = scopeStorage
                         for (i in 0..maxLevel) {
-                            nestedMap = (scopeStorage[storageKeyMap[i]] as Map<String, Any?>).toMutableMap()
+                            //Check if key is already there, if not then create new mutableHashMap
+                            if (!scopeStorage.containsKey(storageKeyMap[i])) {
+                                scopeStorage[storageKeyMap[i]] = emptyMap<String, Any?>().toMutableMap()
+                            }
+                            nestedMap = scopeStorage[storageKeyMap[i]] as MutableMap<String, Any?>
                         }
                         nestedMap[storageKeyMap[storageKeyMap.size - 1]] = outputVal
                     }
