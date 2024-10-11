@@ -7,6 +7,7 @@ import dev.kukukodes.kdap.actionservice.models.actions.UserAction
 import dev.kukukodes.kdap.actionservice.models.actions.definedActions.AddAction
 import dev.kukukodes.kdap.actionservice.models.actions.definedActions.MultiplyAction
 import dev.kukukodes.kdap.actionservice.models.actions.plug.ActionPlug
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 
@@ -16,18 +17,19 @@ class ActionServiceTest {
     @Test
     fun version2() {
         val storage = mutableMapOf(
-            "one" to 1,
-            "two" to 2,
-            "three" to 3,
+            "add" to mutableMapOf(
+                "one" to 5,
+                "two" to "10"
+            ),
+            "product" to 3,
         )
 
         val add = AddAction()
         val addConnection = ActionConnection(
             plugInMap = mapOf(
-                "num1" to "one",
-                "num2" to "two",
-            ),
-            plugOutMap = mapOf(
+                "num1" to "{add.one}",
+                "num2" to "{add.two}",
+            ), plugOutMap = mapOf(
                 "result" to "sum"
             )
         )
@@ -35,10 +37,9 @@ class ActionServiceTest {
         val pro = MultiplyAction()
         val proConnection = ActionConnection(
             plugInMap = mapOf(
-                "num1" to "sum",
-                "num2" to "three"
-            ),
-            plugOutMap = mapOf(
+                "num1" to "{sum}",
+                "num2" to "{product}"
+            ), plugOutMap = mapOf(
                 "result" to "final"
             )
         )
@@ -60,5 +61,8 @@ class ActionServiceTest {
         val finalOutput = engine.executeAction(userAddMulti, storage)
 
         println("Final output: $finalOutput")
+        Assertions.assertThat(finalOutput).isNotNull
+        Assertions.assertThat(finalOutput?.containsKey("result")).isTrue()
+        Assertions.assertThat(finalOutput?.get("result")).isEqualTo(45.0f)
     }
 }
