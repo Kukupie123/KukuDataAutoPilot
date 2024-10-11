@@ -8,92 +8,143 @@ import org.slf4j.LoggerFactory
 
 class ActionRunnerEngine {
     private val log: Logger = LoggerFactory.getLogger(ActionRunnerEngine::class.java)
+
+    /**
+     * Executes the given InnerAction using the provided storage.
+     * It first resolves input values based on the plug-in mapping and passes them to the action.
+     *
+     * @param action InnerAction to execute
+     * @param storage Storage map to use during execution
+     * @return The result as a map or null if there is no result
+     */
     fun executeAction(action: InnerAction, storage: Map<String, Any?>): Map<String, Any?>? {
-        val inputValues = parseValuesFromMap(storage, action.actionConnection.plugInMap)
-        return executeActionPvt(action.action, inputValues)
+        // Resolve input values using the plug-in map
+        val inputValues = resolveInputValues(storage, action.actionConnection.plugInMap)
+        // Execute the action with the resolved input values
+        return executeAction(action.action, inputValues)
     }
 
-    private fun executeActionPvt(action: Action, storage: Map<String, Any?>): Map<String, Any?>? {
+    /**
+     * Executes the given action with the provided input values.
+     * This method handles both DefinedActionBase and UserAction types.
+     *
+     * @param action The Action to execute
+     * @param input The input values to pass to the action
+     * @return A map with the result or null
+     */
+    private fun executeAction(action: Action, input: Map<String, Any?>): Map<String, Any?>? {
         if (action is DefinedActionBase) {
-            //Defined Actions require the values to be present in the storage. It doesn't parse
+            // Map the input values according to the plug-in mapping and execute the action
             val inputs = mutableMapOf<String, Any?>()
-            for (plugInMap in action.plugIn) {
-                inputs[plugInMap.key] = storage[plugInMap.key]
+            for (plugInKey in action.plugIn.keys) {
+                inputs[plugInKey] = input[plugInKey]
             }
             return action.execute(inputs)
         } else if (action is UserAction) {
-            return executeUserAction(action, storage)
+            // Execute the UserAction and return the result
+            return executeUserAction(action, input)
         }
         return null
     }
 
-
+    /**
+     * Executes a UserAction by processing all the inner actions it contains.
+     * For each inner action, it resolves input values, executes the action, and stores the result in scoped storage.
+     *
+     * @param userAction The UserAction to execute
+     * @param input The initial input values
+     * @return The final output map according to the output mapping
+     */
     private fun executeUserAction(userAction: UserAction, input: Map<String, Any?>): Map<String, Any?> {
-        val scopeStorage = input.toMutableMap()
-        // Execute each inner action
+        // Create a mutable storage map to store temporary data
+        val scopedStorage = input.toMutableMap()
+
+        // Loop through each inner action in the UserAction
         for (innerAction in userAction.actions) {
-            //Get input values
-            val inputValues = parseValuesFromMap(scopeStorage, innerAction.actionConnection.plugInMap)
-            //Store output of action
-            val output = executeActionPvt(innerAction.action, inputValues)
-            // Map the output to a valid scopeStorage key using plugOutMap
+            // Resolve the input values for the inner action
+            val inputValues = resolveInputValues(scopedStorage, innerAction.actionConnection.plugInMap)
+            // Execute the inner action
+            val output = executeAction(innerAction.action, inputValues)
+
+            // If the action produces an output, map it to the scopedStorage using plugOutMap
             if (output != null && innerAction.actionConnection.plugOutMap.isNotEmpty()) {
                 for ((outputKey, storageKey) in innerAction.actionConnection.plugOutMap) {
                     if (!(storageKey.startsWith("{") && storageKey.endsWith("}"))) {
                         throw Exception("Invalid storage key while storing output")
                     }
-                    val outputVal = parseInput(outputKey, output)
-                    val storageKeyMap = storageKey.substring(1, storageKey.length - 1).split(".")
-                    if (storageKeyMap.size == 1) {
-                        scopeStorage[storageKeyMap[0]] = outputVal
-                    } else {
-                        val maxLevel = storageKeyMap.size - 2
-                        var nestedMap = scopeStorage
-                        for (i in 0..maxLevel) {
-                            //Check if key is already there, if not then create new mutableHashMap
-                            if (!scopeStorage.containsKey(storageKeyMap[i])) {
-                                scopeStorage[storageKeyMap[i]] = emptyMap<String, Any?>().toMutableMap()
-                            }
-                            nestedMap = scopeStorage[storageKeyMap[i]] as MutableMap<String, Any?>
-                        }
-                        nestedMap[storageKeyMap[storageKeyMap.size - 1]] = outputVal
-                    }
+                    // Get the value from the output using outputKey
+                    val outputValue = resolveInput(outputKey, output)
+                    // Store the result in scopedStorage according to storageKey
+                    storeNestedValue(scopedStorage, storageKey, outputValue)
                 }
             }
         }
-        // Prepare final output according to UserAction's output mapping
-        return parseValuesFromMap(scopeStorage, userAction.outputMap)
+        // Prepare the final output map according to UserAction's output mapping
+        return resolveInputValues(scopedStorage, userAction.outputMap)
     }
 
-    private fun parseValuesFromMap(storage: Map<String, Any?>, plug: Map<String, String>): Map<String, Any?> {
-        val inputMap = mutableMapOf<String, Any?>()
+    /**
+     * Resolves input values from storage using the provided plug-in map.
+     *
+     * @param storage The storage map
+     * @param plug The plug-in map that defines mappings from storage keys to action parameters
+     * @return A map of resolved input values
+     */
+    private fun resolveInputValues(storage: Map<String, Any?>, plug: Map<String, String>): Map<String, Any?> {
+        val resolvedValues = mutableMapOf<String, Any?>()
+        // Loop through each entry in the plug-in map and resolve the input values from storage
         for ((key, value) in plug) {
-            inputMap[key] = parseInput(value, storage)
+            resolvedValues[key] = resolveInput(value, storage)
         }
-        return inputMap
+        return resolvedValues
     }
 
-    private fun parseInput(inputExpression: String, storage: Map<String, Any?>): Any? {
-        log.info("Parsing input expression: $inputExpression for Storage $storage")
+    /**
+     * Resolves an input expression, which can either be a literal value or a reference to a storage key.
+     * If the expression is a storage reference (e.g., "{key.subkey}"), it navigates through the storage map.
+     *
+     * @param inputExpression The input expression to resolve
+     * @param storage The storage map to use for resolving the expression
+     * @return The resolved value or the literal value
+     */
+    private fun resolveInput(inputExpression: String, storage: Map<String, Any?>): Any? {
+        log.info("Resolving input expression: $inputExpression for storage: $storage")
+        // Check if the expression is a reference to a storage key (e.g., "{key.subkey}")
         if (inputExpression.startsWith("{") && inputExpression.endsWith("}")) {
-            var updatedInputExpression = inputExpression.substring(1, inputExpression.length - 1)
-            //It is an expression
-            var levels = updatedInputExpression.split(".")
-            if (levels.size == 1) {
-                return storage[levels[0]]
+            val keys = inputExpression.substring(1, inputExpression.length - 1).split(".")
+            var currentMap: Any? = storage
+            // Navigate through the nested storage map
+            for (key in keys) {
+                currentMap = (currentMap as? Map<String, Any?>)?.get(key)
+                if (currentMap == null) {
+                    return null // Return null if any level is missing
+                }
             }
-            //Access the first level sub map
-            val subMap = storage[levels[0]] as Map<String, Any?>
-            levels = levels.subList(1, levels.size) //Remove the first element because we are accessing it
-            //Create new input expression without the first level
-            updatedInputExpression = "{"
-            updatedInputExpression += levels.joinToString(".")
-            updatedInputExpression += "}"
-            return parseInput(updatedInputExpression, subMap)
+            return currentMap
         }
-        // Literal value
+        // If it's a literal value, return it directly
         return inputExpression
     }
 
-
+    /**
+     * Stores a value in a nested map structure based on the storage key expression.
+     *
+     * @param storage The storage map where the value should be stored
+     * @param storageKey The storage key expression (e.g., "{key.subkey}")
+     * @param value The value to store
+     */
+    private fun storeNestedValue(storage: MutableMap<String, Any?>, storageKey: String, value: Any?) {
+        val keys = storageKey.substring(1, storageKey.length - 1).split(".")
+        var currentMap: MutableMap<String, Any?> = storage
+        // Navigate through the nested map structure
+        for (i in 0 until keys.size - 1) {
+            // If the key is not present, create a new nested map
+            if (currentMap[keys[i]] !is MutableMap<*, *>) {
+                currentMap[keys[i]] = mutableMapOf<String, Any?>()
+            }
+            currentMap = currentMap[keys[i]] as MutableMap<String, Any?>
+        }
+        // Store the final value in the last key
+        currentMap[keys.last()] = value
+    }
 }
